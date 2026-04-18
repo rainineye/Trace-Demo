@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useMemo, useRef, useEffect } from "react";
 
 // ============================================================================
@@ -370,8 +368,11 @@ function FullscreenGraph({
         const y = evY[ev.id];
         const isSel = selectedEv === ev.id;
         const isHov = hoverEv === ev.id;
-        const isFocus = focusEv === ev.id;
-        const dim = focusEv && !isFocus;
+        const isFocusByEv = focusEv === ev.id;
+        const isFocusByCand = hoverCand && ev.edges.some(e => e.to === hoverCand);
+        const isFocus = isFocusByEv || isFocusByCand;
+        const anyFocus = focusEv || hoverCand;
+        const dim = anyFocus && !isFocus;
         const cluster = ev.cluster === "western_intel_leaks";
         return (
           <g key={`ev-dot-${ev.id}`}
@@ -444,8 +445,13 @@ function FullscreenGraph({
       {evs.map((ev) => {
         const y = evY[ev.id];
         const isSel = selectedEv === ev.id;
-        const isFocus = focusEv === ev.id;
-        const dim = focusEv && !isFocus;
+        // Evidence can be focused either via hoverEv/selectedEv (its own focus)
+        // or via hoverCand (reverse-trace: evidence supports the hovered candidate)
+        const isFocusByEv = focusEv === ev.id;
+        const isFocusByCand = hoverCand && ev.edges.some(e => e.to === hoverCand);
+        const isFocus = isFocusByEv || isFocusByCand;
+        const anyFocus = focusEv || hoverCand;
+        const dim = anyFocus && !isFocus;
         const labelText = ev.label.length > 44 ? ev.label.slice(0,42)+"…" : ev.label;
         const metaText = `${ev.published} · cred ${ev.credibility.toFixed(2)}`;
         // Accurate measured widths for halo backgrounds (focus font size = 14)
@@ -456,7 +462,7 @@ function FullscreenGraph({
           <g key={`ev-label-${ev.id}`}
              onMouseEnter={()=>setHoverEv(ev.id)}
              onMouseLeave={()=>setHoverEv(null)}
-             onMouseDown={()=>setSelectedEv(isSel ? null : ev.id)}
+             onMouseDown={(e)=>{ e.stopPropagation(); setSelectedEv(isSel ? null : ev.id); }}
              style={{ cursor:"pointer", opacity: dim ? 0.4 : 1, transition:"opacity 0.3s" }}>
             {/* Evidence ID (e.g. "E12") — halo only when focused */}
             {isFocus && (
@@ -514,7 +520,8 @@ function FullscreenGraph({
         const cc = candColor(c);
         const fill = isSupported ? cc : colors.paper;
         const radius = 6 + v * Math.min(width, height) * 0.05;
-        const dim = focusEv && !isSupported && !isOpposed;
+        const dim = (focusEv && !isSupported && !isOpposed)
+                 || (hoverCand && hoverCand !== c);
         const candText = CAND_READABLE[c] || CANDIDATES[c].label;
         const pctText = `${(v*100).toFixed(1)}%`;
 
@@ -2129,6 +2136,72 @@ export default function TraceCaseFile() {
   const [fullscreen, setFullscreen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [panning, setPanning] = useState(false);
+  const [panKeyHeld, setPanKeyHeld] = useState(false);
+  const panStart = useRef({ x: 0, y: 0, originX: 0, originY: 0 });
+
+  const canPan = fullscreen && zoom > 1;
+  const panReady = canPan && panKeyHeld;
+
+  // Track Space / Cmd / Ctrl for pan affordance
+  useEffect(() => {
+    if (!canPan) { setPanKeyHeld(false); return; }
+    const isPanKey = (e) => e.code === "Space" || e.metaKey || e.ctrlKey;
+    const onDown = (e) => {
+      if (isPanKey(e)) {
+        // Prevent Space from scrolling the page while pan-ready
+        if (e.code === "Space") e.preventDefault();
+        setPanKeyHeld(true);
+      }
+    };
+    const onUp = (e) => {
+      // Release when key lifts or modifier dropped
+      if (e.code === "Space" || e.key === "Meta" || e.key === "Control") {
+        setPanKeyHeld(false);
+      }
+    };
+    const onBlur = () => setPanKeyHeld(false);
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [canPan]);
+
+  const onPanMouseDown = (e) => {
+    if (!panReady) return;
+    panStart.current = {
+      x: e.clientX, y: e.clientY,
+      originX: pan.x, originY: pan.y,
+    };
+    setPanning(true);
+  };
+
+  useEffect(() => {
+    if (!panning) return;
+    const onMove = (e) => {
+      setPan({
+        x: panStart.current.originX + (e.clientX - panStart.current.x),
+        y: panStart.current.originY + (e.clientY - panStart.current.y),
+      });
+    };
+    const onUp = () => setPanning(false);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [panning]);
+
+  // Reset pan when zoom returns to 1 or fullscreen exits
+  useEffect(() => {
+    if (zoom === 1 || !fullscreen) setPan({ x: 0, y: 0 });
+  }, [zoom, fullscreen]);
 
   const tp = TIMELINE[idx];
   const cutoffDate = tp.date;
@@ -2233,12 +2306,15 @@ export default function TraceCaseFile() {
         overflow:"hidden",
         zIndex: fullscreen ? 100 : 1,
       }}>
-        <div style={{
-          position:"absolute", inset: 0,
-          transform: `scale(${zoom})`,
-          transformOrigin: "center center",
-          transition: "transform 0.2s cubic-bezier(.2,.7,.2,1)",
-        }}>
+        <div
+          onMouseDown={onPanMouseDown}
+          style={{
+            position:"absolute", inset: 0,
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
+            transition: panning ? "none" : "transform 0.2s cubic-bezier(.2,.7,.2,1)",
+            cursor: panning ? "grabbing" : (panReady ? "grab" : "default"),
+          }}>
           <FullscreenGraph
             activeEvidence={activeEvidence}
             distribution={tp.distribution}
@@ -2264,9 +2340,9 @@ export default function TraceCaseFile() {
           onPlayToggle={onPlayToggle}
         />
 
-        {/* Legend — top-left, no chrome */}
+        {/* Legend — top-left, no chrome (shifted down in fullscreen to avoid zoom control) */}
         <div style={{
-          position:"absolute", top: 22, left: 24, zIndex: 6,
+          position:"absolute", top: fullscreen ? 62 : 22, left: 24, zIndex: 6,
           display:"flex", flexDirection:"column", gap: 8,
           fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5, color: colors.inkMute,
           letterSpacing: 0.5, pointerEvents:"none",
@@ -2296,10 +2372,10 @@ export default function TraceCaseFile() {
         {/* Timeline overlay — bottom of graph area */}
         <TimelineOverlay idx={idx} setIdx={setIdxUser} />
 
-        {/* Zoom controls — only in fullscreen, top-right (sits left of the exit button so legend stays unobstructed) */}
+        {/* Zoom controls — only in fullscreen, top-left corner */}
         {fullscreen && (
           <div style={{
-            position:"absolute", top: 20, right: 130, zIndex: 15,
+            position:"absolute", top: 20, left: 20, zIndex: 15,
             display:"flex", alignItems:"stretch",
             background: "rgba(250, 248, 243, 0.72)",
             backdropFilter:"blur(14px) saturate(140%)",
@@ -2368,6 +2444,41 @@ export default function TraceCaseFile() {
                 <rect x="4" y="0" width="2" height="10" fill="currentColor"/>
               </svg>
             </button>
+          </div>
+        )}
+
+        {/* Pan affordance hint — only when zoomed in, subtly invites the gesture */}
+        {fullscreen && zoom > 1 && (
+          <div style={{
+            position:"absolute", top: 22, left: 154, zIndex: 15,
+            display:"flex", alignItems:"center", gap: 6,
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+            color: panReady ? colors.primary : colors.inkMute,
+            letterSpacing: 0.5, textTransform:"uppercase",
+            pointerEvents:"none",
+            transition:"color 0.15s, opacity 0.2s",
+            opacity: panning ? 0.4 : 1,
+          }}>
+            <span style={{
+              display:"inline-flex", alignItems:"center",
+              padding: "2px 6px",
+              border: `1px solid ${panReady ? colors.primary : colors.rule}`,
+              borderRadius: 2,
+              fontSize: 8.5,
+              lineHeight: 1,
+              transition:"border-color 0.15s",
+            }}>⌘</span>
+            <span style={{ fontSize: 8.5 }}>or</span>
+            <span style={{
+              display:"inline-flex", alignItems:"center",
+              padding: "2px 8px",
+              border: `1px solid ${panReady ? colors.primary : colors.rule}`,
+              borderRadius: 2,
+              fontSize: 8.5,
+              lineHeight: 1,
+              transition:"border-color 0.15s",
+            }}>space</span>
+            <span style={{ marginLeft: 2 }}>{panReady ? "drag to pan" : "hold to pan"}</span>
           </div>
         )}
 
