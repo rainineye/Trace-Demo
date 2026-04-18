@@ -9,16 +9,7 @@ export async function POST(request) {
   const token = process.env.AUTH_TOKEN;
 
   if (password !== expectedPassword) {
-    // DEBUG: remove after diagnosing
-    return NextResponse.json({
-      error: 'invalid',
-      debug: {
-        envLoaded: expectedPassword !== undefined,
-        expectedLength: expectedPassword ? expectedPassword.length : 0,
-        receivedLength: password ? password.length : 0,
-        tokenLoaded: token !== undefined,
-      }
-    }, { status: 401 });
+    return NextResponse.json({ error: 'invalid' }, { status: 401 });
   }
 
   const response = NextResponse.json({ ok: true });

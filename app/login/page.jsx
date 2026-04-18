@@ -35,7 +35,7 @@ function LoginPageInner() {
     });
 
     if (res.ok) {
-      router.push(from);
+      window.location.href = from;
     } else {
       setError('Incorrect password');
       setLoading(false);
