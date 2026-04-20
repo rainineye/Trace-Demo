@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import TraceCaseFile from './TraceCaseFile';
+import TraceCaseFile from './trace-nordstream-case_v3v4';
 
 const COOKIE_NAME = 'trace_auth';
 
