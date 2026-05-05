@@ -1313,14 +1313,14 @@ function V03_EvidenceDrawer({ ev, onClose }) {
 // MASTHEAD + V03_TIMELINE OVERLAY
 // ============================================================================
 
-function V03_Masthead({ activeEventCount, activeSilenceCount, totalEventCount, totalSilenceCount, currentLabel, currentDate, isFullscreen, onToggleFullscreen }) {
+function V03_Masthead({ mode, setMode, activeEventCount, activeSilenceCount, totalEventCount, totalSilenceCount, currentLabel, currentDate, isFullscreen, onToggleFullscreen }) {
   return (
     <div style={{
       borderBottom: `1px solid ${V03_colors.rule}`,
       background: V03_colors.paper,
       padding: "18px 32px 22px",
     }}>
-      {/* Top row: Trace + meta on left, fullscreen button on right */}
+      {/* Top row: Trace + meta on left, mode toggle + fullscreen on right */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         gap: 24, flexWrap:"wrap",
@@ -1336,60 +1336,69 @@ function V03_Masthead({ activeEventCount, activeSilenceCount, totalEventCount, t
             color: V03_colors.inkMute, letterSpacing: 1, textTransform:"uppercase",
             lineHeight: 1,
           }}>
-            Case file 001 · v0.3.1 · {activeEventCount}/{totalEventCount} events · {activeSilenceCount}/{totalSilenceCount} silences
-          </div>
-          <div style={{
-            fontFamily:"'Instrument Sans', sans-serif", fontSize: 11,
-            color: V03_colors.inkSoft, letterSpacing: 0.1,
-            lineHeight: 1,
-            fontWeight: 500,
-          }}>
-            {currentLabel}
-          </div>
-          <div style={{
-            fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-            color: V03_colors.inkMute, letterSpacing: 0.6,
-            lineHeight: 1,
-          }}>
-            {currentDate}
+            Case file 001 · v0.3
           </div>
         </div>
 
-        <button onClick={onToggleFullscreen}
-          style={{
-            background: isFullscreen ? V03_colors.ink : "transparent",
-            color: isFullscreen ? V03_colors.paper : V03_colors.inkSoft,
-            border: `1px solid ${isFullscreen ? V03_colors.ink : V03_colors.rule}`,
-            padding: "6px 11px", borderRadius: 2,
-            fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-            letterSpacing: 1, textTransform: "uppercase",
-            cursor: "pointer",
-            display:"flex", alignItems:"center", gap: 7,
-            transition: "all 0.2s",
-            flexShrink: 0,
-            whiteSpace:"nowrap",
-          }}
-          onMouseEnter={(e)=>{
-            if (!isFullscreen) {
-              e.currentTarget.style.color = V03_colors.ink;
-              e.currentTarget.style.borderColor = V03_colors.ink;
-            }
-          }}
-          onMouseLeave={(e)=>{
-            if (!isFullscreen) {
-              e.currentTarget.style.color = V03_colors.inkSoft;
-              e.currentTarget.style.borderColor = V03_colors.rule;
-            }
-          }}
-        >
-          <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
-            <path d={isFullscreen
-              ? "M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
-              : "M4 1 L1 1 L1 4 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"}
-              stroke="currentColor" strokeWidth="1.2"/>
-          </svg>
-          {isFullscreen ? "exit" : "fullscreen"}
-        </button>
+        <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
+          {/* v0.3 / v0.4 mode toggle — mirrors the one in v0.4 Masthead */}
+          {setMode && (
+            <div style={{ display:"inline-flex", flexShrink: 0,
+              border: `1px solid ${V03_colors.rule}`, borderRadius: 2,
+              background: V03_colors.paper, padding: 1 }}>
+              {[
+                { key: "v03", label: "v0.3 · Brief" },
+                { key: "v04", label: "v0.4 · Full ver." },
+              ].map(opt => (
+                <button key={opt.key} onClick={()=>setMode(opt.key)}
+                  style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+                    letterSpacing: 0.7, textTransform:"uppercase",
+                    padding: "5px 11px", borderRadius: 1, border: "none", cursor: "pointer",
+                    background: mode === opt.key ? V03_colors.ink : "transparent",
+                    color: mode === opt.key ? V03_colors.paper : V03_colors.inkMute,
+                    transition:"all 0.15s", whiteSpace:"nowrap" }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button onClick={onToggleFullscreen}
+            style={{
+              background: isFullscreen ? V03_colors.ink : "transparent",
+              color: isFullscreen ? V03_colors.paper : V03_colors.inkSoft,
+              border: `1px solid ${isFullscreen ? V03_colors.ink : V03_colors.rule}`,
+              padding: "6px 11px", borderRadius: 2,
+              fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+              letterSpacing: 1, textTransform: "uppercase",
+              cursor: "pointer",
+              display:"flex", alignItems:"center", gap: 7,
+              transition: "all 0.2s",
+              flexShrink: 0,
+              whiteSpace:"nowrap",
+            }}
+            onMouseEnter={(e)=>{
+              if (!isFullscreen) {
+                e.currentTarget.style.color = V03_colors.ink;
+                e.currentTarget.style.borderColor = V03_colors.ink;
+              }
+            }}
+            onMouseLeave={(e)=>{
+              if (!isFullscreen) {
+                e.currentTarget.style.color = V03_colors.inkSoft;
+                e.currentTarget.style.borderColor = V03_colors.rule;
+              }
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
+              <path d={isFullscreen
+                ? "M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
+                : "M4 1 L1 1 L1 4 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"}
+                stroke="currentColor" strokeWidth="1.2"/>
+            </svg>
+            {isFullscreen ? "exit" : "fullscreen"}
+          </button>
+        </div>
       </div>
 
       {/* Bottom row: claim title with editorial decoration */}
@@ -2331,7 +2340,7 @@ function V03_LimitsSection() {
 // MAIN
 // ============================================================================
 
-function TraceV03Experience() {
+function TraceV03Experience({ mode, setMode }) {
   const [idx, setIdx] = useState(V03_TIMELINE.length - 1);
   const [selectedEv, setSelectedEv] = useState(null);
   const [hoverCand, setHoverCand] = useState(null);
@@ -2490,6 +2499,8 @@ function TraceV03Experience() {
       {/* MASTHEAD — full-width row (hidden in fullscreen) */}
       {!fullscreen && (
         <V03_Masthead
+          mode={mode}
+          setMode={setMode}
           activeEventCount={activeEvidence.filter(e => !e.silence).length}
           activeSilenceCount={activeEvidence.filter(e => e.silence).length}
           totalEventCount={V03_EVIDENCE.filter(e => !e.silence).length}
@@ -2929,19 +2940,48 @@ const CAND_READABLE_V04_SHORT = {
 // US involvement aggregate: C1 + C7 (overlap: C7 also appears in narrative support of Ukraine)
 // Everything else is its own bucket.
 // ----------------------------------------------------------------------------
+// Right-column nodes — one per storyline (or process subclaim), mirrors the
+// panel's distribution. No candidate-level expansion: reconstructions are the
+// user-facing layer, candidates are implementation detail.
 const BUCKETS_V04 = [
-  { id:"B_UA", label:"Ukraine", flag:"C2b", members:["C2b","C2a","C2c","C3"], expandable:true,
+  { id:"alpha", glyph:"α", label:"Ukrainian military bypass",
+    flag:"C2b", coverageOverride:0.70,
+    members:["C2b","C2a","C2c"], expandable:false,
     overlap:null },
-  { id:"B_US", label:"US involvement", flag:"C1", members:["C1","C7"], expandable:true,
-    overlap:"This bucket includes C7 (Ukrainian operations with CIA enabling), which also contributes to Ukraine's α narrative. The two buckets therefore sum to slightly over 100% — the excess is the overlap itself." },
-  { id:"B_UK", label:"United Kingdom", flag:"C5", members:["C5"], expandable:false, overlap:null },
-  { id:"B_RU", label:"Russia — self-sabotage", flag:"C4", members:["C4"], expandable:false, overlap:null },
-  { id:"B_OTHER", label:"Other actor", flag:"C6", members:["C6"], expandable:false, overlap:null },
-  { id:"B_UNK", label:"Outside candidate set", flag:"C_unknown", members:["C_unknown"], expandable:false, overlap:null },
-  { id:"B_INS", label:"Inconclusive", flag:"C_insufficient", members:["C_insufficient"], expandable:false, overlap:null },
+  { id:"epsilon", glyph:"ε", label:"Unknown actor / outside set",
+    flag:"C_unknown", coverageOverride:0.19,
+    members:["C6","C_unknown"], expandable:false,
+    overlap:null },
+  { id:"zeta", glyph:"ζ", label:"UK-layer (under-examined)",
+    flag:"C5", coverageOverride:0.06,
+    members:["C5"], expandable:false,
+    overlap:null },
+  { id:"beta", glyph:"β", label:"US / Western coordination",
+    flag:"C7", coverageOverride:0.05,
+    members:["C7"], expandable:false,
+    overlap:null },
+  { id:"delta", glyph:"δ", label:"Russian self-sabotage",
+    flag:"C4", coverageOverride:0.00,
+    members:["C4"], expandable:false, ruledOut:true,
+    overlap:"Ruled out by Andromeda forensic chain (F7) and Sachs's UN enumeration (E25) placing seven Western actors and explicitly excluding Russia." },
+  { id:"mu", glyph:"μ", label:"Institutional avoidance",
+    flag:"C_insufficient", coverageOverride:0.136,
+    members:["C_insufficient"], expandable:false, routedTo:"mu",
+    overlap:"On a parallel axis from the attribution claim. 13.6% of evidence corpus answers 'why has the question not been institutionally closed'." },
 ];
 
+// Note on excluded candidates not in this list:
+// C1 (Hersh's US-direct version) and C3 (independent rogue operators) are
+// candidates that do not map to any storyline. They are structurally ruled
+// out by physical/forensic evidence — see STRUCTURAL_EXCLUSIONS_V04 for full
+// audit trail. They are omitted from the right-column view because they add
+// no user-facing meaning (no storyline lands there).
+
 function bucketWeight(bucket, distribution) {
+  // Storyline-aligned buckets carry a narrative-fitted coverage that is NOT
+  // the sum of candidate weights (storylines are reconstructions, not
+  // candidate aggregations). Use override when present; fall back to sum.
+  if (bucket.coverageOverride != null) return bucket.coverageOverride;
   return bucket.members.reduce((s, c) => s + (distribution[c] || 0), 0);
 }
 
@@ -3026,20 +3066,32 @@ function getEvidenceBy(id) {
   return EVIDENCE_V04.find(e => e.id === id);
 }
 
-// Post-aggregation distribution (modality-corrected, cluster-dampened, CMEG-propagated, softmax τ=1.5)
-// These percentages come from the audit-corrected computation.
+// Post-aggregation distribution — v0.4.2 (attribution claim only).
+// C1/C3/C4 structurally excluded (weight 0 by construction per §2.5.4 Step 1);
+// C_insufficient moved out of attribution into a parallel process subclaim
+// (μ in the storyline space). Scaling factor 1.404 applied after exclusion
+// & subclaim separation: 100 / (100 - 15.3 - 13.6) ≈ 1.404.
+// Process subclaim: μ = 1.0 (sole answer), 13.6% of total evidence corpus.
 const DISTRIBUTION_V04 = {
-  C2b: 0.335,
-  C_insufficient: 0.136,
-  C7: 0.067,
-  C2c: 0.064,
-  C2a: 0.063,
-  C_unknown: 0.063,
-  C5: 0.062,
-  C6: 0.058,
-  C1: 0.057,
-  C4: 0.054,
-  C3: 0.042,
+  C2b: 0.470,
+  C7: 0.094,
+  C2c: 0.090,
+  C2a: 0.088,
+  C_unknown: 0.088,
+  C5: 0.087,
+  C6: 0.081,
+  C1: 0.0,
+  C3: 0.0,
+  C4: 0.0,
+  // C_insufficient routed to process subclaim — see PROCESS_SUBCLAIM_V042
+};
+
+// Process subclaim (v0.4.2) — parallel to attribution; not commensurate with
+// attribution percentages. UI may render this as a separate axis when ready.
+const PROCESS_SUBCLAIM_V042 = {
+  candidates: { mu: 1.0 },
+  evidenceShareOfCorpus: 0.136,
+  note: "13.6% of total evidence edges (reveals_suppression labels) feed this subclaim rather than the attribution claim. μ is the sole answer.",
 };
 
 const RAW_SCORES_V04 = {
@@ -3945,6 +3997,87 @@ const FIELD_TOOLTIPS = {
 };
 
 // ============================================================================
+// TIMELINE (v0.4) — key events on the case timeline, with per-point
+// distribution over the 11-candidate space.
+//
+// Distributions are generated by linear interpolation between a uniform
+// baseline (all candidates equal before any evidence) and DISTRIBUTION_V04
+// (post-aggregation final state). Each timepoint carries a `progress` value
+// 0..1 that places it on that interpolation curve; turning points (marked in
+// TURNING_POINTS_V04) correspond to larger progress jumps. When Mian's real
+// aggregation engine produces per-timepoint distributions, the bodies of
+// distAt / rawAt below can be replaced without touching the timeline shape.
+// ============================================================================
+
+const UNIFORM_V04 = Object.fromEntries(
+  CAND_ORDER_V04.map(c => [c, 1 / CAND_ORDER_V04.length])
+);
+
+function distAtV04(progress) {
+  const p = Math.max(0, Math.min(1, progress));
+  const out = {};
+  let sum = 0;
+  for (const c of CAND_ORDER_V04) {
+    const a = UNIFORM_V04[c];
+    const b = DISTRIBUTION_V04[c] ?? 0;
+    out[c] = a + (b - a) * p;
+    sum += out[c];
+  }
+  // normalize (small drift from rounding)
+  for (const c of CAND_ORDER_V04) out[c] /= sum;
+  return out;
+}
+
+function rawAtV04(progress) {
+  const p = Math.max(0, Math.min(1, progress));
+  const out = {};
+  for (const c of CAND_ORDER_V04) {
+    out[c] = (RAW_SCORES_V04[c] ?? 0) * p;
+  }
+  return out;
+}
+
+const TIMELINE_V04 = [
+  { tag:"v4t0",  label:"Rupture",     date:"2022-09-26", desc:"Pipelines detonate — baseline uncertainty",           n_evidence: 0, progress: 0.00 },
+  { tag:"v4t1",  label:"Hersh",       date:"2023-02-08", desc:"Hersh Substack + WH denial",                          n_evidence: 2, progress: 0.08 },
+  { tag:"v4t2",  label:"NYT",         date:"2023-03-07", desc:"NYT pro-Ukrainian group",                             n_evidence: 3, progress: 0.14 },
+  { tag:"v4t3",  label:"Andromeda",   date:"2023-04-15", desc:"Yacht Andromeda forensic link",                       n_evidence: 5, progress: 0.42 },
+  { tag:"v4t4",  label:"Spiegel/CIA", date:"2023-06-15", desc:"Der Spiegel multilingual + CIA June warning surfaces",n_evidence: 8, progress: 0.52 },
+  { tag:"v4t5",  label:"SE/DK close", date:"2024-02-26", desc:"Sweden & Denmark close investigations",               n_evidence:12, progress: 0.58 },
+  { tag:"v4t6",  label:"Zaluzhnyi",   date:"2024-08-14", desc:"Zaluzhnyi knowledge narrative (WSJ)",                 n_evidence:18, progress: 0.76 },
+  { tag:"v4t7",  label:"IT arrest",   date:"2025-08-21", desc:"Serhii Kuznetsov arrested in Rimini",                 n_evidence:25, progress: 0.84 },
+  { tag:"v4t8",  label:"PL refuses",  date:"2025-10-17", desc:"Poland refuses extradition; Łubowski ruling",         n_evidence:30, progress: 0.90 },
+  { tag:"v4t9",  label:"BGH ruling",  date:"2025-12-10", desc:"BGH: 'foreign government intelligence agency'",       n_evidence:34, progress: 0.97 },
+  { tag:"v4t10", label:"Today",       date:"2026-04-22", desc:"Present state",                                       n_evidence:37, progress: 1.00 },
+].map(pt => ({ ...pt, distribution: distAtV04(pt.progress), raw_scores: rawAtV04(pt.progress) }));
+
+const TURNING_POINTS_V04 = {
+  v4t3: { reason: "First forensic evidence links operators to Ukraine.",
+          detail: "Andromeda yacht — HMX residue, DNA, fingerprints. Cross-jurisdictional access by German/Polish/Italian courts makes systemic fabrication implausible. Ukrainian-military storylines gain coherence.",
+          delta: "+8.2" },
+  v4t6: { reason: "Military-vs-presidential authorization separates.",
+          detail: "Zaluzhnyi named. The 'Ukrainian' attribution is no longer one undifferentiated candidate — it splits into presidential, military, and agency variants. The CIA 'not opposed' record becomes compatible with α.",
+          delta: "+6.1" },
+  v4t9: { reason: "BGH ruling formalizes state authorship.",
+          detail: "Federal Court of Justice: 'foreign government intelligence agency' — deliberate non-naming, but legally binding state attribution. Judicial authority survives three years of cross-jurisdictional forensic review.",
+          delta: "+7.4" },
+};
+
+const UNDERSTANDING_V04 = {
+  v4t0:  { head: "A major pipeline attack with no named actor, no claim, no indictments." },
+  v4t1:  { head: "A single anonymous US-attribution allegation meets a predictable same-day denial." },
+  v4t2:  { head: "Attention pivots from US to a 'pro-Ukrainian group' — still on anonymous-source reporting." },
+  v4t3:  { head: "Physical forensics link the yacht Andromeda to the operation — Ukrainian operators come into view." },
+  v4t4:  { head: "CIA warned Germany in advance; Der Spiegel's multilingual reporting cross-corroborates the chain." },
+  v4t5:  { head: "Scandinavian investigations close without attribution. Institutional silence becomes its own signal." },
+  v4t6:  { head: "Zaluzhnyi named. Ukraine's military-vs-presidential split becomes a structural distinction." },
+  v4t7:  { head: "Italy arrests Serhii Kuznetsov — the first named operator physically identified." },
+  v4t8:  { head: "Poland refuses extradition. Procedural non-execution now spans five jurisdictions." },
+  v4t9:  { head: "BGH formally classifies as state-authored intelligence action — state authorship in law, without naming the state." },
+  v4t10: { head: "Zaluzhnyi-led Ukrainian military, Polish complicity, US awareness." },
+};
+
+// ============================================================================
 // STORYLINES (v0.4) — five reconstructions of the event space
 // ============================================================================
 
@@ -3954,7 +4087,7 @@ const STORYLINES = [
     kind: "event_sequence",
     label: "Ukrainian military bypass, Polish complicity, US awareness",
     shortLabel: "Ukrainian military — with Polish complicity and US awareness",
-    coverage: 0.50,
+    coverage: 0.70,
     isHero: true,
     claim: "Zaluzhnyi-led Ukrainian military authorized and executed the operation after Zelensky withdrew approval under US urging. Poland provided logistical staging and post-facto protection. The CIA knew, discouraged late, and did not stop it.",
     overlaySummary: "Ukrainian military leadership — Zaluzhnyi at the top, Chervinsky on the ground — authorized and executed the strike after Zelensky, under US pressure, withdrew his earlier approval. Poland sheltered the operators afterward; the CIA knew throughout and chose not to stop it.",
@@ -4024,7 +4157,7 @@ const STORYLINES = [
     kind: "candidate_space",
     label: "Unidentified actor or incomplete candidate set",
     shortLabel: "Unknown actor — candidate set may be incomplete",
-    coverage: 0.21,
+    coverage: 0.19,
     isHero: false,
     claim: "The enumerated candidate set — nine attributions across three Ukrainian layers, US, UK, Russia, Other, and the CIA-enabling compound — may not be complete. Weight assigned here represents probability mass that no listed candidate coherently absorbs.",
     overlaySummary: "Some part of what happened fits none of the named stories coherently. An unidentified actor, a multi-state coordination wider than any single principal, or a configuration the current candidate set is structurally blind to. A declared unknown, not a hidden answer.",
@@ -4055,77 +4188,11 @@ const STORYLINES = [
     sourceFromCandidates: "C_unknown (6.3%) + C6 Other (5.8%) + C3 rogue-operators residual (4.2%) + ~half of C5 UK (3.1%) + ~fifth of C7 (1.3%) ≈ 20.7%"
   },
   {
-    id: "mu",
-    kind: "meta",
-    label: "Avoidance as a stance",
-    shortLabel: "Collective non-resolution",
-    coverage: 0.14,
-    isHero: false,
-    claim: "This storyline does not answer who did it. It answers why, three and a half years later, the question still has not converged. Five jurisdictions and one international body each had the capacity to advance. Each chose not to. Consistent non-advancement is itself evidence — not about the perpetrator, but about the political status of the event.",
-    overlaySummary: "The question does not close because no institution with the power to close it has chosen to. Sweden and Denmark shut their investigations; Germany's government invokes the Third Party Rule while its courts prosecute; Poland shields the operators; the UN Security Council abstains the issue away. Avoidance as a coordinated stance.",
-    narrative: "Three and a half years after the blasts, the institutions with the capacity to resolve what happened have — each for its own reasons — chosen not to. Sweden closed its investigation by citing a jurisdictional doctrine a Danish legal scholar publicly disputes. Denmark followed within weeks, and its own Defence Academy experts report being barred from public discussion. The German judiciary proceeded: warrants issued, Kuznetsov indicted, the BGH ruling on a \"foreign government intelligence agency.\" The German government simultaneously invoked the Third Party Rule to keep intelligence-sharing details out of parliamentary inquiry. Poland did not execute the German European Arrest Warrant when Zhuravlev was on its territory, and Polish courts later categorized the act as \"organized action by services of a warring state\" — a judicial frame bordering on legitimation. Italy's Court of Cassation reversed itself three times on the same extradition question within six weeks. At the UN Security Council, a resolution for independent international investigation was buried — not by vetoes, but by twelve abstentions. Meanwhile, on the record: an ex-BND chief names Polish authorization and both presidents' approval; a prominent academic enumerates seven Western states at the UN and explicitly excludes Russia; a Swedish prosecutor publicly describes his own investigation as \"a battlefield for influence operations.\" The story this storyline tells is not about a perpetrator. It is about a configuration in which every actor with the power to resolve the question finds non-resolution cheaper than resolution — and in which the specific voices that speak through the gaps are specifically the ones without that calculus to make.",
-    narrativeTimeline: [
-      { date: "Mar 27, 2023", label: "UN Security Council: 12 abstentions",
-        body: "Russia-sponsored resolution for an independent international investigation is buried not by vetoes, but by twelve abstentions. No international mechanism is activated." },
-      { date: "Feb 7, 2024", label: "Sweden closes",
-        body: "Prosecutor cites a jurisdictional doctrine Danish legal scholar Kenneth Buhl publicly disputes. No attribution. SVT editorial: \"Sweden took the easiest way out.\"" },
-      { date: "Feb 26, 2024", label: "Denmark closes",
-        body: "Follows Sweden within weeks. Defence Academy experts report being barred from public discussion." },
-      { date: "Jul 17, 2024", label: "Berlin refuses AfD question",
-        body: "German government declines parliamentary inquiry on US-intelligence involvement — \"for reasons of state welfare.\"" },
-      { date: "Aug 20, 2024", label: "Polish procedural failure on German EAW",
-        body: "Poland does not execute the German European Arrest Warrant while Zhuravlev is on its territory. Rzeczpospolita documents the procedural breakdown." },
-      { date: "Sep 5, 2024", label: "Chancellor's Office invokes Third Party Rule",
-        body: "Wolfgang Schmidt (Kanzleramtschef) restricts Bundestag access to intelligence-sharing details. Named individual inside the avoidance pattern." },
-      { date: "Oct 17, 2025", label: "Poland refuses extradition",
-        body: "Judge Łubowski rules the act \"organized action by services of a warring state\" — a judicial frame bordering on legitimation. Tusk endorses." },
-      { date: "Oct–Nov 2025", label: "Italy's Cassazione reverses itself three times",
-        body: "Oct 17 extradition denied → Nov 19 approved → Nov 27 transfer. Judicial volatility across a single proceeding." },
-      { date: "Dec 10, 2025", label: "The internal split",
-        body: "The BGH rules \"a foreign government intelligence agency,\" indicts Ukrainian nationals — while the government suppresses the parliamentary record. Judiciary advances; government blocks. μ's central unresolved question.",
-        turningPoint: { delta: "+4.8", reason: "Judiciary-vs-executive divergence within a single state. Before Dec 2025, μ could read each jurisdiction's closure as individually motivated; this event surfaces the pattern — avoidance is political, not procedural." } },
-      { date: "Continuous", label: "Voices in the silences",
-        body: "Ex-BND chief Hanning names Polish authorization. Sachs enumerates seven Western actors at the UN and excludes Russia. Prosecutor Ljungqvist describes his own case as \"a battlefield for influence operations.\" The unofficial record contradicts the official silence." },
-    ],
-    roleAttribution: {
-      kind: "jurisdictional_avoidance",
-      headline: "Not actors — jurisdictions, each with the capacity to advance and each choosing not to.",
-      roles: [
-        { role: "Procedural non-execution", actor: "Poland", flag: "PL",
-          weight: 0.28,
-          gloss: "Did not execute the German EAW. Courts rule \"organized action by a warring state.\" Tusk endorses non-extradition." },
-        { role: "Information suppression", actor: "Germany — government layer", flag: "DE",
-          weight: 0.22,
-          gloss: "Chancellor's Office invokes the Third Party Rule; refuses Bundestag inquiry. Named individual: Wolfgang Schmidt." },
-        { role: "Closed without attribution", actor: "Sweden", flag: "SE",
-          weight: 0.14,
-          gloss: "Closed on a jurisdictional doctrine Danish legal scholar Buhl publicly disputes." },
-        { role: "Closed in parallel", actor: "Denmark", flag: "DK",
-          weight: 0.12,
-          gloss: "Defence Academy experts report being barred from public discussion." },
-        { role: "Abstention burial", actor: "UN Security Council", flag: "UN",
-          weight: 0.11,
-          gloss: "Russian-sponsored independent-investigation resolution blocked not by vetoes but by twelve abstentions." },
-        { role: "Three-step reversal", actor: "Italy — Court of Cassation", flag: "IT",
-          weight: 0.08,
-          gloss: "Oct 17 denied → Nov 19 approved → Nov 27 transfer. Within six weeks." },
-        { role: "Counter-signal", actor: "Germany — judicial layer (BGH)", flag: "DE",
-          weight: 0.05,
-          gloss: "The system's internal split. BGH prosecutes and rules \"foreign government intelligence agency\" while government suppresses. μ cannot fully explain this." },
-      ],
-    },
-    accommodates: [],
-    supportingEv: ["E8","E9","E19","E31","E32","E33","E34","E35"],
-    challengedBy: ["E17","E19"],
-    unexplained: "Why does the German judicial layer (BGH prosecutes, ruling names 'foreign intelligence agency') diverge from the German government layer (Chancellor's Office invokes Third Party Rule)? μ describes a system-wide avoidance, but the system is internally split — and that split is itself part of the exhibit.",
-    sourceFromCandidates: "C_insufficient (13.6%) ≈ 14%"
-  },
-  {
     id: "beta",
     kind: "event_sequence",
     label: "US-led operation with Ukrainian execution",
     shortLabel: "US-led operation",
-    coverage: 0.10,
+    coverage: 0.05,
     isHero: false,
     claim: "The US (possibly with UK coordination) planned and materially enabled the attack; Ukrainian operators were the execution layer. Hersh's reporting was substantially correct on the agency; the specific method details (sonar-triggered, BALTOPS-planted) may be misattributions of an earlier discarded plan.",
     overlaySummary: "A US-led operation, possibly with UK coordination. Ukrainian operators served as the execution layer; the HMX came through US or NATO channels. The \"pro-Ukrainian group\" framing was built afterward to provide plausible deniability — Hersh had the agency right, the method wrong.",
@@ -4185,7 +4252,7 @@ const STORYLINES = [
     kind: "event_sequence",
     label: "Russian self-sabotage",
     shortLabel: "Russian self-sabotage (false flag)",
-    coverage: 0.05,
+    coverage: 0.0,
     isHero: false,
     claim: "Russia destroyed its own infrastructure to weaponize blame against the West.",
     overlaySummary: "Russia destroyed its own pipelines to weaponize the attribution chaos against the West. To hold, this story needs every piece of Andromeda forensics — HMX, DNA, fingerprints, named operators — to be Russian fabrication surviving three years of independent judicial review in three countries.",
@@ -4230,7 +4297,204 @@ const STORYLINES = [
     unexplained: "Andromeda's HMX/DNA/fingerprints and all named operators are Ukrainian; these would all need to be fabricated evidence. Cross-jurisdiction forensic access (German, Polish, Italian courts) makes systemic fabrication implausible. Putin's UN speech blaming 'Anglo-Saxons' is inconsistent with self-authorship.",
     sourceFromCandidates: "C4 (5.4%) ≈ 5%"
   },
+  {
+    id: "zeta",
+    kind: "under_examined",
+    label: "UK-layer role, under-examined",
+    shortLabel: "UK — under-examined, not adjudicated",
+    coverage: 0.06,
+    isHero: false,
+    claim: "Three independent signals place the UK in the attribution space without converging on a specific role. Previous v0.4 absorbed these signals into β's 'possible co-principal' slot; the 'least refuted' discipline separates them because the question they raise is not refuted, only under-examined.",
+    overlaySummary: "Three independent sources — Truss's reported 'it's done' SMS to Blinken, SVR Director Naryshkin's formal naming of US and UK, and Sachs's UN enumeration placing UK among seven Western actors — all place the UK in the attribution space. Each is individually weak: Truss's SMS has sourcing-chain issues, Naryshkin is adversarial-first-party, Sachs is derived analysis. But the sources are independent of each other, and no piece of v0.4 evidence rules UK involvement out. Under 'least refuted' discipline, a question that has not been disproved should not be collapsed into an adjacent storyline.",
+    narrative: "Under the v0.4 original reading, the UK was an element of β — a 'possible co-principal' to the US-led operation. Under v0.4.1 'least refuted' discipline, that framing breaks: β's US-as-principal version is structurally excluded, and the UK signals do not automatically re-anchor to the new β′ (Western coordination, principal unclear). They raise their own question. Three independent signals: Liz Truss, then UK Prime Minister, reportedly SMSed Antony Blinken 'it's done' hours after the detonation — a signal whose event-credibility exceeds its content-credibility and which arrives through multiple independent retellings with some variation in exact wording. Sergei Naryshkin, Director of Russia's SVR foreign intelligence service, has formally accused the US and UK of direct involvement — his event-credibility is maximal (he said it, on record, through RT Arabic) but his content-credibility is bounded by strategic interest as an adversarial-first-party source. Jeffrey Sachs, in his February 2023 UN Security Council speech, enumerated seven Western actors as plausibly implicated: US, UK, Poland, Norway, Germany, Denmark, Sweden — placing UK explicitly on the attribution list and excluding Russia. Sachs carries academic authority but offers derived analysis, not direct evidence. None of these is individually dispositive. What matters is: (1) the sources are independent of each other — there is no single ecosystem generating the UK signal; (2) no piece of v0.4 evidence rules UK involvement out, at any layer; (3) the volume of UK-specific reporting is dramatically lower than the volume of Ukrainian-specific or US-specific reporting, which under propaganda-corrected reading is not a reason to dismiss the UK question — it may be a reason to examine it more carefully. ζ does not claim UK involvement. It claims that the current exhibit has not adjudicated UK involvement, and that the question deserves its own storyline rather than being absorbed into β′.",
+    narrativeTimeline: [
+      { date: "Sep 26, 2022", label: "Truss 'it's done' SMS (day-of)",
+        body: "Reported SMS from UK PM Truss to US Sec. State Blinken on the day of detonation. Event-cred 0.75, content-cred 0.30, net 0.45. Part of the exhibit but not dispositive. Present in β′'s possible-co-enabler reading; ζ preserves it independently." },
+      { date: "Feb 21, 2023", label: "Sachs at UN enumerates UK among seven",
+        body: "Columbia economist and former UN advisor Jeffrey Sachs, at UN Security Council session, enumerates plausible Western actors and excludes Russia. UK is named in the list but no specific role is attributed." },
+      { date: "Oct 21, 2025", label: "Naryshkin formal naming of US and UK",
+        body: "SVR Director in formal statement on RT Arabic accuses US and UK of direct involvement. Event-cred high (he said it, position-appropriate forum); content-cred bounded by adversarial-first-party status." },
+      { date: "Throughout 2022–2026", label: "Absence of UK investigation",
+        body: "No UK parliamentary inquiry. No UK judicial proceeding. No UK intelligence community leak. The question is not refuted; it is simply not examined from UK side." },
+      { date: "Structurally", label: "What would collapse ζ",
+        body: "Three paths: (a) UK parliamentary inquiry findings; (b) a UK intelligence community whistleblower account; (c) independent forensic evidence placing UK-specific operators or materiel at the site. Any one would either refute ζ (moving its weight into β′ or ε) or confirm a more specific role (moving its weight out of ζ into a newly-specific storyline)." },
+    ],
+    roleAttribution: {
+      kind: "under_examined_question",
+      headline: "A question the exhibit has not adjudicated — not a reconstruction of events.",
+      roles: [
+        { role: "Possible co-enabler or co-executor", actor: "United Kingdom", flag: "GB",
+          weight: 0.06,
+          gloss: "Three independent signals (E27, E28, E25). Volume low; no piece of evidence rules out; no piece of evidence confirms. Under-examined, not adjudicated." },
+      ],
+    },
+    accommodates: [],
+    supportingEv: ["E25", "E27", "E28"],
+    challengedBy: [],
+    unexplained: "UK role cannot be adjudicated under current evidence. The question has been absorbed into β's 'possible co-principal' slot in v0.4 original, but that absorption collapses an under-examined question into a broader storyline. ζ preserves the question as its own line-item so it does not get lost in β′'s coordination framework.",
+    sourceFromCandidates: "Two-thirds of C5 UK (5.8%) + residual wider-coordination signal (0.2%) ≈ 6%. ζ is a v0.4.1 storyline surfacing a question previously absorbed into β. Scaled by 1.404 under attribution-only distribution."
+  },
 ];
+
+// ============================================================================
+// SUBCLAIM μ — separate claim space: "Why has the attribution question not
+// been institutionally closed?" Previously in STORYLINES, moved out in v0.4.2
+// because it was answering a different question than α/β/ε/ζ/δ.
+// Evidence share in the overall corpus: 13.6% (C_insufficient edges).
+// Within this subclaim, μ is the single answer — coverage 100%.
+// ============================================================================
+
+const SUBCLAIM_MU_V04 = {
+  id: "mu",
+  kind: "process_subclaim",
+  parentClaim: "Who attacked the Nord Stream pipelines on 26 September 2022?",
+  subclaimQuestion: "Why has this attribution question not been institutionally closed?",
+  label: "Avoidance as a stance",
+  shortLabel: "Collective non-resolution",
+  evidenceShare: 0.136,          // 13.6% of total evidence addresses this subclaim
+  coverageWithinSubclaim: 1.00,  // μ is the only answer in the subclaim space
+  claim: "Five jurisdictions and one international body each had the capacity to advance the attribution question. Each chose not to. Consistent non-advancement is itself evidence — not about the perpetrator, but about the political status of the event.",
+  overlaySummary: "The question does not close because no institution with the power to close it has chosen to. Sweden and Denmark shut their investigations; Germany's government invokes the Third Party Rule while its courts prosecute; Poland shields the operators; the UN Security Council abstains the issue away. Avoidance as a coordinated stance. μ does NOT compete with α/β/ε/ζ for weight — it answers a different question, and is surfaced in its own subclaim panel accordingly.",
+  narrative: "Three and a half years after the blasts, the institutions with the capacity to resolve what happened have — each for its own reasons — chosen not to. Sweden closed its investigation by citing a jurisdictional doctrine a Danish legal scholar publicly disputes. Denmark followed within weeks, and its own Defence Academy experts report being barred from public discussion. The German judiciary proceeded: warrants issued, Kuznetsov indicted, the BGH ruling on a \"foreign government intelligence agency.\" The German government simultaneously invoked the Third Party Rule to keep intelligence-sharing details out of parliamentary inquiry. Poland did not execute the German European Arrest Warrant when Zhuravlev was on its territory, and Polish courts later categorized the act as \"organized action by services of a warring state\" — a judicial frame bordering on legitimation. Italy's Court of Cassation reversed itself three times on the same extradition question within six weeks. At the UN Security Council, a resolution for independent international investigation was buried — not by vetoes, but by twelve abstentions. Meanwhile, on the record: an ex-BND chief names Polish authorization and both presidents' approval; a prominent academic enumerates seven Western states at the UN and explicitly excludes Russia; a Swedish prosecutor publicly describes his own investigation as \"a battlefield for influence operations.\" The story this subclaim tells is not about a perpetrator. It is about a configuration in which every actor with the power to resolve the question finds non-resolution cheaper than resolution — and in which the specific voices that speak through the gaps are specifically the ones without that calculus to make.",
+  narrativeTimeline: [
+    { date: "Mar 27, 2023", label: "UN Security Council: 12 abstentions",
+      body: "Russia-sponsored resolution for an independent international investigation is buried not by vetoes, but by twelve abstentions. No international mechanism is activated." },
+    { date: "Feb 7, 2024", label: "Sweden closes",
+      body: "Prosecutor cites a jurisdictional doctrine Danish legal scholar Kenneth Buhl publicly disputes. No attribution. SVT editorial: \"Sweden took the easiest way out.\"" },
+    { date: "Feb 26, 2024", label: "Denmark closes",
+      body: "Follows Sweden within weeks. Defence Academy experts report being barred from public discussion." },
+    { date: "Jul 17, 2024", label: "Berlin refuses AfD question",
+      body: "German government declines parliamentary inquiry on US-intelligence involvement — \"for reasons of state welfare.\"" },
+    { date: "Aug 20, 2024", label: "Polish procedural failure on German EAW",
+      body: "Poland does not execute the German European Arrest Warrant while Zhuravlev is on its territory. Rzeczpospolita documents the procedural breakdown." },
+    { date: "Sep 5, 2024", label: "Chancellor's Office invokes Third Party Rule",
+      body: "Wolfgang Schmidt (Kanzleramtschef) restricts Bundestag access to intelligence-sharing details. Named individual inside the avoidance pattern." },
+    { date: "Oct 17, 2025", label: "Poland refuses extradition",
+      body: "Judge Łubowski rules the act \"organized action by services of a warring state\" — a judicial frame bordering on legitimation. Tusk endorses." },
+    { date: "Oct–Nov 2025", label: "Italy's Cassazione reverses itself three times",
+      body: "Oct 17 extradition denied → Nov 19 approved → Nov 27 transfer. Judicial volatility across a single proceeding." },
+    { date: "Dec 10, 2025", label: "The internal split",
+      body: "The BGH rules \"a foreign government intelligence agency,\" indicts Ukrainian nationals — while the government suppresses the parliamentary record. Judiciary advances; government blocks. μ's central unresolved question.",
+      turningPoint: { delta: "+4.8", reason: "Judiciary-vs-executive divergence within a single state. Before Dec 2025, μ could read each jurisdiction's closure as individually motivated; this event surfaces the pattern — avoidance is political, not procedural." } },
+    { date: "Continuous", label: "Voices in the silences",
+      body: "Ex-BND chief Hanning names Polish authorization. Sachs enumerates seven Western actors at the UN and excludes Russia. Prosecutor Ljungqvist describes his own case as \"a battlefield for influence operations.\" The unofficial record contradicts the official silence." },
+  ],
+  roleAttribution: {
+    kind: "jurisdictional_avoidance",
+    headline: "Not actors — jurisdictions, each with the capacity to advance and each choosing not to.",
+    roles: [
+      { role: "Procedural non-execution", actor: "Poland", flag: "PL",
+        weight: 0.28,
+        gloss: "Did not execute the German EAW. Courts rule \"organized action by a warring state.\" Tusk endorses non-extradition." },
+      { role: "Information suppression", actor: "Germany — government layer", flag: "DE",
+        weight: 0.22,
+        gloss: "Chancellor's Office invokes the Third Party Rule; refuses Bundestag inquiry. Named individual: Wolfgang Schmidt." },
+      { role: "Closed without attribution", actor: "Sweden", flag: "SE",
+        weight: 0.14,
+        gloss: "Closed on a jurisdictional doctrine Danish legal scholar Buhl publicly disputes." },
+      { role: "Closed in parallel", actor: "Denmark", flag: "DK",
+        weight: 0.12,
+        gloss: "Defence Academy experts report being barred from public discussion." },
+      { role: "Abstention burial", actor: "UN Security Council", flag: "UN",
+        weight: 0.11,
+        gloss: "Russian-sponsored independent-investigation resolution blocked not by vetoes but by twelve abstentions." },
+      { role: "Three-step reversal", actor: "Italy — Court of Cassation", flag: "IT",
+        weight: 0.08,
+        gloss: "Oct 17 denied → Nov 19 approved → Nov 27 transfer. Within six weeks." },
+      { role: "Counter-signal", actor: "Germany — judicial layer (BGH)", flag: "DE",
+        weight: 0.05,
+        gloss: "The system's internal split. BGH prosecutes and rules \"foreign government intelligence agency\" while government suppresses. μ cannot fully explain this." },
+    ],
+  },
+  supportingEv: ["E8","E9","E19","E31","E32","E33","E34","E35"],
+  challengedBy: ["E17","E19"],
+  unexplained: "Why does the German judicial layer (BGH prosecutes, ruling names 'foreign intelligence agency') diverge from the German government layer (Chancellor's Office invokes Third Party Rule)? μ describes a system-wide avoidance, but the system is internally split — and that split is itself part of the exhibit.",
+};
+
+// ============================================================================
+// SUB-CLAIM DECOMPOSITION (v0.4) — for the lead storyline
+// Each sub-claim has its own weight in the storyline's shape, and enumerates
+// the alternative branches it could take. Likelihoods within one sub-claim
+// sum to 1.0; weights across sub-claims sum to 1.0.
+// ============================================================================
+
+const SUBCLAIMS_V04 = {
+  storylineId: "alpha",
+  storylineLabel: "Ukraine — state-directed (Zaluzhnyi track)",
+  // Sub-claims are ordered: load-bearing first (by weight desc), then
+  // decorative (by weight desc). Letters A–F follow this order so the top of
+  // the list is where the storyline's structural load sits.
+  subclaims: [
+    {
+      letter: "A",
+      name: "Executor identity",
+      weight: 0.30,
+      role: "load",
+      branches: [
+        { text: "Ukrainian military / former-military personnel", likelihood: 0.87, isCurrent: true },
+        { text: "US Navy divers via BALTOPS-22 (Hersh account)", likelihood: 0.06 },
+        { text: "Anglo-American professional saboteurs (Naryshkin account)", likelihood: 0.04 },
+        { text: "Russian self-sabotage", likelihood: 0.03 },
+      ],
+    },
+    {
+      letter: "B",
+      name: "Authorization level",
+      weight: 0.22,
+      role: "load",
+      branches: [
+        { text: "Zaluzhnyi-level approval; Zelensky not informed", likelihood: 0.62, isCurrent: true },
+        { text: "Zelensky approved then revoked; operation proceeded anyway", likelihood: 0.18 },
+        { text: "SBU-directed with military execution layer", likelihood: 0.12 },
+        { text: "Independent rogue operators, no state authorization", likelihood: 0.08 },
+      ],
+    },
+    {
+      letter: "C",
+      name: "Institutional non-advancement",
+      weight: 0.18,
+      role: "load",
+      branches: [
+        { text: "Five jurisdictions + UN chose non-resolution; pattern is political, not forensic", likelihood: 0.83, isCurrent: true },
+        { text: "Each jurisdiction's non-advancement is independent, not coordinated", likelihood: 0.17 },
+      ],
+    },
+    {
+      letter: "D",
+      name: "Polish role",
+      weight: 0.12,
+      role: "decor",
+      branches: [
+        { text: "Tacit facilitation — territorial / procedural cover, short of formal participation", likelihood: 0.72, isCurrent: true },
+        { text: "Post-hoc alignment only; no advance coordination", likelihood: 0.20 },
+        { text: "Active co-participation at state level", likelihood: 0.08 },
+      ],
+    },
+    {
+      letter: "E",
+      name: "CIA foreknowledge & timing",
+      weight: 0.10,
+      role: "decor",
+      branches: [
+        { text: "Knew early; initially unopposed; later tried to stop and failed", likelihood: 0.55, isCurrent: true },
+        { text: "Knew early and actively enabled throughout", likelihood: 0.22 },
+        { text: "Received only late-stage warning, tried genuinely to stop", likelihood: 0.15 },
+        { text: "Fully unaware until after the fact", likelihood: 0.08 },
+      ],
+    },
+    {
+      letter: "F",
+      name: "Funding source",
+      weight: 0.08,
+      role: "decor",
+      branches: [
+        { text: "Private Ukrainian citizen (~$300,000)", likelihood: 0.48, isCurrent: true },
+        { text: "State-routed via private intermediary as cover", likelihood: 0.35 },
+        { text: "Direct military budget allocation", likelihood: 0.17 },
+      ],
+    },
+  ],
+};
 
 // ============================================================================
 // ANCHOR FACTS (F1–F13) — undisputed foundation
@@ -4461,6 +4725,7 @@ function candColor(c) {
   if (c === "C7") return colors.warn;
   if (c === "C_insufficient") return "#7A7A7A";
   if (c === "C_unknown") return "#A89F8A";
+  if (c === "C_excluded") return "#9C9685"; // muted audit tone
   if (c === "C1") return "#5A5A5A";
   return "#CEC7B5";
 }
@@ -4548,6 +4813,23 @@ function CandIcon({ cand, w = 16, h = 11 }) {
       return (
         <svg width={w} height={h} viewBox="0 0 16 11" style={{ flexShrink: 0, display:"block" }}>
           <line x1="3" y1="5.5" x2="13" y2="5.5" stroke={colors.inkMute} strokeWidth="1.3"/>
+        </svg>
+      );
+    case "C_excluded":
+      // Audit visual — diagonal hatching to signal "this is a structurally
+      // excluded band, not an actor". Renders the same regardless of which
+      // specific candidate is being represented (C1 / C3 / C4).
+      return (
+        <svg width={w} height={h} viewBox="0 0 16 11" style={{ flexShrink: 0, display:"block" }}>
+          <defs>
+            <pattern id="hatch-excl" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="3" stroke={colors.inkMute} strokeWidth="0.8"/>
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="16" height="11" fill="url(#hatch-excl)" opacity="0.5"/>
+          <rect x="0" y="0" width="16" height="11" fill="none" stroke={strokeColor} strokeWidth={strokeWidth}/>
+          <circle cx="8" cy="5.5" r="3" fill="none" stroke={colors.inkMute} strokeWidth="0.9"/>
+          <line x1="6" y1="3.5" x2="10" y2="7.5" stroke={colors.inkMute} strokeWidth="0.9"/>
         </svg>
       );
     // === Role-attribution flags: ISO-style short codes ===
@@ -4714,6 +4996,7 @@ function LangFlag({ lang, size = 9 }) {
 
 function FullscreenGraph({
   activeEvidence, distribution,
+  newEvIds,
   selectedEv, setSelectedEv,
   hoverCand, setHoverCand,
   hoverEv, setHoverEv,
@@ -4753,8 +5036,10 @@ function FullscreenGraph({
   // v0.3-style fixed proportional layout: TOP and BOT mark the evidence/candidate band.
   // Evidence and candidates are distributed proportionally inside [TOP, BOT], so density
   // adjusts to row count without the stage ever growing past the container.
+  // BOT pulled in a bit further than v0.3 to leave room for the timeline overlay
+  // panel that floats at the bottom — otherwise the last bucket row gets occluded.
   const TOP = Math.round(height * 0.09);
-  const BOT = Math.round(height * 0.86);
+  const BOT = Math.round(height * (isV04 ? 0.78 : 0.86));
 
   // === Candidate-side computation ===
   // In v0.3: flat candidates as before.
@@ -4777,20 +5062,16 @@ function FullscreenGraph({
       const w = bucketWeight(b, distribution);
       candRows.push({
         id: b.id, isBucket: true, parentBucket: null,
-        label: b.label, color: candColor(b.flag),
-        flag: b.flag, members: b.members, weight: w, indent: 0,
-        expandable: b.expandable, overlap: b.overlap,
+        label: b.label, color: candColorForStory(b.id) || candColor(b.flag),
+        glyph: b.glyph, flag: b.flag,
+        members: b.members, weight: w, indent: 0,
+        expandable: false, overlap: b.overlap,
+        routedTo: b.routedTo,
+        ruledOut: b.ruledOut,
       });
-      if (b.expandable && expandedBuckets.has(b.id)) {
-        const subSorted = [...b.members].sort((a,c)=> (distribution[c]||0) - (distribution[a]||0));
-        subSorted.forEach(c => {
-          candRows.push({
-            id: c, isBucket: false, parentBucket: b.id,
-            label: candReadable[c] || c, color: candColor(c),
-            weight: distribution[c] || 0, indent: 1,
-          });
-        });
-      }
+      // Candidate-level sub-rows removed — storylines are the user-facing
+      // unit; candidate IDs (C2a/b/c, C7, etc.) live in `members` but are
+      // not rendered. If reintroduced later, restore the sub-row push here.
     });
   }
 
@@ -4945,7 +5226,7 @@ function FullscreenGraph({
         <text x={RIGHT_X} y={TOP * 0.55}
               fontFamily="'JetBrains Mono', monospace"
               fontSize="11" letterSpacing="1.4" fill={colors.inkMute} textAnchor="start">
-          CANDIDATES · {BUCKETS_V04.length} BUCKETS
+          5 STORYLINES + μ SUBCLAIM
         </text>
       )}
 
@@ -4968,16 +5249,34 @@ function FullscreenGraph({
             });
           });
 
+          // Cluster participates in the focus system: hovering the cluster
+          // highlights the conclusions it aggregates into.
+          const isFocusCluster = (selectedCluster === cl.id) || (focusEv === cl.id);
+          const anyFocus = focusEv || hoverCand || selectedCluster;
+
           return Object.entries(aggEdges).map(([to, agg], i) => {
             const y2 = resolveCandidateY(to);
             if (y2 == null) return null;
-            const x1 = LEFT_X + 18 + 180;
+            // Edge starts where cluster label text actually ends + 12px gap,
+            // matching the rule used by normal evidence rows. Avoid writing
+            // a fixed offset (e.g. 180) — that creates uneven gaps across
+            // clusters of different label lengths.
+            const clusterLabelWidth = measureText(cl.label, 11.5, "Instrument Sans, sans-serif", 400);
+            const x1 = LEFT_X + 18 + clusterLabelWidth + 12;
             const x2 = RIGHT_X;
             const net = agg.sumPos - agg.sumNeg;
             const pol = net >= 0 ? 1 : -1;
-            const strokeW = Math.min(2.8, 0.6 + Math.abs(net) * 1.4);
+            // Cluster aggregates multiple evidence edges; coefficient kept
+            // restrained so cluster edges don't visually dwarf single-evidence
+            // edges. Tuned to match v0.3's overall edge weight register.
+            const strokeW = Math.min(2.0, 0.5 + Math.abs(net) * 1.0);
             const stroke = pol > 0 ? resolveCandidateColor(to) : colors.inkMute;
             const dash = pol < 0 ? "3,3" : "";
+
+            const isHoverCand = hoverCand === to
+              || (isV04 && hoverCand && BUCKETS_V04.find(b=>b.id===hoverCand && b.members.includes(to)));
+            const inFocus = isFocusCluster || isHoverCand;
+            const dim = anyFocus && !inFocus;
 
             const dx = x2 - x1;
             const cx1 = x1 + dx * 0.38;
@@ -4985,9 +5284,11 @@ function FullscreenGraph({
             const d = `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`;
             return (
               <path key={`${row.id}-${to}`} d={d}
-                fill="none" stroke={stroke} strokeWidth={strokeW}
-                strokeDasharray={dash} opacity={0.22}
-                style={{ transition:"opacity 0.3s" }}/>
+                fill="none" stroke={stroke}
+                strokeWidth={inFocus ? strokeW + 1.2 : strokeW}
+                strokeDasharray={dash}
+                opacity={dim ? 0.06 : (inFocus ? 0.95 : 0.32)}
+                style={{ transition:"opacity 0.3s, stroke-width 0.2s" }}/>
             );
           });
         }
@@ -4995,7 +5296,11 @@ function FullscreenGraph({
         // Normal evidence row
         const ev = row.ev;
         const labelText = ev.label.length > 44 ? ev.label.slice(0,42)+"…" : ev.label;
-        const mainLabelWidth = measureText(labelText, 13, "Instrument Sans, sans-serif", 400);
+        // Measure with the non-focus rendered font size (11.5 / weight 400) so
+        // the edge starts right after the label text. Using a different size
+        // than what's actually rendered creates uneven gaps between text-end
+        // and edge-start across different rows.
+        const mainLabelWidth = measureText(labelText, 11.5, "Instrument Sans, sans-serif", 400);
         const edgeStartX = LEFT_X + 18 + mainLabelWidth + 12;
         const inStoryline = storyEvSet && storyEvSet.has(ev.id);
         const isStoryChallenge = storyChallengeSet && storyChallengeSet.has(ev.id);
@@ -5013,13 +5318,16 @@ function FullscreenGraph({
           const inFocus = isFocusEv || isHoverCand;
           const dim = (anyFocus && !inFocus) || storyDim;
 
-          let stroke = colors.inkMute, strokeW = 0.7, dash = "";
+          let stroke = colors.inkMute, strokeW = 0.6, dash = "";
           if (pol > 0) {
             stroke = resolveCandidateColor(edge.to);
-            strokeW = 0.8 + edge.s * 2.4;
+            // v0.4 has ~2× the edge density of v0.3 (69 edges / 37 evidence
+            // vs 31 / 16). Single-line stroke is dialed down so the overall
+            // visual weight of the edge field matches v0.3.
+            strokeW = 0.6 + edge.s * 1.8;
           } else if (pol < 0) {
             stroke = colors.inkMute;
-            strokeW = 0.6 + edge.s * 1.6;
+            strokeW = 0.5 + edge.s * 1.2;
             dash = "3,3";
           }
 
@@ -5081,7 +5389,7 @@ function FullscreenGraph({
               {/* Label (right side) — count already shown in the ring, no duplicate */}
               <text x={LEFT_X + 18} y={y + 4}
                     fontFamily="'Instrument Sans', sans-serif"
-                    fontSize="12.5" fill={colors.ink}
+                    fontSize="11.5" fill={colors.ink}
                     fontStyle="italic"
                     style={{ pointerEvents:"none" }}>
                 {cl.label}
@@ -5110,11 +5418,12 @@ function FullscreenGraph({
         const isStoryChallenge = storyChallengeSet && storyChallengeSet.has(ev.id);
         const storyDim = focusStorylineObj && !inStoryline && !isStoryChallenge;
         const labelText = ev.label.length > 44 ? ev.label.slice(0,42)+"…" : ev.label;
-        const metaSuffix = isV04 && ev.language ? ` · ${ev.language.toUpperCase()}` : "";
-        const metaText = `${ev.published} · cred ${ev.credibility.toFixed(2)}${metaSuffix}`;
+        // Per-evidence meta (date / credibility / language) intentionally not
+        // rendered on the graph — too visually noisy, overlaps adjacent labels.
+        // Full meta is available in the evidence drawer on click. Language is
+        // signalled visually by the colored flag pill elsewhere in the row.
         const evIdWidth = measureText(ev.id, 12, "JetBrains Mono, monospace", 600) + 6;
         const mainLabelWidth = measureText(labelText, 14, "Instrument Sans, sans-serif", 500) + 8;
-        const metaLabelWidth = measureText(metaText, 10, "JetBrains Mono, monospace", 400) + 6;
         const cluster = ev.cluster === "western_intel_leaks";
         const coverageMeta = ev.cluster === "coverage_meta";
         const germanJudicial = ev.cluster === "german_judicial";
@@ -5148,11 +5457,27 @@ function FullscreenGraph({
                       strokeWidth="1.2" strokeDasharray="3,2"
                       opacity={0.85}/>
             )}
+            {/* New-evidence flash ring — appears briefly when this evidence
+                just entered the active set (via timeline advance / play). */}
+            {newEvIds && newEvIds.has(ev.id) && (
+              <>
+                <circle cx={LEFT_X} cy={y} r={14}
+                        fill="none" stroke={colors.warn}
+                        strokeWidth="1.8" opacity={0.9}>
+                  <animate attributeName="r" from="5" to="22" dur="1s" fill="freeze"/>
+                  <animate attributeName="opacity" from="0.95" to="0" dur="1s" fill="freeze"/>
+                  <animate attributeName="stroke-width" from="2.4" to="0.4" dur="1s" fill="freeze"/>
+                </circle>
+                <circle cx={LEFT_X} cy={y} r={9}
+                        fill="none" stroke={colors.warn}
+                        strokeWidth="1.6" opacity={0.85}/>
+              </>
+            )}
             <circle cx={LEFT_X} cy={y}
                     r={isSel ? 8 : 5}
                     fill={isSel ? colors.ink : colors.paper}
-                    stroke={colors.ink}
-                    strokeWidth={isFocus ? 2 : 1}
+                    stroke={newEvIds && newEvIds.has(ev.id) ? colors.warn : colors.ink}
+                    strokeWidth={isFocus ? 2 : (newEvIds && newEvIds.has(ev.id) ? 1.6 : 1)}
                     style={{ transition:"all 0.2s" }}/>
 
             {isFocus && (
@@ -5174,23 +5499,10 @@ function FullscreenGraph({
             )}
             <text x={LEFT_X + 18} y={y + 4}
                   fontFamily="'Instrument Sans', sans-serif"
-                  fontSize={isFocus ? 14 : 13}
+                  fontSize={isFocus ? 12.5 : 11.5}
                   fill={isFocus ? colors.ink : colors.inkSoft}
                   fontWeight={isFocus ? 500 : 400}>
               {labelText}
-            </text>
-            {isFocus && (
-              <rect x={LEFT_X + 14} y={y + 9}
-                    width={metaLabelWidth} height={13}
-                    fill={colors.paper} opacity={0.9}/>
-            )}
-            <text x={LEFT_X + 18} y={y + 19}
-                  fontFamily="'JetBrains Mono', monospace"
-                  fontSize="10"
-                  fill={colors.inkMute}
-                  letterSpacing="0.3"
-                  opacity={isFocus ? 1 : 0.75}>
-              {metaText}
             </text>
             {/* Cluster affordance — only when this evidence is an inlined member of a currently-expanded cluster */}
             {isV04 && evToSecCluster[ev.id] && expandedClustersSet.has(evToSecCluster[ev.id].id) && (() => {
@@ -5202,9 +5514,9 @@ function FullscreenGraph({
                               : colors.inkMute;
               const chipText = `${shortId} ⤴`;
               const chipWidth = measureText(chipText, 9.5, "JetBrains Mono, monospace", 500) + 10;
-              const metaEndX = LEFT_X + 18 + measureText(metaText, 10, "JetBrains Mono, monospace", 400) + 10;
+              const metaEndX = LEFT_X + 18 + mainLabelWidth + 10;
               return (
-                <g transform={`translate(${metaEndX}, ${y + 11})`}
+                <g transform={`translate(${metaEndX}, ${y - 4})`}
                    onMouseDown={(e)=>{ e.stopPropagation(); toggleCluster(cl.id); }}
                    style={{ cursor:"pointer" }}>
                   <title>Belongs to "{cl.label}" cluster · click to collapse back</title>
@@ -5237,8 +5549,13 @@ function FullscreenGraph({
           || (row.isBucket && row.members?.some(m => selectedOpposes?.has(m)));
         const cc = row.color;
         const fill = isSupported ? cc : colors.paper;
-        const sizeScale = isV04 ? 0.045 : 0.05;
-        const radius = (row.isBucket ? 7 : 4) + v * Math.min(width, height) * sizeScale;
+        // v0.4 radius scales with weight but capped — large rings consume too
+        // much vertical space and push the bottom row into the timeline panel.
+        // Storyline rows: 7-15px; candidate sub-rows: 4-9px.
+        const sizeScale = isV04 ? 0.025 : 0.05;
+        const baseRad = row.isBucket ? 7 : 4;
+        const maxRad = row.isBucket ? 15 : 9;
+        const radius = Math.min(maxRad, baseRad + v * Math.min(width, height) * sizeScale);
         const dim = (focusEv && !isSupported && !isOpposed)
                  || (hoverCand && hoverCand !== row.id);
         const pctText = `${(v*100).toFixed(1)}%`;
@@ -5249,24 +5566,11 @@ function FullscreenGraph({
           <g key={`cand-${row.id}`}
              onMouseEnter={()=>setHoverCand(row.id)}
              onMouseLeave={()=>setHoverCand(null)}
-             onMouseDown={(e)=>{
-               if (row.isBucket && row.expandable) {
-                 e.stopPropagation();
-                 toggleBucket(row.id);
-               }
-             }}
-             style={{ cursor: row.isBucket && row.expandable ? "pointer" : "default",
+             style={{ cursor: "default",
                opacity: dim ? 0.35 : 1, transition:"opacity 0.3s" }}>
-            {/* Indicator of expanded state */}
-            {row.isBucket && row.expandable && (
-              <g transform={`translate(${RIGHT_X - 20 + indentOffset}, ${y - 4})`}>
-                <path d={isExpanded ? "M0 3 L4 -1 L8 3" : "M0 0 L4 4 L0 8"}
-                      stroke={colors.inkMute} strokeWidth="1.2" fill="none"
-                      strokeLinecap="round" strokeLinejoin="round"/>
-              </g>
-            )}
             {row.parentBucket && (
-              // L-connector to parent bucket
+              // L-connector to parent bucket (legacy — no sub-rows render
+              // in v0.4.2 but kept for parentBucket-aware edge rendering)
               <line x1={RIGHT_X - 12 + indentOffset} y1={y}
                     x2={RIGHT_X - 4 + indentOffset} y2={y}
                     stroke={colors.ruleSoft} strokeWidth="1"/>
@@ -5275,47 +5579,63 @@ function FullscreenGraph({
             <circle cx={RIGHT_X + indentOffset} cy={y} r={radius}
                     fill={fill} stroke={cc}
                     strokeWidth={isHover ? 2.4 : (row.isBucket ? 1.6 : 1.0)}
-                    strokeDasharray={isOpposed ? "3,2" : ""}
-                    opacity={isHover ? 1 : (row.parentBucket ? 0.8 : 0.92)}
+                    strokeDasharray={
+                      isOpposed ? "3,2"
+                      : (row.ruledOut || row.routedTo ? "3,3" : "")
+                    }
+                    opacity={isHover ? 1 : (
+                      row.ruledOut || row.routedTo ? 0.55
+                      : (row.parentBucket ? 0.8 : 0.92)
+                    )}
                     style={{ transition:"all 0.4s cubic-bezier(.2,.7,.2,1)" }}/>
 
-            {row.isBucket && row.flag && (
-              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 14})`}>
-                <CandIcon cand={row.flag} w={16} h={11} />
-              </g>
+            {/* Storyline glyph inside the ring (replaces flag icon for the
+                top-level node — flag icons remain on candidate sub-rows). */}
+            {row.isBucket && row.glyph && (
+              <text x={RIGHT_X + indentOffset} y={y + 4}
+                    textAnchor="middle"
+                    fontFamily="'Fraunces', serif"
+                    fontStyle="italic"
+                    fontSize={Math.max(11, radius * 0.7)}
+                    fontWeight={500}
+                    fill={cc}
+                    opacity={row.ruledOut || row.routedTo ? 0.6 : 0.9}
+                    style={{ pointerEvents:"none" }}>
+                {row.glyph}
+              </text>
             )}
             {!row.isBucket && (
-              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 10})`}>
+              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 5})`}>
                 <CandIcon cand={row.id} w={12} h={8} />
               </g>
             )}
 
-            <text x={RIGHT_X + indentOffset + radius + 14 + (row.isBucket ? 22 : 18)}
-                  y={row.isBucket ? y - 5 : y - 2}
-                  fontFamily="'JetBrains Mono', monospace"
-                  fontSize={row.isBucket ? 10 : 9}
-                  fill={colors.inkMute}
-                  letterSpacing="0.5">
-              {row.isBucket ? `BUCKET · ${row.members.length} sub` : row.id}
-            </text>
-
+            {/* Compact single-line layout: glyph in ring, label to the right,
+                % right-aligned to a fixed column. Tag (audit/process) sits
+                inline as a small italic note after the label. */}
             <text x={RIGHT_X + indentOffset + radius + 14}
-                  y={row.isBucket ? y + 12 : y + 11}
+                  y={y + 4}
                   fontFamily="'Instrument Sans', sans-serif"
-                  fontSize={row.isBucket ? (v > 0.15 ? 17 : 15) : 13}
+                  fontSize={row.isBucket ? 12.5 : 11}
                   fill={colors.ink}
-                  fontWeight={row.isBucket ? (v > 0.15 ? 600 : 500) : 400}>
+                  fontWeight={row.isBucket ? (v > 0.15 ? 600 : 500) : 400}
+                  fontStyle={row.ruledOut || row.routedTo ? "italic" : "normal"}
+                  opacity={row.ruledOut || row.routedTo ? 0.7 : 1}>
               {row.label}
             </text>
 
-            <text x={RIGHT_X + indentOffset + radius + 14}
-                  y={row.isBucket ? y + 32 : y + 25}
+            <text x={RIGHT_X + indentOffset + 380}
+                  y={y + 4}
+                  textAnchor="end"
                   fontFamily="'Fraunces', serif"
-                  fontSize={row.isBucket ? (v > 0.15 ? 22 : 17) : 14}
+                  fontSize={row.isBucket ? 15 : 12.5}
                   fontStyle="italic"
                   fill={cc}
-                  fontVariantNumeric="tabular-nums">
-              {pctText}
+                  fontVariantNumeric="tabular-nums"
+                  opacity={row.ruledOut ? 0.6 : (row.routedTo ? 0.75 : 1)}>
+              {row.routedTo === "mu" ? "13.6% → μ"
+                : row.ruledOut ? "0%"
+                : `${(v*100).toFixed(1)}%`}
             </text>
 
             {row.isBucket && row.overlap && isHover && (
@@ -5346,7 +5666,7 @@ function FullscreenGraph({
 // TIMELINE BAR — v0.3 mode only (preserved from original)
 // ============================================================================
 
-function TimelineBar({ idx, setIdx, timeline }) {
+function TimelineBar({ idx, setIdx, timeline, turningPoints }) {
   const trackRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [hoverTick, setHoverTick] = useState(null);
@@ -5385,6 +5705,8 @@ function TimelineBar({ idx, setIdx, timeline }) {
         const x = (i / (timeline.length - 1)) * 100;
         const active = i <= idx;
         const current = i === idx;
+        const turningPoint = turningPoints ? turningPoints[t.tag] : null;
+        const isTurning = !!turningPoint;
         return (
           <div key={t.tag}
                onMouseEnter={()=>setHoverTick(i)}
@@ -5393,19 +5715,46 @@ function TimelineBar({ idx, setIdx, timeline }) {
                style={{ position:"absolute", left: `${x}%`, top: 0, height: 42,
                  transform:"translateX(-50%)", cursor:"pointer",
                  display:"flex", flexDirection:"column", alignItems:"center" }}>
+            {/* Turning-point vertical spike — extends up above the label */}
+            {isTurning && (
+              <div style={{
+                position:"absolute", top: -8, left: "50%", transform: "translateX(-50%)",
+                width: 1.5, height: 7,
+                background: current ? colors.primary : colors.warn,
+                opacity: active ? 1 : 0.4,
+                transition: "all 0.2s",
+              }}/>
+            )}
             <div style={{ fontFamily:"'Instrument Sans', sans-serif",
               fontSize: current ? 11.5 : 10.5,
-              color: current ? colors.primary : hoverTick === i ? colors.ink : (active ? colors.inkSoft : colors.muted),
+              color: current ? colors.primary
+                    : hoverTick === i ? colors.ink
+                    : isTurning && active ? colors.warn
+                    : (active ? colors.inkSoft : colors.muted),
               marginBottom: 8,
-              fontWeight: (current || hoverTick === i) ? 600 : 400,
+              fontWeight: (current || hoverTick === i || isTurning) ? 600 : 400,
               whiteSpace: "nowrap", transition:"all 0.15s", lineHeight: 1 }}>{t.label}</div>
-            <div style={{ width: current ? 10 : (hoverTick === i ? 7 : active ? 6 : 4),
-              height: current ? 10 : (hoverTick === i ? 7 : active ? 6 : 4),
-              borderRadius: "50%",
-              background: current ? colors.primary : (active ? colors.ink : colors.muted),
-              border: current ? `2px solid ${colors.paper}` : "none",
-              boxShadow: current ? `0 0 0 1px ${colors.primary}` : "none",
-              marginTop: current ? -2 : 0, transition:"all 0.15s" }} />
+            {/* Turning-point ticks are diamond-shaped; regular ticks are circles */}
+            {isTurning ? (
+              <div style={{
+                width: current ? 10 : (hoverTick === i ? 8 : active ? 7 : 5),
+                height: current ? 10 : (hoverTick === i ? 8 : active ? 7 : 5),
+                background: current ? colors.primary : (active ? colors.warn : colors.muted),
+                transform: "rotate(45deg)",
+                border: current ? `1.5px solid ${colors.paper}` : "none",
+                boxShadow: current ? `0 0 0 1px ${colors.primary}` : "none",
+                marginTop: current ? -1 : 0,
+                transition:"all 0.15s",
+              }} />
+            ) : (
+              <div style={{ width: current ? 10 : (hoverTick === i ? 7 : active ? 6 : 4),
+                height: current ? 10 : (hoverTick === i ? 7 : active ? 6 : 4),
+                borderRadius: "50%",
+                background: current ? colors.primary : (active ? colors.ink : colors.muted),
+                border: current ? `2px solid ${colors.paper}` : "none",
+                boxShadow: current ? `0 0 0 1px ${colors.primary}` : "none",
+                marginTop: current ? -2 : 0, transition:"all 0.15s" }} />
+            )}
             {current && (
               <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
                 color: colors.primary, letterSpacing: 0.4,
@@ -5727,13 +6076,22 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
     head = tp ? (UNDERSTANDING_V03[tp.tag]?.head || "—") : "—";
   }
 
-  // Storyline toggle pills (v0.4 only)
+  // Turning-point lookup — works in both modes. Banner renders above the
+  // main body when the current tp is flagged as a structural inflection.
+  const turningPoint = tp
+    ? (isV04 ? (TURNING_POINTS_V04[tp.tag] || null)
+             : (TURNING_POINTS[tp.tag] || null))
+    : null;
+
+  // Storyline toggle pills (v0.4 only) — v0.4.2 attribution distribution.
+  // μ moved to process subclaim (parallel axis, not in this list).
+  // ζ added as under-examined UK-layer coordination space.
   const storyPills = [
-    { id: "alpha",   glyph: "α", coverage: 0.50, color: colors.primary },
-    { id: "epsilon", glyph: "ε", coverage: 0.21, color: colors.inkSoft },
-    { id: "mu",      glyph: "μ", coverage: 0.14, color: colors.meta },
-    { id: "beta",    glyph: "β", coverage: 0.10, color: colors.inkSoft },
-    { id: "delta",   glyph: "δ", coverage: 0.05, color: colors.muted },
+    { id: "alpha",   glyph: "α", coverage: 0.70, color: colors.primary },
+    { id: "epsilon", glyph: "ε", coverage: 0.19, color: colors.inkSoft },
+    { id: "zeta",    glyph: "ζ", coverage: 0.06, color: colors.inkSoft },
+    { id: "beta",    glyph: "β", coverage: 0.05, color: colors.inkSoft },
+    { id: "delta",   glyph: "δ", coverage: 0.00, color: colors.muted, excluded: true },
   ];
 
   // Positioning: sticky inside graph container. User drag overrides with absolute.
@@ -5762,9 +6120,9 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
         <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
             color: colors.inkMute, letterSpacing: 1, textTransform:"uppercase", lineHeight: 1 }}>
-            Current understanding
+            Current Understanding
           </div>
-          {onPlayToggle && !isV04 && (
+          {onPlayToggle && (
             <button onMouseDown={(e)=>{ e.stopPropagation(); }}
               onClick={(e)=>{ e.stopPropagation(); onPlayToggle(); }}
               style={{ width: 20, height: 20, borderRadius: 3,
@@ -5786,7 +6144,7 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
           )}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
-          {!isV04 && tp && (
+          {tp && (
             <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 10.5,
               color: colors.primary, letterSpacing: 0.2, fontWeight: 500 }}>
               {tp.label}
@@ -5805,118 +6163,171 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
         </div>
       </div>
 
-      {/* v0.4: storyline name + descriptive summary */}
-      {isV04 && story && (
-        <div style={{ padding: "10px 16px 14px",
+      {/* Turning-point banner — appears when current tp is flagged as a
+          structural inflection. Warn-tinted (gold-brown) distinguishes it
+          from primary red (current-state signal). Positioned above the
+          main body so the reader's eye catches it first. Works in both
+          v0.3 and v0.4. */}
+      {turningPoint && !collapsed && (
+        <div style={{
+          padding: "10px 14px 11px",
           borderTop: `1px solid ${colors.ruleSoft}`,
-          borderBottom: collapsed ? "none" : `1px solid ${colors.ruleSoft}` }}>
-          {/* Storyline name row */}
-          <div style={{ display:"flex", alignItems:"baseline", gap: 8,
-            marginBottom: 8 }}>
-            <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 13,
-              color: colors.primary, fontWeight: 600, letterSpacing: 0.3 }}>
-              {storyGlyph}
-            </span>
-            <span style={{ fontFamily:"'Fraunces', serif", fontSize: 15,
-              color: colors.ink, fontWeight: 500, letterSpacing: -0.15,
-              lineHeight: 1.25 }}>
-              {story.label}
-            </span>
-          </div>
-          {/* Descriptive summary — the story, not the actors */}
-          {!collapsed && (
+          background: "rgba(184, 144, 46, 0.07)",
+          animation: "fadeIn 0.3s ease-out",
+        }}>
+          <div style={{
+            display:"flex", alignItems:"center", gap: 6, marginBottom: 5,
+          }}>
+            {/* Diamond marker — matches timeline bar's turning-point tick */}
             <div style={{
-              fontFamily:"'Fraunces', serif",
-              fontSize: 15.5, lineHeight: 1.25,
-              color: colors.ink, letterSpacing: -0.1,
-              fontStyle:"italic",
+              width: 7, height: 7,
+              background: colors.warn,
+              transform: "rotate(45deg)",
+              flexShrink: 0,
+            }}/>
+            <div style={{
+              fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+              color: colors.warn, letterSpacing: 1,
+              textTransform:"uppercase", fontWeight: 600,
             }}>
-              {story.overlaySummary || head}
+              Turning point
             </div>
-          )}
+            <div style={{
+              marginLeft: "auto",
+              fontFamily:"'Fraunces', serif", fontSize: 13, fontStyle:"italic",
+              color: colors.warn, fontVariantNumeric:"tabular-nums",
+              fontWeight: 500,
+            }}>
+              Δ {turningPoint.delta} pts
+            </div>
+          </div>
+          <div style={{
+            fontFamily:"'Fraunces', serif", fontSize: 14, fontStyle:"italic",
+            color: colors.ink, lineHeight: 1.3, letterSpacing: -0.1,
+          }}>
+            {turningPoint.reason}
+          </div>
         </div>
       )}
+
+      {/* v0.4: Title block — current timepoint understanding (mirrors v0.3
+          exactly). The title is the reading at this moment in time and
+          changes during playback; storylines and their distribution sit
+          below as a separate, pseudo-static state summary. */}
+      {isV04 && (() => {
+        const titleHead = tp ? (UNDERSTANDING_V04[tp.tag]?.head || "—") : "—";
+        return (
+          <div style={{
+            padding: collapsed ? "12px 14px 12px" : "14px 14px 14px",
+            borderTop: turningPoint ? "none" : `1px solid ${colors.ruleSoft}`,
+            borderBottom: collapsed ? "none" : `1px solid ${colors.ruleSoft}`,
+            fontFamily:"'Fraunces', serif", fontSize: 15.5, lineHeight: 1.25,
+            color: colors.ink, letterSpacing: -0.1, fontStyle:"italic",
+          }}>
+            {titleHead}
+          </div>
+        );
+      })()}
+
+      {/* v0.4: Other possibilities — compact storylines with bar-row mutual
+          hover. Hovering a bar segment highlights its row; hovering a row
+          highlights its segment. */}
+      {isV04 && !collapsed && (() => {
+        const rows = STORYLINES
+          .filter(s => s.kind !== "subclaim")  // exclude μ — parallel axis
+          .filter(s => (s.coverage || 0) > 0)  // exclude δ and others ruled out to 0%
+          .map(s => ({
+            id: s.id,
+            glyph: s.id === "alpha" ? "α" : s.id === "beta" ? "β"
+                 : s.id === "epsilon" ? "ε" : s.id === "zeta" ? "ζ"
+                 : s.id === "delta" ? "δ" : s.id.slice(0,1),
+            coverage: s.coverage || 0,
+            summary: s.shortLabel || s.label,
+            color: candColorForStory(s.id),
+          }))
+          .sort((a, b) => b.coverage - a.coverage);
+        const leadingId = rows[0]?.id;
+        const hoverStory = hoverCand && hoverCand.startsWith("_story:") ? hoverCand.slice(7) : null;
+        return (
+          <div style={{ padding: "10px 14px 12px" }}>
+            {/* Distribution bar — segments double as hover targets */}
+            <div style={{ display:"flex", height: 7, borderRadius: 1, overflow:"hidden",
+              marginBottom: 10, background: "rgba(242, 238, 228, 0.6)" }}>
+              {rows.map(r => (
+                <div key={r.id}
+                     onMouseEnter={()=>setHoverCand("_story:" + r.id)}
+                     onMouseLeave={()=>setHoverCand(null)}
+                     title={`${r.glyph} · ${r.summary} — ${(r.coverage*100).toFixed(1)}%`}
+                     style={{
+                       width: `${r.coverage * 100}%`,
+                       background: r.color,
+                       opacity: hoverStory && hoverStory !== r.id ? 0.25 : 1,
+                       borderRight: `1px solid rgba(250, 248, 243, 0.6)`,
+                       cursor:"default",
+                       transition:"opacity 0.15s",
+                     }}/>
+              ))}
+            </div>
+            {/* Row list — all 5 storylines, leading row highlighted with
+                primary color + 500 weight (mirrors v0.3's row layout). */}
+            <div style={{ display:"flex", flexDirection:"column", gap: 6 }}>
+              {rows.map(r => {
+                const isLead = r.id === leadingId;
+                const isHovered = hoverStory === r.id;
+                const dim = hoverStory && !isHovered;
+                return (
+                  <div key={r.id}
+                       onMouseEnter={()=>setHoverCand("_story:" + r.id)}
+                       onMouseLeave={()=>setHoverCand(null)}
+                       style={{ display:"grid",
+                         gridTemplateColumns: "9px 16px 1fr auto", gap: 10,
+                         alignItems:"center", cursor:"default",
+                         opacity: dim ? 0.4 : 1,
+                         transition:"opacity 0.2s" }}>
+                    <div style={{ width: 7, height: 7, background: r.color,
+                      outline: isHovered ? `1.5px solid ${colors.ink}` : "none",
+                      outlineOffset: 1 }}/>
+                    <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+                      fontSize: 14, color: r.color,
+                      fontWeight: 500, letterSpacing: -0.1,
+                      lineHeight: 1, textAlign:"center" }}>
+                      {r.glyph}
+                    </span>
+                    <div style={{ fontFamily:"'Instrument Sans', sans-serif",
+                      fontSize: 12.5, color: colors.ink,
+                      fontWeight: isLead ? 500 : 400,
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {r.summary}
+                    </div>
+                    <div style={{ fontFamily:"'Fraunces', serif", fontSize: 14.5,
+                      fontStyle:"italic",
+                      color: isLead ? colors.primary : colors.ink,
+                      fontVariantNumeric:"tabular-nums" }}>
+                      {(r.coverage * 100).toFixed(1)}<span style={{ fontSize: 10, opacity: 0.55, marginLeft: 1 }}>%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* v0.3: original timeline-point understanding head */}
       {!isV04 && (
         <div style={{ padding: collapsed ? "12px 14px 12px" : "14px 14px 14px",
-          fontFamily:"'Fraunces', serif", fontSize: 14, lineHeight: 1.3,
+          fontFamily:"'Fraunces', serif", fontSize: 15.5, lineHeight: 1.25,
           color: colors.ink, letterSpacing: -0.1, fontStyle:"italic",
-          borderTop: `1px solid ${colors.ruleSoft}`,
+          borderTop: turningPoint ? "none" : `1px solid ${colors.ruleSoft}`,
           borderBottom: collapsed ? "none" : `1px solid ${colors.ruleSoft}` }}>
           {head}
-        </div>
-      )}
-
-      {/* v0.4: 5-storyline distribution bar + pills (click to switch overlay) */}
-      {isV04 && !collapsed && setFocusStoryline && (
-        <div style={{ padding: "12px 14px 14px" }}>
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
-            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase",
-            marginBottom: 8 }}>
-            Other possibilities
-          </div>
-          {/* Distribution bar across all 5 storylines */}
-          <div style={{ display:"flex", height: 6, borderRadius: 1, overflow:"hidden",
-            marginBottom: 10, background: "rgba(242, 238, 228, 0.6)" }}>
-            {storyPills.map(p => {
-              const active = p.id === effectiveStoryId;
-              return (
-                <div key={p.id}
-                     onMouseDown={(e)=>{ e.stopPropagation(); }}
-                     onClick={(e)=>{ e.stopPropagation(); setFocusStoryline(p.id); }}
-                     style={{
-                       width: `${p.coverage * 100}%`,
-                       background: active ? p.color : candColorForStory(p.id),
-                       opacity: active ? 1 : 0.55,
-                       borderRight: `1px solid rgba(250, 248, 243, 0.6)`,
-                       cursor: "pointer",
-                       transition: "opacity 0.15s",
-                     }}/>
-              );
-            })}
-          </div>
-
-          {/* 5 pills */}
-          <div style={{ display:"flex", gap: 4 }}>
-            {storyPills.map(p => {
-              const active = p.id === effectiveStoryId;
-              return (
-                <button key={p.id}
-                  onMouseDown={(e)=>{ e.stopPropagation(); }}
-                  onClick={(e)=>{ e.stopPropagation(); setFocusStoryline(p.id); }}
-                  style={{
-                    flex: 1,
-                    padding: "6px 0",
-                    borderRadius: 2,
-                    border: `1px solid ${active ? colors.ink : colors.rule}`,
-                    background: active ? colors.paper : "transparent",
-                    cursor: "pointer",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10.5,
-                    color: active ? colors.ink : colors.inkMute,
-                    fontWeight: active ? 600 : 400,
-                    letterSpacing: 0.3,
-                    transition: "all 0.15s",
-                    display:"flex", flexDirection:"column", alignItems:"center", gap: 2,
-                  }}>
-                  <span>{p.glyph}</span>
-                  <span style={{ fontSize: 8.5, letterSpacing: 0.4,
-                    color: active ? colors.inkMute : colors.muted,
-                    fontVariantNumeric: "tabular-nums" }}>
-                    {Math.round(p.coverage*100)}%
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       )}
 
       {/* v0.3 distribution bar (legacy path) */}
       {!isV04 && !collapsed && rows.length > 0 && (
         <div style={{ padding: "12px 14px 14px" }}>
-          <div style={{ display:"flex", height: 6, borderRadius: 1, overflow:"hidden",
+          <div style={{ display:"flex", height: 7, borderRadius: 1, overflow:"hidden",
             marginBottom: 12, background: "rgba(242, 238, 228, 0.6)" }}>
             {rows.map(r => (
               <div key={r.key}
@@ -5963,7 +6374,8 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
 function candColorForStory(id) {
   if (id === "alpha") return "#A03A2C";       // primary
   if (id === "epsilon") return "#4A4A4A";     // inkSoft
-  if (id === "mu") return "#7A6A54";          // meta
+  if (id === "zeta") return "#4A4A4A";        // inkSoft — UK-layer (under-examined)
+  if (id === "mu") return "#7A6A54";          // process subclaim — meta hue (separate axis)
   if (id === "beta") return "#6A6A6A";
   if (id === "delta") return "#B7B0A0";       // muted
   return "#8A8A8A";
@@ -6461,26 +6873,8 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
             letterSpacing: -0.3, color: colors.ink, lineHeight: 1 }}>Trace</div>
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
             color: colors.inkMute, letterSpacing: 1, textTransform:"uppercase", lineHeight: 1 }}>
-            Case file 001 · {isV04 ? "v0.4" : "v0.3"} · {isV04 ? "37" : activeEvidenceCount + "/16"}
+            Case file 001 · {isV04 ? "v0.4" : "v0.3"}
           </div>
-          {!isV04 && (
-            <>
-              <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 11,
-                color: colors.inkSoft, letterSpacing: 0.1, lineHeight: 1, fontWeight: 500 }}>
-                {currentLabel}
-              </div>
-              <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-                color: colors.inkMute, letterSpacing: 0.6, lineHeight: 1 }}>
-                {currentDate}
-              </div>
-            </>
-          )}
-          {isV04 && (
-            <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 11,
-              color: colors.inkSoft, letterSpacing: 0.1, lineHeight: 1, fontWeight: 500 }}>
-              14 languages · 37 evidence items · 5 storylines
-            </div>
-          )}
         </div>
 
         <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
@@ -6489,8 +6883,8 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
             border: `1px solid ${colors.rule}`, borderRadius: 2,
             background: colors.paper, padding: 1 }}>
             {[
-              { key: "v03", label: "v0.3 · English only" },
-              { key: "v04", label: "v0.4 · 14 languages" },
+              { key: "v03", label: "v0.3 · Brief" },
+              { key: "v04", label: "v0.4 · Full ver." },
             ].map(opt => (
               <button key={opt.key} onClick={()=>setMode(opt.key)}
                 style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
@@ -6530,7 +6924,7 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
             color: colors.primary, letterSpacing: 1.4,
             textTransform:"uppercase", fontWeight: 500, marginBottom: 6 }}>
-            Converging · not resolved
+            Converged · institutionally open
           </div>
           <h1 style={{ fontFamily:"'Fraunces', serif",
             fontSize: "clamp(22px, 2.4vw, 30px)",
@@ -6546,20 +6940,23 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
 }
 
 // ============================================================================
-// TIMELINE OVERLAY (v0.3 mode only)
+// TIMELINE OVERLAY — floats at bottom of graph stage. Shared by v0.3 and
+// v0.4; the Experience passes the active timeline (TIMELINE_V03 or
+// TIMELINE_V04) via props.
 // ============================================================================
 
-function TimelineOverlay({ idx, setIdx, timeline }) {
+function TimelineOverlay({ idx, setIdx, timeline, turningPoints }) {
   return (
-    <div style={{ position:"fixed", left: 20, right: 20, bottom: 20, zIndex: 9,
+    <div style={{ position:"absolute", left: 20, right: 20, bottom: 8, zIndex: 9,
       pointerEvents:"none" }}>
       <div style={{ pointerEvents:"auto", width: "100%", padding: "8px 54px 10px",
-        background: "rgba(250, 248, 243, 0.88)",
+        background: "rgba(250, 248, 243, 0.55)",
         backdropFilter: "blur(18px) saturate(140%)",
         WebkitBackdropFilter: "blur(18px) saturate(140%)",
         border: `1px solid rgba(217, 212, 199, 0.8)`, borderRadius: 3,
-        boxShadow: "0 12px 32px rgba(26, 26, 26, 0.06)" }}>
-        <TimelineBar idx={idx} setIdx={setIdx} timeline={timeline} />
+        boxShadow: "0 12px 32px rgba(26, 26, 26, 0.06), 0 2px 6px rgba(26, 26, 26, 0.03)" }}>
+        <TimelineBar idx={idx} setIdx={setIdx} timeline={timeline}
+                     turningPoints={turningPoints} />
       </div>
     </div>
   );
@@ -6633,10 +7030,81 @@ function DeltaPanel() {
 
 function AnchorsRail() {
   const [hovered, setHovered] = useState(null);
+
+  // The 13 anchor facts grouped by structural role.
+  // ANCHORS (global) is source of truth for fact text + time. This local map
+  // adds metadata: which group each fact belongs to, and what consequence
+  // each fact carries (what it rules out, points to, or establishes).
+  const GROUPS = [
+    { id:"event",
+      label:"What happened",
+      caption:"Pure observation. The physical event, undisputed across all fourteen language ecosystems we surveyed.",
+      ids:["F1","F2"] },
+    { id:"act",
+      label:"What the act required",
+      caption:"Mechanism + forensics. These facts rule out specific theories of execution and point to who could physically have done it.",
+      ids:["F3","F12","F7","F8"] },
+    { id:"surround",
+      label:"What surrounded it",
+      caption:"Political and judicial context. Motive, foreknowledge, public endorsement, and post-event court findings.",
+      ids:["F4","F6","F11","F5","F9","F10","F13"] },
+  ];
+
+  // Consequence per fact — rescued / synthesized from the original
+  // CausalChainSection.jsx mechanism-constraints layer. Each fact is now
+  // explicit about its inferential work.
+  //   kind: rules_out | points_to | supports | establishes
+  const CONSEQUENCE = {
+    F1: null,
+    F2: { kind:"rules_out",   text:"HMX is military-grade — non-state actors structurally excluded" },
+    F3: { kind:"rules_out",   text:"sonar-triggered remote one-shot (Hersh's mechanism) falsified" },
+    F12:{ kind:"rules_out",   text:"full SEAL-level operation; consistent with resource-limited team" },
+    F7: { kind:"points_to",   text:"Ukrainian-connected operators — independent forensic chain through three jurisdictions" },
+    F8: { kind:"supports",    text:"named operators in custody / under prosecution" },
+    F4: { kind:"establishes", text:"US political motive on the public record" },
+    F5: { kind:"establishes", text:"post-event endorsement at senior US level" },
+    F6: { kind:"establishes", text:"foreknowledge in the CIA → German channel before the act" },
+    F11:{ kind:"establishes", text:"Polish foreign minister's public endorsement, hours after the blasts" },
+    F9: { kind:"supports",    text:"\"foreign government intelligence agency\" — judicial classification (Germany)" },
+    F10:{ kind:"supports",    text:"\"organized action by services of a warring state\" — second jurisdiction (Poland)" },
+    F13:{ kind:"establishes", text:"investigative response fragmented — three jurisdictions, three outcomes" },
+  };
+
+  // Common trunk — what the 13 facts together force every viable storyline
+  // to accept. Recovered from original CausalChainSection.jsx.
+  const TRUNK = [
+    "Ukrainian-connected operators physically placed the charges",
+    "Military-grade explosives externally supplied (not domestic Ukrainian)",
+    "Manual placement at 70–80 m depth, by a resource-limited team",
+  ];
+
+  // Storyline-anchor coverage — canonical values from STORYLINES const (above).
+  // 5 storylines (μ is a parallel process subclaim, not a storyline, and lives
+  // in SuppressionAndJudicial). δ rejecting the trunk is the structural reason
+  // δ is excluded — it can't hold the joint output of the 13 facts.
+  const COVERAGE = [
+    { id:"alpha",   glyph:"α", label:"Ukrainian military bypass",                holds:"all 13", breaks:null,           trunk:"accepts",          color: colors.primary, pct:"70%" },
+    { id:"epsilon", glyph:"ε", label:"Unidentified actor / candidate set incomplete", holds:"n/a",   breaks:"—",            trunk:"holds (depends)",  color: colors.inkSoft, pct:"19%" },
+    { id:"zeta",    glyph:"ζ", label:"UK-layer, under-examined",                 holds:"n/a",   breaks:"—",            trunk:"holds (depends)",  color: colors.inkSoft, pct:"6%" },
+    { id:"beta",    glyph:"β", label:"US-led operation",                          holds:"3/13",  breaks:"F3, F7, F12",  trunk:"accepts",          color: colors.inkSoft, pct:"5%" },
+    { id:"delta",   glyph:"δ", label:"Russian self-sabotage",                     holds:"0/13",  breaks:"F7",           trunk:"REJECTS",          color: colors.muted,   pct:"—",  excluded: true },
+  ];
+
+  const conseqStyle = (kind) => {
+    if (kind === "rules_out")   return { color: colors.primary,    glyph:"✕", label:"rules out" };
+    if (kind === "points_to")   return { color: colors.secondary,  glyph:"→", label:"points to" };
+    if (kind === "supports")    return { color: colors.secondary,  glyph:"+", label:"supports" };
+    if (kind === "establishes") return { color: colors.warnDeep,   glyph:"●", label:"establishes" };
+    return { color: colors.inkMute, glyph:"·", label:"" };
+  };
+
   return (
-    <div style={{ padding: "48px 56px 40px", background: colors.paper }}>
+    <div style={{ padding:"56px 56px 48px", background: colors.paper }}>
       <Rule />
-      <div style={{ marginTop: 36, display:"grid", gridTemplateColumns:"1fr 2.2fr", gap: 56 }}>
+
+      {/* Header */}
+      <div style={{ marginTop: 36, marginBottom: 32, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 56, alignItems:"baseline" }}>
         <div>
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
             color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
@@ -6646,53 +7114,219 @@ function AnchorsRail() {
             lineHeight: 1.15, letterSpacing: -0.4, color: colors.ink }}>
             Thirteen facts every storyline must accommodate.
           </div>
-          <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 15,
-            color: colors.inkMute, marginTop: 18, lineHeight: 1.5 }}>
-            These are the anchors. They are not disputed in any of the fourteen languages we surveyed.
-            Any reconstruction that cannot hold them is wrong, no matter whose narrative it flatters.
-            <br/><br/>
-            Three of them — marked — do independent structural work against specific storylines.
-          </div>
         </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 15,
+          color: colors.inkMute, lineHeight: 1.55 }}>
+          Anchors not disputed in any of the fourteen languages we surveyed. Below: the facts grouped by their structural role. Each fact carries an explicit consequence — what it rules out, what it points to, what it supports, what it establishes. The three groups together force the common trunk every viable reconstruction must accept.
+        </div>
+      </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap: 0,
-          border: `1px solid ${colors.ruleSoft}`, borderRadius: 2, overflow:"hidden" }}>
-          {ANCHORS.map((a, i) => {
-            const col = i % 2;
-            const isFlagged = a.flagged;
-            const isHover = hovered === a.id;
-            return (
-              <div key={a.id}
-                onMouseEnter={()=>setHovered(a.id)}
-                onMouseLeave={()=>setHovered(null)}
-                style={{
-                  padding: "16px 18px",
-                  borderTop: i >= 2 ? `1px solid ${colors.ruleSoft}` : "none",
-                  borderRight: col === 0 ? `1px solid ${colors.ruleSoft}` : "none",
-                  background: isHover ? colors.paperDeep : (isFlagged ? "#FAF4E6" : colors.paper),
-                  transition:"background 0.15s",
-                  cursor:"default",
-                }}>
-                <div style={{ display:"flex", justifyContent:"space-between",
-                  alignItems:"center", marginBottom: 8 }}>
-                  <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
-                    color: isFlagged ? colors.warnDeep : colors.inkSoft,
-                    fontWeight: 600, letterSpacing: 0.4 }}>{a.id}</span>
-                  {isFlagged && (
-                    <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 8.5,
-                      color: colors.warnDeep, letterSpacing: 0.9, textTransform:"uppercase" }}>
-                      ◆ structural
-                    </span>
-                  )}
+      {/* 3 grouped fact panels */}
+      <div style={{ display:"flex", flexDirection:"column", gap: 18, marginBottom: 36 }}>
+        {GROUPS.map(group => (
+          <div key={group.id} style={{
+            border: `1px solid ${colors.ruleSoft}`, borderRadius: 2, overflow:"hidden",
+            background: colors.paper }}>
+
+            {/* Group header */}
+            <div style={{ padding:"16px 22px",
+              background: colors.paperDeep,
+              borderBottom: `1px solid ${colors.ruleSoft}`,
+              display:"grid", gridTemplateColumns:"1fr auto", gap: 24, alignItems:"baseline" }}>
+              <div>
+                <div style={{ fontFamily:"'Fraunces', serif", fontSize: 19,
+                  color: colors.ink, lineHeight: 1.25, letterSpacing: -0.2,
+                  marginBottom: 4 }}>
+                  {group.label}
                 </div>
-                <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-                  color: colors.inkMute, letterSpacing: 0.3, marginBottom: 6 }}>{a.time}</div>
-                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
-                  color: colors.ink, lineHeight: 1.5 }}>{a.fact}</div>
+                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+                  color: colors.inkMute, lineHeight: 1.5 }}>
+                  {group.caption}
+                </div>
               </div>
-            );
-          })}
+              <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+                color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase",
+                fontWeight: 500, whiteSpace:"nowrap" }}>
+                {group.ids.length} facts
+              </div>
+            </div>
+
+            {/* Fact rows */}
+            {group.ids.map((fid, ri) => {
+              const fact = ANCHORS.find(a => a.id === fid);
+              if (!fact) return null;
+              const conseq = CONSEQUENCE[fid];
+              const cs = conseq ? conseqStyle(conseq.kind) : null;
+              const isFlagged = fact.flagged;
+              const isHover = hovered === fid;
+
+              return (
+                <div key={fid}
+                  onMouseEnter={()=>setHovered(fid)}
+                  onMouseLeave={()=>setHovered(null)}
+                  style={{
+                    display:"grid", gridTemplateColumns:"54px 130px 1fr",
+                    gap: 18, padding:"14px 22px",
+                    borderTop: ri > 0 ? `1px solid ${colors.ruleSoft}` : "none",
+                    background: isHover ? "rgba(242, 238, 228, 0.55)"
+                                : isFlagged ? "rgba(184, 144, 46, 0.04)"
+                                : "transparent",
+                    transition:"background 0.15s",
+                    alignItems:"baseline" }}>
+
+                  {/* F# + flag */}
+                  <div style={{ display:"flex", alignItems:"baseline", gap: 5 }}>
+                    <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+                      color: isFlagged ? colors.warnDeep : colors.inkSoft,
+                      fontWeight: 600, letterSpacing: 0.4 }}>
+                      {fid}
+                    </span>
+                    {isFlagged && (
+                      <span title="Structural anchor — does independent work against specific storylines"
+                        style={{ fontSize: 9, color: colors.warnDeep,
+                          lineHeight: 1, marginLeft: 1 }}>◆</span>
+                    )}
+                  </div>
+
+                  {/* Time */}
+                  <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+                    color: colors.inkMute, letterSpacing: 0.3, lineHeight: 1.4 }}>
+                    {fact.time}
+                  </div>
+
+                  {/* Fact + consequence */}
+                  <div>
+                    <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                      color: colors.ink, lineHeight: 1.5,
+                      marginBottom: cs ? 7 : 0 }}>
+                      {fact.fact}
+                    </div>
+                    {cs && (
+                      <div style={{
+                        display:"flex", alignItems:"baseline", gap: 8,
+                        fontFamily:"'JetBrains Mono', monospace" }}>
+                        <span style={{
+                          fontSize: 9, fontWeight: 600, letterSpacing: 0.9,
+                          textTransform:"uppercase", color: cs.color,
+                          padding:"1px 6px",
+                          background:`${cs.color}12`,
+                          border:`1px solid ${cs.color}40`,
+                          borderRadius: 1,
+                          whiteSpace:"nowrap" }}>
+                          {cs.glyph} {cs.label}
+                        </span>
+                        <span style={{
+                          fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
+                          color: colors.inkSoft, lineHeight: 1.45 }}>
+                          {conseq.text}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Common trunk callout — what every viable storyline must accept.
+          Recovered from CausalChainSection.jsx; sets up the connection
+          to SuppressionAndJudicial below ("the trunk is settled; the
+          disagreement is over what's above it"). */}
+      <div style={{
+        marginBottom: 28,
+        padding:"22px 28px",
+        background: "rgba(122, 106, 84, 0.06)",
+        border: `1px solid rgba(122, 106, 84, 0.20)`,
+        borderLeft: `4px solid ${colors.meta}`,
+        borderRadius: 2 }}>
+        <div style={{
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+          color: colors.meta, letterSpacing: 1.0, textTransform:"uppercase",
+          fontWeight: 600, marginBottom: 14 }}>
+          Common trunk · what every viable storyline must accept
         </div>
+        <div style={{ display:"flex", flexDirection:"column", gap: 10 }}>
+          {TRUNK.map((t, i) => (
+            <div key={i} style={{
+              display:"flex", alignItems:"baseline", gap: 14,
+              fontFamily:"'Fraunces', serif",
+              fontSize: 16.5, lineHeight: 1.4, color: colors.ink,
+              letterSpacing: -0.05 }}>
+              <span style={{
+                fontFamily:"'JetBrains Mono', monospace",
+                fontSize: 10, fontWeight: 600,
+                color: colors.meta, opacity: 0.75,
+                minWidth: 24, lineHeight: 1.4 }}>
+                0{i+1}
+              </span>
+              <span>{t}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Storyline coverage table — extended with trunk acceptance column.
+          δ's REJECTS in the trunk column makes its structural exclusion
+          legible: it's not just losing on individual facts, it can't hold
+          the joint output of those facts. */}
+      <div style={{
+        background: colors.paperDeep,
+        border: `1px solid ${colors.ruleSoft}`, borderRadius: 2,
+        overflow:"hidden" }}>
+        <div style={{
+          display:"grid",
+          gridTemplateColumns:"50px 1fr 100px 130px 120px 60px",
+          gap: 14, padding:"10px 22px",
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+          color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase" }}>
+          <span></span>
+          <span>Storyline</span>
+          <span>Holds</span>
+          <span>Breaks</span>
+          <span>Common trunk</span>
+          <span style={{ textAlign:"right" }}>Coverage</span>
+        </div>
+        {COVERAGE.map(c => (
+          <div key={c.id} style={{
+            display:"grid",
+            gridTemplateColumns:"50px 1fr 100px 130px 120px 60px",
+            gap: 14, padding:"14px 22px",
+            background: colors.paper, alignItems:"baseline",
+            borderTop: `1px solid ${colors.ruleSoft}` }}>
+            <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+              fontSize: 22, color: c.color, fontWeight: 400, lineHeight: 1 }}>
+              {c.glyph}
+            </span>
+            <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13.5,
+              color: c.excluded ? colors.inkMute : colors.ink,
+              textDecoration: c.excluded ? "line-through" : "none",
+              textDecorationColor: colors.muted }}>
+              {c.label}
+            </span>
+            <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+              color: c.holds === "all 13" ? colors.ink : colors.inkSoft,
+              fontWeight: 500 }}>
+              {c.holds}
+            </span>
+            <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+              color: c.breaks ? colors.primary : colors.inkMute,
+              fontWeight: c.breaks ? 600 : 400 }}>
+              {c.breaks ? `breaks ${c.breaks}` : "—"}
+            </span>
+            <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+              color: c.trunk === "REJECTS" ? colors.primary : colors.inkSoft,
+              fontWeight: c.trunk === "REJECTS" ? 600 : 400,
+              letterSpacing: 0.3 }}>
+              {c.trunk}
+            </span>
+            <span style={{ fontFamily:"'Fraunces', serif", fontSize: 16, fontStyle:"italic",
+              color: c.color, fontVariantNumeric:"tabular-nums", textAlign:"right" }}>
+              {c.pct}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -6954,7 +7588,65 @@ function NarrativeTimeline({ nodes }) {
 function GenericExpansion({ story }) {
   return (
     <div>
+      {/* LEVERAGE POINT — promoted to FIRST position with hero treatment.
+          This is the single most important piece of info inside any
+          expansion: what could still shift this storyline, what is the
+          structural weak point. Larger Fraunces body, full-width amber
+          panel, eyebrow + thick left stripe make this the visual anchor
+          of the expansion. */}
+      {story.unexplained && (
+        <div style={{
+          padding: "20px 24px 22px",
+          marginBottom: 28,
+          background: "rgba(184, 144, 46, 0.06)",
+          borderLeft: `4px solid ${colors.warn}`,
+          border: `1px solid rgba(184, 144, 46, 0.25)`,
+          borderLeftWidth: 4,
+          borderRadius: 2,
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap: 10, marginBottom: 12 }}>
+            <div style={{
+              width: 8, height: 8,
+              background: colors.warn,
+              transform: "rotate(45deg)",
+              flexShrink: 0,
+            }}/>
+            <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+              color: colors.warnDeep, letterSpacing: 1.0, textTransform:"uppercase",
+              fontWeight: 600 }}>
+              Leverage point — what would shift this reading
+            </div>
+          </div>
+          <div style={{
+            fontFamily:"'Fraunces', serif", fontSize: 17, lineHeight: 1.45,
+            color: colors.ink, letterSpacing: -0.1,
+          }}>
+            {story.unexplained}
+          </div>
+        </div>
+      )}
+
       <NarrativeBlock narrative={story.narrative} timeline={story.narrativeTimeline} isHero={story.isHero} />
+
+      {story.internalVariant && (
+        <div style={{ padding: "14px 16px",
+          background: colors.paper, borderLeft: `3px solid ${colors.secondary}`,
+          borderRadius: 2, marginBottom: 22 }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+            color: colors.secondary, letterSpacing: 0.8, textTransform:"uppercase", marginBottom: 8 }}>
+            Internal variant
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 15, fontStyle:"italic",
+            color: colors.ink, marginBottom: 6, lineHeight: 1.3 }}>
+            {story.internalVariant.label}
+          </div>
+          <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+            color: colors.inkSoft, lineHeight: 1.55 }}>
+            {story.internalVariant.description}
+          </div>
+        </div>
+      )}
+
       {story.accommodates && story.accommodates.length > 0 && (
         <div style={{ marginBottom: 22 }}>
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
@@ -7031,40 +7723,6 @@ function GenericExpansion({ story }) {
                 </span>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {story.unexplained && (
-        <div style={{ padding: "14px 16px",
-          background: colors.paper, borderLeft: `3px solid ${colors.warn}`,
-          borderRadius: 2, marginBottom: story.internalVariant ? 22 : 0 }}>
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-            color: colors.warnDeep, letterSpacing: 0.8, textTransform:"uppercase", marginBottom: 8 }}>
-            Unexplained / leverage point
-          </div>
-          <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
-            color: colors.ink, lineHeight: 1.55 }}>
-            {story.unexplained}
-          </div>
-        </div>
-      )}
-
-      {story.internalVariant && (
-        <div style={{ padding: "14px 16px",
-          background: colors.paper, borderLeft: `3px solid ${colors.secondary}`,
-          borderRadius: 2, marginBottom: 22 }}>
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-            color: colors.secondary, letterSpacing: 0.8, textTransform:"uppercase", marginBottom: 8 }}>
-            Internal variant
-          </div>
-          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 15, fontStyle:"italic",
-            color: colors.ink, marginBottom: 6, lineHeight: 1.3 }}>
-            {story.internalVariant.label}
-          </div>
-          <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
-            color: colors.inkSoft, lineHeight: 1.55 }}>
-            {story.internalVariant.description}
           </div>
         </div>
       )}
@@ -7278,6 +7936,413 @@ function VoicesGallery() {
 }
 
 // ============================================================================
+// SUB-CLAIM BREAKDOWN — decomposes the lead storyline into component claims
+// with stacked branch bars. Design principles after Mian review:
+//   • No top divider; the section opens with a narrative H2 instead.
+//   • Luminance-gradient palette (deepest → lightest). Colorblind-safe:
+//     readers can separate branches by brightness alone, not only hue.
+//   • Numbers are emphasized, right-aligned to a fixed column, in pure ink.
+//   • No "w 0.30" weight figure; load/decorative tag carries that signal.
+//   • No "ALT" label; a single-line layout per alternative makes the tail
+//     visually distinct from the leading claim above the bar.
+// ============================================================================
+
+// Luminance-gradient palette. Position 0 is the brand primary; downstream
+// positions step progressively lighter so the leading branch always reads
+// first, and the figure degrades gracefully to grayscale.
+const SUBCLAIM_BRANCH_PALETTE = [
+  "#A03A2C", // 0 — brand terracotta (leading branch in every row)
+  "#4E6B85", // 1 — deep slate blue
+  "#9C8456", // 2 — warm khaki
+  "#BFC4B8", // 3 — pale warm gray-green
+];
+
+function SubClaimBreakdown() {
+  const data = SUBCLAIMS_V04;
+  const palette = SUBCLAIM_BRANCH_PALETTE;
+
+  const loadBearing = data.subclaims.filter(s => s.role === "load");
+  const decorative  = data.subclaims.filter(s => s.role === "decor");
+  const loadWeight  = loadBearing.reduce((s, x) => s + x.weight, 0);
+  const decorWeight = decorative.reduce((s, x) => s + x.weight, 0);
+
+  // Short labels for the branching graph — the full names are shown in the
+  // detailed sub-claim rows below. The graph is a compact at-a-glance view.
+  const SHORT_NAMES = {
+    A: "Executor",
+    B: "Authorization",
+    C: "Non-advancement",
+    D: "Polish role",
+    E: "CIA foreknowledge",
+    F: "Funding source",
+  };
+
+  // Branch geometry — two visually-separated groups (load / decorative),
+  // three branches per group, 45 svg units apart.
+  const branches = data.subclaims.map((sc, i) => {
+    const isLoad = sc.role === "load";
+    const idxInGroup = isLoad ? i : i - 3;
+    const y = isLoad
+      ? 50 + idxInGroup * 45    // load: y = 50, 95, 140
+      : 220 + idxInGroup * 45;  // decor: y = 220, 265, 310
+    return { ...sc, y, isLoad };
+  });
+
+  return (
+    <div style={{ padding: "56px 56px 64px", background: colors.paper }}>
+      {/* TWO-COLUMN LAYOUT — graph left, prose right. Flex + wrap so narrow
+          viewports stack cleanly. */}
+      <div style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 56,
+        alignItems: "flex-start",
+        marginBottom: 56,
+        maxWidth: 1200,
+      }}>
+
+        {/* ─────── LEFT COLUMN — branching graph ─────── */}
+        <div style={{ flex: "1 1 420px", maxWidth: 500, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 9.5, letterSpacing: 1, textTransform: "uppercase",
+            color: colors.inkMute, marginBottom: 18,
+          }}>
+            How this storyline decomposes
+          </div>
+
+          <div style={{
+            position: "relative", width: "100%",
+            aspectRatio: "480 / 360",
+          }}>
+            {/* SVG: trunk + branch lines */}
+            <svg viewBox="0 0 480 360"
+                 preserveAspectRatio="xMidYMid meet"
+                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+              {/* Trunk — short horizontal from root to split point */}
+              <line x1="82" y1="180" x2="130" y2="180"
+                    stroke={colors.ink} strokeWidth="2"/>
+              {/* Six branch paths — Bezier from trunk tip to endpoint */}
+              {branches.map(b => (
+                <g key={b.letter}>
+                  <path d={`M 130 180 C 200 180 220 ${b.y} 290 ${b.y}`}
+                        stroke={b.isLoad ? colors.ink : colors.inkMute}
+                        strokeWidth={1 + b.weight * 9}
+                        strokeLinecap="round"
+                        fill="none"
+                        opacity={b.isLoad ? 1 : 0.75}/>
+                  <circle cx="290" cy={b.y} r="2.8"
+                          fill={b.isLoad ? colors.ink : colors.inkMute}
+                          opacity={b.isLoad ? 1 : 0.75}/>
+                </g>
+              ))}
+            </svg>
+
+            {/* Root label — α and 50% at the trunk's left end */}
+            <div style={{
+              position: "absolute",
+              left: "1%",
+              top: "50%",
+              transform: "translateY(-50%)",
+              display: "flex", flexDirection: "column", alignItems: "flex-start",
+            }}>
+              <div style={{
+                fontFamily: "'Fraunces', serif", fontStyle: "italic",
+                fontSize: 36, fontWeight: 400, color: colors.primary,
+                lineHeight: 0.95, letterSpacing: -0.5,
+              }}>α</div>
+              <div style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 11, fontWeight: 600, color: colors.ink,
+                letterSpacing: 0.4, marginTop: 6,
+                fontVariantNumeric: "tabular-nums",
+              }}>50%</div>
+            </div>
+
+            {/* Group labels — top-right and bottom-right corners */}
+            <div style={{
+              position: "absolute", right: 0, top: 0,
+              fontFamily: "'JetBrains Mono', monospace", fontSize: 8.5,
+              letterSpacing: 1, textTransform: "uppercase",
+              color: colors.inkMute, fontWeight: 500,
+            }}>
+              Load-bearing · {Math.round(loadWeight * 100)}%
+            </div>
+            <div style={{
+              position: "absolute", right: 0, bottom: 0,
+              fontFamily: "'JetBrains Mono', monospace", fontSize: 8.5,
+              letterSpacing: 1, textTransform: "uppercase",
+              color: colors.inkMute, fontWeight: 500,
+            }}>
+              Decorative · {Math.round(decorWeight * 100)}%
+            </div>
+
+            {/* Branch labels — HTML overlaid on SVG endpoints so text can
+                wrap/truncate cleanly without SVG clipping */}
+            {branches.map(b => (
+              <div key={b.letter} style={{
+                position: "absolute",
+                left: `${(298 / 480) * 100}%`,
+                top: `${(b.y / 360) * 100}%`,
+                right: 0,
+                transform: "translateY(-50%)",
+                display: "flex", alignItems: "baseline", gap: 10,
+                paddingLeft: 6,
+              }}>
+                <span style={{
+                  fontFamily: "'Fraunces', serif", fontStyle: "italic",
+                  fontSize: 18, fontWeight: 400,
+                  color: b.isLoad ? colors.ink : colors.inkSoft,
+                  lineHeight: 1, width: 12,
+                  letterSpacing: -0.2,
+                }}>{b.letter}</span>
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+                  letterSpacing: 0.8, textTransform: "uppercase",
+                  color: b.isLoad ? colors.ink : colors.inkMute,
+                  flex: 1, minWidth: 0,
+                  overflow: "hidden", textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}>{SHORT_NAMES[b.letter]}</span>
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 13,
+                  fontWeight: 600,
+                  color: b.isLoad ? colors.ink : colors.inkSoft,
+                  fontVariantNumeric: "tabular-nums",
+                  letterSpacing: 0.3,
+                }}>{Math.round(b.weight * 100)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ─────── RIGHT COLUMN — prose explanation ─────── */}
+        <div style={{ flex: "2 1 420px", minWidth: 0, maxWidth: 760 }}>
+          <div style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 10, color: colors.inkMute, letterSpacing: 1,
+            textTransform: "uppercase", marginBottom: 18,
+            display: "flex", alignItems: "baseline", gap: 8,
+          }}>
+            <span>Lead storyline</span>
+            <span style={{ opacity: 0.4 }}>·</span>
+            <span style={{
+              fontFamily: "'Fraunces', serif", fontStyle: "italic",
+              textTransform: "none", letterSpacing: -0.2, fontSize: 13,
+              color: colors.primary, fontWeight: 400,
+            }}>
+              α
+            </span>
+            <span style={{ opacity: 0.4 }}>·</span>
+            <span>50% coverage of the case</span>
+          </div>
+          <div style={{
+            fontFamily: "'Fraunces', serif", fontStyle: "italic",
+            fontSize: 34, fontWeight: 400, lineHeight: 1.14,
+            letterSpacing: -0.5, color: colors.ink, marginBottom: 22,
+          }}>
+            Ukrainian military bypass, Polish complicity, US awareness.
+          </div>
+          <div style={{
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontSize: 14.5, lineHeight: 1.65, color: colors.inkSoft,
+            marginBottom: 18,
+          }}>
+            On present evidence: Ukrainian military leadership — Zaluzhnyi at the top, Chervinsky on the ground — authorized and executed the strike after Zelensky's earlier approval was withdrawn under US pressure. Poland provided tacit facilitation, short of formal participation. The CIA had been informed, initially did not oppose, and did not stop it when late warnings went unheeded. Five jurisdictions and the UN chose non-resolution — a pattern that reads as political, not forensic.
+          </div>
+          <div style={{
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontSize: 13.5, lineHeight: 1.6, color: colors.inkMute,
+            fontStyle: "italic",
+          }}>
+            Six sub-claims — three load-bearing, three decorative — show where this reading could still shift and which alternatives the evidence has not ruled out.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1040, display: "flex", flexDirection: "column", gap: 34 }}>
+        {data.subclaims.map((sc) => (
+          <SubClaimRow key={sc.letter} sc={sc} palette={palette} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Fixed right-column width for all probability numbers — keeps the reader's
+// eye anchored on a vertical axis they can scan.
+const SUBCLAIM_NUMBER_COL = 56;
+
+function SubClaimRow({ sc, palette }) {
+  const [hovered, setHovered] = useState(null);
+  const leading = sc.branches.find(b => b.isCurrent) || sc.branches[0];
+  const alts    = sc.branches.filter(b => b !== leading);
+  const leadIdx = sc.branches.indexOf(leading);
+  const isLoad  = sc.role === "load";
+
+  return (
+    <div>
+      {/* Header — letter · name · role tag (matches overlay's MONO tag +
+          uppercase letterSpacing for structural metadata) */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 14,
+        marginBottom: 10,
+      }}>
+        <span style={{
+          fontFamily: "'Fraunces', serif", fontStyle: "italic", fontWeight: 400,
+          fontSize: 16, color: colors.inkMute, letterSpacing: -0.2,
+          minWidth: 12,
+        }}>
+          {sc.letter}
+        </span>
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5,
+          color: colors.inkSoft, letterSpacing: 1.3,
+          textTransform: "uppercase", fontWeight: 500,
+        }}>
+          {sc.name}
+        </span>
+        <Tag tone={isLoad ? "default" : "mute"}>
+          {isLoad ? "Load-bearing" : "Decorative"}
+        </Tag>
+      </div>
+
+      {/* Leading branch — head block matching overlay's italic Fraunces
+          summary, with the probability as the biggest visual element. */}
+      <div style={{
+        display: "flex", alignItems: "baseline", gap: 20,
+        marginBottom: 12,
+      }}>
+        <div style={{
+          flex: 1,
+          fontFamily: "'Fraunces', serif", fontStyle: "italic",
+          fontSize: 22, fontWeight: 400, lineHeight: 1.3,
+          color: colors.ink, letterSpacing: -0.25,
+          textWrap: "balance",
+        }}>
+          {leading.text}
+        </div>
+        <div style={{
+          width: SUBCLAIM_NUMBER_COL,
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 22, fontWeight: 700,
+          color: colors.primary, letterSpacing: 0.3,
+          textAlign: "right", fontVariantNumeric: "tabular-nums",
+          flexShrink: 0, lineHeight: 1,
+        }}>
+          {Math.round(leading.likelihood * 100)}<span style={{
+            fontSize: 13, fontWeight: 600, opacity: 0.65, marginLeft: 1,
+          }}>%</span>
+        </div>
+      </div>
+
+      {/* Stacked distribution bar — matches overlay's 7px bar style.
+          Leading segment first (not in natural branch order) so the
+          bar reads left-to-right as "dominant → alternatives". */}
+      <div style={{
+        display: "flex", width: "100%", height: 7, borderRadius: 1,
+        overflow: "hidden", background: "rgba(242, 238, 228, 0.6)",
+        marginBottom: 12,
+      }}>
+        {/* Leading first */}
+        <div
+          onMouseEnter={() => setHovered(leadIdx)}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            width: `${leading.likelihood * 100}%`,
+            background: palette[leadIdx] || palette[0],
+            opacity: (hovered !== null && hovered !== leadIdx) ? 0.28 : 1,
+            borderRight: `1px solid rgba(250, 248, 243, 0.6)`,
+            transition: "opacity 0.15s",
+          }}
+        />
+        {/* Alternatives in order */}
+        {alts.map((br) => {
+          const origIdx = sc.branches.indexOf(br);
+          const isHovered = hovered === origIdx;
+          const otherHovered = hovered !== null && !isHovered;
+          return (
+            <div
+              key={origIdx}
+              onMouseEnter={() => setHovered(origIdx)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                width: `${br.likelihood * 100}%`,
+                background: palette[origIdx] || palette[palette.length - 1],
+                opacity: otherHovered ? 0.28 : 1,
+                borderRight: `1px solid rgba(250, 248, 243, 0.6)`,
+                transition: "opacity 0.15s",
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Alternatives — same grid shape as overlay's 5-storyline rows:
+          color chip · text · probability (right-aligned to shared column).
+          No hover-driven color swaps; only subtle ink-shift + dim of others. */}
+      {alts.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {alts.map((br) => {
+            const origIdx = sc.branches.indexOf(br);
+            const isHovered = hovered === origIdx;
+            const otherHovered = hovered !== null && !isHovered;
+            return (
+              <div
+                key={origIdx}
+                onMouseEnter={() => setHovered(origIdx)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `9px 1fr ${SUBCLAIM_NUMBER_COL}px`,
+                  gap: 12,
+                  alignItems: "baseline",
+                  opacity: otherHovered ? 0.4 : 1,
+                  transition: "opacity 0.15s",
+                  cursor: "default",
+                }}
+              >
+                <div style={{
+                  width: 7, height: 7,
+                  background: palette[origIdx] || palette[palette.length - 1],
+                  alignSelf: "center", transform: "translateY(-2px)",
+                  outline: isHovered ? `1.5px solid ${colors.ink}` : "none",
+                  outlineOffset: 1,
+                  transition: "outline 0.15s",
+                }} />
+                <span style={{
+                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontSize: 13.5, lineHeight: 1.45,
+                  color: isHovered ? colors.ink : colors.inkSoft,
+                  fontWeight: 400,
+                  textWrap: "balance",
+                  transition: "color 0.15s",
+                }}>
+                  {br.text}
+                </span>
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 13, fontWeight: 600,
+                  color: isHovered ? colors.ink : colors.inkSoft,
+                  letterSpacing: 0.3,
+                  textAlign: "right", fontVariantNumeric: "tabular-nums",
+                  transition: "color 0.15s",
+                }}>
+                  {Math.round(br.likelihood * 100)}<span style={{
+                    fontSize: 10, opacity: 0.65, marginLeft: 1,
+                  }}>%</span>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ============================================================================
 // SURVIVING CAUSAL CHAIN — horizontal narrative of what the evidence has NOT
 // ruled out, with audit traces and branches for positions not fully excluded.
 //
@@ -7298,6 +8363,91 @@ function VoicesGallery() {
 //   • δ appears as a footer annotation with strike styling — it is not a
 //     branch because §2.5.4 gates it to zero; but it is shown so readers see
 //     the exclusion happened, not that we forgot it.
+// ============================================================================
+
+// ============================================================================
+// AUTO-SCROLLER — wraps a horizontal-scroll container with a slow,
+// continuous left-to-right autoscroll. Pauses while the mouse is inside
+// the container OR while the user is interacting with the scrollbar.
+// When the scroll reaches the right edge, it snaps back to the start
+// after a brief pause (so the loop is legible, not jarring).
+// ============================================================================
+function AutoScroller({ children, minWidth, speed = 0.4, restartPauseMs = 1200 }) {
+  const ref = React.useRef(null);
+  const pausedRef = React.useRef(false);
+  const [isHover, setIsHover] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = null;
+    let lastTs = 0;
+    let resetTimeout = null;
+
+    const tick = (ts) => {
+      if (!lastTs) lastTs = ts;
+      const dt = ts - lastTs;
+      lastTs = ts;
+      if (!pausedRef.current && el) {
+        const max = el.scrollWidth - el.clientWidth;
+        if (max > 0) {
+          if (el.scrollLeft >= max - 1) {
+            // At end — pause briefly, then jump back to start.
+            pausedRef.current = true;
+            resetTimeout = setTimeout(() => {
+              if (el) el.scrollLeft = 0;
+              pausedRef.current = false;
+            }, restartPauseMs);
+          } else {
+            el.scrollLeft += speed * dt;
+          }
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      if (resetTimeout) clearTimeout(resetTimeout);
+    };
+  }, [speed, restartPauseMs]);
+
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => { pausedRef.current = true; setIsHover(true); }}
+      onMouseLeave={() => { pausedRef.current = false; setIsHover(false); }}
+      style={{
+        overflowX: "auto",
+        overflowY: "hidden",
+        paddingBottom: 16,
+        WebkitOverflowScrolling: "touch",
+        position: "relative",
+      }}>
+      {children}
+      {/* Hover hint — small badge that appears in the corner when paused */}
+      {isHover && (
+        <div style={{
+          position: "absolute", top: 8, right: 12,
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.inkMute, letterSpacing: 0.6,
+          background: "rgba(250, 248, 243, 0.92)",
+          padding: "3px 7px", borderRadius: 1,
+          border: `1px solid ${colors.ruleSoft}`,
+          pointerEvents: "none",
+          letterSpacing: 0.7,
+          textTransform: "uppercase",
+        }}>
+          paused · scroll resumes when you move away
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// SURVIVING CAUSAL CHAIN — α's narrative timeline, with audit overlays at
+// nodes where evidence forces a constraint or branch reading.
 // ============================================================================
 
 function SurvivingCausalChain() {
@@ -7394,12 +8544,10 @@ function SurvivingCausalChain() {
         </div>
 
         {/* ─── Horizontal scroll container for the chain ───────────────── */}
-        <div style={{
-          overflowX: "auto",
-          overflowY: "hidden",
-          paddingBottom: 16,
-          WebkitOverflowScrolling:"touch",
-        }}>
+        {/* Auto-scrolls left-to-right at a slow, readable pace; pauses on
+            hover or when the user manually drags the scrollbar. When the
+            scroll reaches the end, it resets to the start. */}
+        <AutoScroller minWidth={nodes.length * 220 + 260}>
           <div style={{
             position:"relative",
             minWidth: nodes.length * 220 + 260,
@@ -7677,7 +8825,7 @@ function SurvivingCausalChain() {
             </div>
 
           </div>
-        </div>
+        </AutoScroller>
 
         {/* ─── μ gloss inside the frame ──────────────────────────────── */}
         <div style={{
@@ -7793,7 +8941,11 @@ function SurvivingCausalChain() {
 function StorylineReconstructions({ focusStoryline, setFocusStoryline }) {
   const [openId, setOpenId] = useState("alpha"); // α opens by default
 
-  const sorted = [...STORYLINES].sort((a,b)=> b.coverage - a.coverage);
+  // Filter out process subclaim — μ lives on a parallel axis, not in the
+  // attribution storyline list. Sort by coverage descending.
+  const attribution = STORYLINES.filter(s => s.kind !== "subclaim");
+  const subclaim = STORYLINES.find(s => s.kind === "subclaim"); // μ
+  const sorted = [...attribution].sort((a,b)=> b.coverage - a.coverage);
 
   return (
     <div style={{ padding: "56px 56px 48px", background: colors.paper }}>
@@ -7809,7 +8961,7 @@ function StorylineReconstructions({ focusStoryline, setFocusStoryline }) {
           </div>
           <div style={{ fontFamily:"'Fraunces', serif", fontSize: 38, fontWeight: 400,
             lineHeight: 1.08, letterSpacing: -0.6, color: colors.ink }}>
-            Five coherent ways to organize what we know.
+            {attribution.length} coherent ways to organize what we know.
           </div>
         </div>
         <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 17,
@@ -7843,13 +8995,13 @@ function StorylineReconstructions({ focusStoryline, setFocusStoryline }) {
             </div>
             <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13.5,
               color: colors.inkSoft, lineHeight: 1.55 }}>
-              The five reconstructions absorb {STORYLINES.reduce((s,x)=> s + x.coverage, 0) * 100}% of the weight. The remainder is not "uncertainty in general" — it is structure that fits none of these five reconstructions coherently. It is a limit of the reconstructions, not of reality.
+              The {STORYLINES.filter(s => s.kind !== "subclaim").length} attribution reconstructions absorb {Math.round(STORYLINES.filter(s => s.kind !== "subclaim").reduce((s,x)=> s + x.coverage, 0) * 100)}% of the weight. The remainder is not "uncertainty in general" — it is structure that fits none of these reconstructions coherently. It is a limit of the reconstructions, not of reality. (Process — μ — sits on a parallel subclaim axis and is not summed here.)
             </div>
           </div>
           <div style={{ fontFamily:"'Fraunces', serif", fontSize: 46,
             fontStyle:"italic", color: colors.ink,
             fontVariantNumeric:"tabular-nums", lineHeight: 1 }}>
-            {Math.round(STORYLINES.reduce((s,x)=> s + x.coverage, 0) * 100)}<span style={{ fontSize: 22, opacity: 0.55 }}>%</span>
+            {Math.round(STORYLINES.filter(s => s.kind !== "subclaim").reduce((s,x)=> s + x.coverage, 0) * 100)}<span style={{ fontSize: 22, opacity: 0.55 }}>%</span>
           </div>
         </div>
       </div>
@@ -7879,111 +9031,82 @@ function AggregationReadout() {
   return (
     <div style={{ padding: "48px 56px 56px", background: colors.paper }}>
       <Rule />
-      <div style={{ marginTop: 36, marginBottom: 40, maxWidth: 1100 }}>
-        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-          color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
-          Under the surface
+
+      {/* Header — softmax-artifact warning is the single most important
+          piece of info on this section, so it leads */}
+      <div style={{ marginTop: 36, marginBottom: 32, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 56, alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
+            Under the surface
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 30, fontWeight: 400,
+            lineHeight: 1.12, letterSpacing: -0.4, color: colors.ink }}>
+            What the evidence actually says, before normalization.
+          </div>
         </div>
-        <div style={{ fontFamily:"'Fraunces', serif", fontSize: 36, fontWeight: 400,
-          lineHeight: 1.08, letterSpacing: -0.6, color: colors.ink }}>
-          The strongest candidate sits at <span style={{ color: colors.primary, fontStyle:"italic" }}>33.5%</span>. That number is a display artifact, not a confidence level.
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 15,
+          color: colors.inkMute, lineHeight: 1.55 }}>
+          The graph above shows softmax-normalized percentages. Softmax compresses eleven candidates into a bounded simplex — weak candidates get a mathematical floor, strong ones get a ceiling. Below: the raw scores, which were the input to that compression. They are far less compressed and tell a sharper story.
         </div>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 48, marginBottom: 48 }}>
-        <div style={{ padding: 28, border: `1px solid ${colors.rule}`, borderRadius: 2,
-          background: colors.paper }}>
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 6 }}>
-            What the display shows
+      {/* Single panel — raw scores, full width */}
+      <div style={{ padding: "28px 32px", border: `1px solid ${colors.ink}`, borderRadius: 2,
+        background: colors.paper }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 32, alignItems:"baseline",
+          marginBottom: 22 }}>
+          <div>
+            <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+              color: colors.primary, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 6 }}>
+              Raw score
+            </div>
+            <div style={{ fontFamily:"'Fraunces', serif", fontSize: 22, fontStyle:"italic",
+              lineHeight: 1.25, color: colors.ink, letterSpacing: -0.2 }}>
+              C2b dominates at <strong style={{ color: colors.primary, fontWeight: 500 }}>+2.65</strong> — every other candidate sits below +1.3.
+            </div>
           </div>
-          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 19, fontStyle:"italic",
-            lineHeight: 1.3, color: colors.ink, letterSpacing: -0.15, marginBottom: 20 }}>
-            Softmax-normalized percentages
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap: 6 }}>
-            {rawVals.map(({k, soft}) => (
-              <div key={k} style={{ display:"grid", gridTemplateColumns:"1fr 56px",
-                alignItems:"center", gap: 12 }}>
-                <div>
-                  <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
-                    color: colors.ink, marginBottom: 4 }}>
-                    {CAND_READABLE_V04_SHORT[k]}
-                  </div>
-                  <div style={{ height: 3, background: colors.paperDeep, borderRadius: 1, overflow:"hidden" }}>
-                    <div style={{ width: `${soft}%`, height: "100%",
-                      background: candColor(k),
-                      transition:"width 0.5s cubic-bezier(.2,.7,.2,1)" }}/>
-                  </div>
-                </div>
-                <div style={{ fontFamily:"'Fraunces', serif", fontSize: 15, fontStyle:"italic",
-                  color: k === "C2b" ? colors.primary : colors.ink,
-                  fontVariantNumeric:"tabular-nums", textAlign:"right" }}>
-                  {soft.toFixed(1)}<span style={{ fontSize: 10, opacity: 0.55 }}>%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 20, paddingTop: 16,
-            borderTop: `1px solid ${colors.ruleSoft}`,
-            fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
-            lineHeight: 1.55, color: colors.inkSoft }}>
-            Softmax compresses eleven candidates into a bounded probability simplex. Weak candidates get bumped up from zero by the mathematical floor; strong ones get ceiling-capped.
+          <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+            color: colors.inkSoft, lineHeight: 1.6 }}>
+            The 33.5% the graph shows is the softmax of these raw scores. Second place is +1.30 for "the investigation is avoiding resolution" — a process subclaim, not a competing perpetrator hypothesis. Third place is +0.24, more than ten times smaller than the leader.
           </div>
         </div>
 
-        <div style={{ padding: 28, border: `1px solid ${colors.ink}`, borderRadius: 2,
-          background: colors.paper }}>
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-            color: colors.primary, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 6 }}>
-            What the evidence actually says
-          </div>
-          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 19, fontStyle:"italic",
-            lineHeight: 1.3, color: colors.ink, letterSpacing: -0.15, marginBottom: 20 }}>
-            Raw score, before normalization
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap: 6 }}>
-            {rawVals.map(({k, raw}) => {
-              const pos = raw >= 0;
-              const w = (Math.abs(raw) / maxRaw) * 50;
-              return (
-                <div key={k} style={{ display:"grid", gridTemplateColumns:"1fr 56px",
-                  alignItems:"center", gap: 12 }}>
-                  <div>
-                    <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
-                      color: colors.ink, marginBottom: 4 }}>
-                      {CAND_READABLE_V04_SHORT[k]}
-                    </div>
-                    <div style={{ position:"relative", height: 3, background: colors.paperDeep, borderRadius: 1 }}>
-                      <div style={{ position:"absolute", left:"50%", top: -2, bottom: -2,
-                        width: 1, background: colors.inkMute, opacity: 0.4 }}/>
-                      <div style={{ position:"absolute",
-                        left: pos ? "50%" : `${50 - w}%`,
-                        width: `${w}%`, height: "100%",
-                        background: pos
-                          ? (k === "C2b" ? colors.primary
-                            : k === "C7" ? colors.warn
-                            : k === "C_insufficient" ? colors.meta
-                            : colors.inkSoft)
-                          : colors.muted,
-                        transition:"all 0.5s cubic-bezier(.2,.7,.2,1)" }}/>
-                    </div>
-                  </div>
-                  <div style={{ fontFamily:"'Fraunces', serif", fontSize: 15, fontStyle:"italic",
-                    color: k === "C2b" ? colors.primary : colors.ink,
-                    fontVariantNumeric:"tabular-nums", textAlign:"right" }}>
-                    {raw >= 0 ? "+" : ""}{raw.toFixed(2)}
-                  </div>
+        <div style={{ display:"flex", flexDirection:"column", gap: 8 }}>
+          {rawVals.map(({k, raw}) => {
+            const pos = raw >= 0;
+            const w = (Math.abs(raw) / maxRaw) * 50;
+            return (
+              <div key={k} style={{ display:"grid", gridTemplateColumns:"180px 1fr 64px",
+                alignItems:"center", gap: 16 }}>
+                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+                  color: colors.ink, fontWeight: k === "C2b" ? 500 : 400 }}>
+                  {CAND_READABLE_V04_SHORT[k]}
                 </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 20, paddingTop: 16,
-            borderTop: `1px solid ${colors.ruleSoft}`,
-            fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
-            lineHeight: 1.55, color: colors.inkSoft }}>
-            Ukraine — military bypass scores <strong style={{ color: colors.primary }}>+2.65</strong>, dominating every other candidate. Inconclusive (the μ-feeder) scores +1.30 — second place goes to "the investigation is avoiding resolution," not to any other perpetrator hypothesis.
-          </div>
+                <div style={{ position:"relative", height: 5, background: colors.paperDeep, borderRadius: 1 }}>
+                  <div style={{ position:"absolute", left:"50%", top: -3, bottom: -3,
+                    width: 1, background: colors.inkMute, opacity: 0.4 }}/>
+                  <div style={{ position:"absolute",
+                    left: pos ? "50%" : `${50 - w}%`,
+                    width: `${w}%`, height: "100%",
+                    background: pos
+                      ? (k === "C2b" ? colors.primary
+                        : k === "C7" ? colors.warn
+                        : k === "C_insufficient" ? colors.meta
+                        : colors.inkSoft)
+                      : colors.muted,
+                    transition:"all 0.5s cubic-bezier(.2,.7,.2,1)" }}/>
+                </div>
+                <div style={{ fontFamily:"'Fraunces', serif", fontSize: 16, fontStyle:"italic",
+                  color: k === "C2b" ? colors.primary : colors.ink,
+                  fontVariantNumeric:"tabular-nums", textAlign:"right",
+                  fontWeight: k === "C2b" ? 500 : 400 }}>
+                  {raw >= 0 ? "+" : ""}{raw.toFixed(2)}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -7995,6 +9118,9 @@ function AggregationReadout() {
 // ============================================================================
 
 function LimitsSectionV04() {
+  // Limits compressed to a footer-style accordion. Each limit shows just
+  // its key + title by default; click to expand description. Total height
+  // dropped ~70% vs the old hero-treatment version.
   const items = [
     { k:"L1", t:"Shrinkage parameters still have no first-principles derivation.",
       d:"shrinkage_factor = 0.3, evidence_threshold = 0.1. Elevated to stakeable parameters in v0.3; not eliminated." },
@@ -8013,75 +9139,1276 @@ function LimitsSectionV04() {
     { k:"L8", t:"Model-corrected modality weights under-inflate strong judicial evidence.",
       d:"BGH's 2025-12 ruling and Poland's Łubowski judgment are treated as correlational (modality 0.7), not causal (1.0), because neither names a specific C2 sub-candidate. A reader may legitimately argue these rulings should carry causal weight for 'state involvement' as a union even if they do not separate C2a/b/c.", isV04: true },
   ];
-  const epigraph = INDEPENDENT_VOICES.find(v => v.id === "V1");
+
+  const [openK, setOpenK] = useState(null);
 
   return (
-    <div style={{ padding: "56px 56px 96px", background: colors.paper }}>
+    <div style={{ padding: "32px 56px 40px", background: colors.paper }}>
       <Rule />
 
-      {/* Epigraph */}
-      <div style={{ marginTop: 44, marginBottom: 52, maxWidth: 900 }}>
-        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
-          fontSize: 28, lineHeight: 1.3, color: colors.ink, letterSpacing: -0.3 }}>
-          "{epigraph.quote}"
-        </div>
-        <div style={{ fontFamily:"'Fraunces', serif",
-          fontSize: 24, color: colors.ink, marginTop: 10,
-          lineHeight: 1.35, letterSpacing: -0.3, fontWeight: 400 }}>
-          "{epigraph.translation}"
-        </div>
+      {/* Compact header — single line, no hero treatment */}
+      <div style={{ marginTop: 22, marginBottom: 18,
+        display:"flex", alignItems:"baseline", gap: 16, flexWrap:"wrap" }}>
         <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-          color: colors.inkMute, letterSpacing: 0.8, marginTop: 14 }}>
-          — {epigraph.speaker}, {epigraph.role}, {epigraph.date}
+          color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase" }}>
+          What this exhibit cannot do
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+          color: colors.inkMute, lineHeight: 1.5 }}>
+          Eight acknowledged limits — four inherited from v0.3, four new in v0.4. Click a row to expand.
         </div>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap: 72 }}>
-        <div>
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-            color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase", marginBottom: 14 }}>
-            Acknowledged limits
-          </div>
-          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 30, fontWeight: 400,
-            lineHeight: 1.12, letterSpacing: -0.4, color: colors.ink }}>
-            What this exhibit cannot do.
-          </div>
-          <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 15,
-            color: colors.inkMute, marginTop: 18, lineHeight: 1.5 }}>
-            Four limits inherited from v0.3. Four new limits that v0.4 makes explicit — structural in nature, not parameter-tunable.
-          </div>
-        </div>
-        <div style={{ display:"flex", flexDirection:"column", gap: 20 }}>
-          {items.map(item => (
-            <div key={item.k} style={{
-              display:"grid", gridTemplateColumns:"60px 1fr", gap: 22,
-              paddingBottom: 20, borderBottom:`1px solid ${colors.ruleSoft}` }}>
-              <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
-                color: item.isV04 ? colors.primary : colors.inkMute,
-                letterSpacing: 0.8, paddingTop: 4, fontWeight: item.isV04 ? 600 : 400 }}>
-                {item.isV04 ? `v0.4–${item.k}` : `v0.3–${item.k}`}
-              </div>
-              <div>
-                <div style={{ fontFamily:"'Fraunces', serif", fontSize: 19,
-                  color: colors.ink, lineHeight: 1.3 }}>{item.t}</div>
-                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 14,
-                  color: colors.inkSoft, marginTop: 8, lineHeight: 1.6 }}>{item.d}</div>
-              </div>
+      {/* Accordion list — each limit one row, expand on click */}
+      <div style={{ border: `1px solid ${colors.ruleSoft}`, borderRadius: 2,
+        background: colors.paper, marginBottom: 24 }}>
+        {items.map((item, i) => {
+          const isOpen = openK === item.k;
+          const tag = item.isV04 ? `v0.4–${item.k}` : `v0.3–${item.k}`;
+          return (
+            <div key={item.k}
+              style={{
+                borderTop: i > 0 ? `1px solid ${colors.ruleSoft}` : "none",
+                background: isOpen ? "rgba(242, 238, 228, 0.4)" : "transparent",
+                transition:"background 0.15s",
+              }}>
+              {/* Row header — always visible */}
+              <button
+                onClick={()=>setOpenK(isOpen ? null : item.k)}
+                style={{
+                  display:"grid",
+                  gridTemplateColumns:"72px 1fr 14px",
+                  gap: 16, alignItems:"baseline",
+                  width:"100%", padding:"10px 18px",
+                  background:"transparent", border:"none",
+                  cursor:"pointer", textAlign:"left" }}>
+                <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10.5,
+                  color: item.isV04 ? colors.primary : colors.inkMute,
+                  letterSpacing: 0.7, fontWeight: item.isV04 ? 600 : 500 }}>
+                  {tag}
+                </span>
+                <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                  color: colors.ink, lineHeight: 1.4 }}>
+                  {item.t}
+                </span>
+                <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                  color: colors.inkMute, transform: isOpen ? "rotate(180deg)" : "rotate(0)",
+                  transition:"transform 0.15s", textAlign:"right" }}>
+                  ▾
+                </span>
+              </button>
+              {/* Expanded description */}
+              {isOpen && (
+                <div style={{
+                  padding:"4px 18px 14px",
+                  display:"grid", gridTemplateColumns:"72px 1fr 14px",
+                  gap: 16 }}>
+                  <span/>
+                  <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+                    color: colors.inkSoft, lineHeight: 1.6 }}>
+                    {item.d}
+                  </div>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      <div style={{ marginTop: 72, paddingTop: 24, borderTop:`1px solid ${colors.rule}`,
-        display:"flex", justifyContent:"space-between", alignItems:"baseline",
+      <FooterMeta />
+    </div>
+  );
+}
+
+// ============================================================================
+// FOOTER META — collapsible "what changed" + version line
+// Shown at the bottom of LimitsSectionV04. Replaces the old standalone
+// DeltaPanel — readers who care about version history can expand; readers
+// who don't aren't taxed with a full-screen comparison table.
+// ============================================================================
+
+function FooterMeta() {
+  const [showDelta, setShowDelta] = useState(false);
+  return (
+    <div style={{ marginTop: 72, paddingTop: 24, borderTop:`1px solid ${colors.rule}` }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline",
         fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
         color: colors.inkMute, letterSpacing: 0.6, flexWrap:"wrap", gap: 12 }}>
         <span>Trace protocol v0.4 · fourteen-language intake · exhibit mode</span>
-        <span>Case file 001 · Nord Stream attribution · last updated 2026-04-18</span>
+        <span>
+          <button onClick={()=>setShowDelta(!showDelta)} style={{
+            background:"transparent", border:"none", padding: 0, cursor:"pointer",
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.inkSoft, letterSpacing: 0.6,
+            textTransform:"uppercase", textDecoration:"underline",
+            textUnderlineOffset: 2 }}>
+            {showDelta ? "hide changelog ▴" : "v0.3 → v0.4 changelog ▾"}
+          </button>
+          <span style={{ margin: "0 12px", opacity: 0.4 }}>·</span>
+          <span>Case file 001 · last updated 2026-04-18</span>
+        </span>
+      </div>
+
+      {showDelta && (
+        <div style={{ marginTop: 28 }}>
+          <DeltaPanel />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// CROSS-IMPACT TABLE — extracted from CausalChainSection.jsx, condensed.
+// Shown BETWEEN SurvivingCausalChain and StorylineReconstructions, so the
+// reader sees how individual evidence items differentially impact each
+// storyline BEFORE they encounter the 5 cards. The E31 pivot is the visual
+// climax — a single piece of evidence that separates α from ε.
+//
+// This is a leverage-point preview at the case level (vs storyline level).
+// ============================================================================
+
+const CROSS_IMPACT_DATA = [
+  { id:"F9",      label:"BGH ruling: 'foreign government intelligence agency' — anonymous",   impact:{ alpha:+2, epsilon:+2, zeta:+1, beta:-1, delta:-2 } },
+  { id:"F12",     label:"Fourth pipeline left intact",                                          impact:{ alpha:+1, epsilon:+1, zeta:+0, beta:-1, delta:+0 } },
+  { id:"MC5",     label:"Explosives not Ukrainian-domestic — external supply chain",             impact:{ alpha:+1, epsilon:+1, zeta:+1, beta:+1, delta:-2 } },
+  { id:"F6",      label:"CIA warned Germany about a Ukrainian plan",                             impact:{ alpha:+2, epsilon:+1, zeta:+0, beta:-1, delta:+0 } },
+  { id:"E31",     label:"Zelensky approved, then withdrew — Zaluzhnyi continued",
+                  impact:{ alpha:+3, epsilon:-1, zeta:+0, beta:+0, delta:+0 }, pivot: true,
+                  pivotNote: "The single piece of evidence that separates α from ε. Without it, α and ε are structurally indistinguishable — \"some Ukrainian actor\" could absorb the attribution mass. With it, α has a specific structural distinction (military bypass of presidential withdrawal) that ε cannot claim." },
+  { id:"E32-35",  label:"Suppression cluster: Germany blocks questions, Poland blocks extradition, Sweden / Denmark close",
+                  impact:{ alpha:+1, epsilon:+2, zeta:+2, beta:+0, delta:+0 } },
+];
+
+// 5 storylines (canonical, matching the master STORYLINES const).
+// μ is a parallel process subclaim, not a storyline — it lives in
+// SuppressionAndJudicial as its own section, not as a column here.
+const CROSS_IMPACT_STORIES = [
+  { id:"alpha",   glyph:"α", color: "primary",   label:"Ukrainian military bypass" },
+  { id:"epsilon", glyph:"ε", color: "inkSoft",   label:"Unidentified actor" },
+  { id:"zeta",    glyph:"ζ", color: "inkSoft",   label:"UK-layer, under-examined" },
+  { id:"beta",    glyph:"β", color: "inkSoft",   label:"US-led operation" },
+  { id:"delta",   glyph:"δ", color: "muted",     label:"Russian self-sabotage" },
+];
+
+function ImpactDot({ val }) {
+  if (val === 0) {
+    return <span style={{ display:"inline-block", width: 8, height: 8, borderRadius:"50%",
+      border:`1px solid ${colors.rule}`, background:"transparent" }}/>;
+  }
+  const pos = val > 0;
+  const mag = Math.abs(val);
+  const size = 7 + mag * 3;
+  return (
+    <span style={{
+      display:"inline-flex", alignItems:"center", justifyContent:"center",
+      width: size, height: size, borderRadius:"50%",
+      background: pos ? "#3A8A5C" : colors.primary,
+      opacity: mag === 1 ? 0.45 : mag === 2 ? 0.7 : 1,
+    }}>
+      <span style={{ color: colors.paper, fontSize: 9,
+        fontFamily:"'JetBrains Mono', monospace", lineHeight: 1, fontWeight: 600 }}>
+        {pos ? "+" : "−"}
+      </span>
+    </span>
+  );
+}
+
+function CrossImpactTable() {
+  const [hoverStory, setHoverStory] = useState(null);
+  const storyColor = (key) => key === "primary" ? colors.primary
+                            : key === "meta" ? colors.meta
+                            : key === "muted" ? colors.muted
+                            : colors.inkSoft;
+
+  return (
+    <div style={{ padding: "56px 56px 48px", background: colors.paper }}>
+      <Rule />
+
+      <div style={{ marginTop: 44, marginBottom: 32, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 56, alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
+            Where the leverage is
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 30, fontWeight: 400,
+            lineHeight: 1.12, letterSpacing: -0.4, color: colors.ink }}>
+            Same evidence, different impact on each storyline.
+          </div>
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 15,
+          color: colors.inkMute, lineHeight: 1.55 }}>
+          One piece of evidence rarely settles attribution. What matters is its differential impact: which storyline does it strengthen, which does it break? Below, six high-leverage evidence items × five storylines. The dot size encodes signal strength. Read the rows for "what this evidence does to each story." Read the columns for "what this storyline lives or dies on."
+        </div>
+      </div>
+
+      <div style={{ display:"grid",
+        gridTemplateColumns:`minmax(280px, 1fr) repeat(${CROSS_IMPACT_STORIES.length}, 56px)`,
+        gap: 0,
+        border: `1px solid ${colors.ruleSoft}`, borderRadius: 2, overflow:"hidden" }}>
+        {/* Header row */}
+        <div style={{ padding: "12px 18px", background: colors.paperDeep,
+          borderRight: `1px solid ${colors.ruleSoft}`,
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+          color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase" }}>
+          Evidence
+        </div>
+        {CROSS_IMPACT_STORIES.map((s,i) => (
+          <div key={s.id}
+            onMouseEnter={()=>setHoverStory(s.id)}
+            onMouseLeave={()=>setHoverStory(null)}
+            style={{
+              padding: "12px 0", textAlign:"center",
+              background: colors.paperDeep,
+              borderRight: i < CROSS_IMPACT_STORIES.length - 1 ? `1px solid ${colors.ruleSoft}` : "none",
+              cursor:"default",
+            }}>
+            <div title={s.label} style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+              fontSize: 18, fontWeight: 400,
+              color: hoverStory === s.id ? storyColor(s.color) : colors.inkSoft,
+              opacity: hoverStory && hoverStory !== s.id ? 0.3 : 1,
+              transition:"all 0.15s",
+              lineHeight: 1 }}>
+              {s.glyph}
+            </div>
+          </div>
+        ))}
+
+        {/* Body rows */}
+        {CROSS_IMPACT_DATA.map((ev, ri) => (
+          <React.Fragment key={ev.id}>
+            <div style={{
+              padding: "14px 18px",
+              borderTop: `1px solid ${colors.ruleSoft}`,
+              borderRight: `1px solid ${colors.ruleSoft}`,
+              background: ev.pivot ? "rgba(160, 58, 44, 0.05)" : colors.paper,
+              display:"flex", alignItems:"center", gap: 10 }}>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: ev.pivot ? colors.primary : colors.inkMute,
+                letterSpacing: 0.4, fontWeight: ev.pivot ? 600 : 400,
+                minWidth: 50, flexShrink: 0 }}>
+                {ev.id}
+              </span>
+              <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+                color: colors.ink, lineHeight: 1.4 }}>
+                {ev.label}
+              </span>
+            </div>
+            {CROSS_IMPACT_STORIES.map((s,i) => (
+              <div key={s.id} style={{
+                padding: "14px 0", textAlign:"center",
+                borderTop: `1px solid ${colors.ruleSoft}`,
+                borderRight: i < CROSS_IMPACT_STORIES.length - 1 ? `1px solid ${colors.ruleSoft}` : "none",
+                background: ev.pivot ? "rgba(160, 58, 44, 0.05)" : colors.paper,
+                opacity: hoverStory && hoverStory !== s.id ? 0.2 : 1,
+                transition:"opacity 0.15s",
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <ImpactDot val={ev.impact[s.id]}/>
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Pivot callout — promoted as a leverage point at the case level */}
+      {(() => {
+        const pivot = CROSS_IMPACT_DATA.find(d => d.pivot);
+        if (!pivot) return null;
+        return (
+          <div style={{ marginTop: 24, padding: "20px 24px",
+            background: "rgba(160, 58, 44, 0.05)",
+            borderLeft: `4px solid ${colors.primary}`,
+            border: `1px solid rgba(160, 58, 44, 0.18)`,
+            borderLeftWidth: 4, borderRadius: 2 }}>
+            <div style={{ display:"flex", alignItems:"center", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: colors.primary, letterSpacing: 1.0, textTransform:"uppercase",
+                fontWeight: 600 }}>
+                Case-level pivot · {pivot.id}
+              </span>
+            </div>
+            <div style={{ fontFamily:"'Fraunces', serif", fontSize: 17,
+              lineHeight: 1.45, color: colors.ink, letterSpacing: -0.1 }}>
+              {pivot.pivotNote}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Legend */}
+      <div style={{ marginTop: 28, paddingTop: 18, borderTop: `1px solid ${colors.ruleSoft}`,
+        display:"flex", gap: 24, flexWrap:"wrap",
+        fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+        color: colors.inkMute, letterSpacing: 0.5 }}>
+        <span style={{ display:"inline-flex", alignItems:"center", gap: 8 }}>
+          <ImpactDot val={3}/> strengthens (mag 3)
+        </span>
+        <span style={{ display:"inline-flex", alignItems:"center", gap: 8 }}>
+          <ImpactDot val={1}/> strengthens (mag 1)
+        </span>
+        <span style={{ display:"inline-flex", alignItems:"center", gap: 8 }}>
+          <ImpactDot val={0}/> no effect
+        </span>
+        <span style={{ display:"inline-flex", alignItems:"center", gap: 8 }}>
+          <ImpactDot val={-1}/> weakens (mag 1)
+        </span>
+        <span style={{ display:"inline-flex", alignItems:"center", gap: 8 }}>
+          <ImpactDot val={-2}/> weakens (mag 2)
+        </span>
       </div>
     </div>
   );
 }
+
+
+// ============================================================================
+// SUPPRESSION + JUDICIAL — extracted from CausalChainSection.jsx, combined.
+// μ's concrete content: who is blocking resolution, where the case stands
+// judicially. Two halves of the same question — "is the system avoiding
+// closure, and how close is closure anyway?" Sits between AggregationReadout
+// and LimitsSectionV04, where μ's significance becomes legible.
+// ============================================================================
+
+const SUPPRESSION_ACTORS = [
+  { actor:"Germany",          action:"Chancellery invokes Third Party Rule to block parliamentary questions" },
+  { actor:"Sweden & Denmark", action:"Close investigations without attribution" },
+  { actor:"Poland",           action:"Refuses to execute the German European Arrest Warrant" },
+  { actor:"UN Security Council", action:"Russia's investigation request blocked by twelve abstentions" },
+  { actor:"US intelligence",  action:"No formal attribution assessment produced post-denial (Feb 2023)" },
+];
+
+const JUDICIAL_STATE = [
+  { court:"BGH (Germany)", ruling:"\"Intelligence-agency action ordered by a foreign government\" — government unnamed",
+    status:"Trial pending", statusColor:"warn" },
+  { court:"Poland",        ruling:"\"Organized action by services of a warring state\"",
+    status:"Extradition refused", statusColor:"primary" },
+  { court:"Italy",         ruling:"Kuznetsov arrested in Rimini",
+    status:"Transferred to Germany", statusColor:"inkMute" },
+];
+
+function SuppressionAndJudicial() {
+  return (
+    <div style={{ padding: "72px 56px 72px",
+      background: "linear-gradient(180deg, " + colors.paper + " 0%, rgba(122, 106, 84, 0.04) 100%)" }}>
+      <Rule />
+
+      {/* Larger hero block — section is structurally significant, deserves
+          visual weight on par with the storyline section. Hero text scales
+          up; intro paragraph stays the same width but with larger leading. */}
+      <div style={{ marginTop: 48, marginBottom: 44, maxWidth: 1100 }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+          color: colors.meta, letterSpacing: 1.2, textTransform:"uppercase",
+          marginBottom: 16, fontWeight: 600 }}>
+          μ · process subclaim, made concrete
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontSize: 40, fontWeight: 400,
+          lineHeight: 1.08, letterSpacing: -0.6, color: colors.ink, marginBottom: 24,
+          maxWidth: 920 }}>
+          What "the case is being kept open" looks like in specifics.
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 17,
+          color: colors.inkSoft, lineHeight: 1.55, maxWidth: 820 }}>
+          μ absorbs 13.6% of evidence flow not because the evidence is weak — but because five jurisdictions and one international body have, in different forms, declined to close the question. The judicial layer is doing the opposite: converging. Both states coexist; that is the exhibit.
+        </div>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 36, marginBottom: 36 }}>
+        {/* LEFT — Suppression actors */}
+        <div>
+          <div style={{
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.meta, letterSpacing: 1.0, textTransform:"uppercase",
+            marginBottom: 14, fontWeight: 600,
+            display:"flex", alignItems:"baseline", gap: 8 }}>
+            <span>Five actors blocking resolution</span>
+            <span style={{ flex: 1, height: 1, background: `${colors.meta}40`, marginTop: 4 }}/>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap: 1,
+            border: `1px solid ${colors.ruleSoft}`, borderRadius: 2, overflow:"hidden" }}>
+            {SUPPRESSION_ACTORS.map((s, i) => (
+              <div key={i} style={{
+                display:"grid", gridTemplateColumns:"140px 1fr", gap: 14,
+                padding: "14px 18px",
+                background: i % 2 === 0 ? colors.paper : "rgba(122, 106, 84, 0.04)" }}>
+                <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                  fontWeight: 600, color: colors.ink, lineHeight: 1.4 }}>
+                  {s.actor}
+                </span>
+                <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                  color: colors.inkSoft, lineHeight: 1.45 }}>
+                  {s.action}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT — Judicial cards */}
+        <div>
+          <div style={{
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.ink, letterSpacing: 1.0, textTransform:"uppercase",
+            marginBottom: 14, fontWeight: 600,
+            display:"flex", alignItems:"baseline", gap: 8 }}>
+            <span>Where it stands judicially</span>
+            <span style={{ flex: 1, height: 1, background: colors.rule, marginTop: 4 }}/>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap: 14 }}>
+            {JUDICIAL_STATE.map((j, i) => {
+              const sc = j.statusColor === "warn" ? colors.warn
+                       : j.statusColor === "primary" ? colors.primary
+                       : colors.inkMute;
+              return (
+                <div key={i} style={{
+                  padding: "18px 20px",
+                  background: colors.paper,
+                  border: `1px solid ${colors.ruleSoft}`,
+                  borderLeft: `4px solid ${sc}`,
+                  borderRadius: 2 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between",
+                    alignItems:"baseline", marginBottom: 8, gap: 12 }}>
+                    <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 14,
+                      fontWeight: 600, color: colors.ink }}>
+                      {j.court}
+                    </span>
+                    <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+                      color: sc, letterSpacing: 0.8, textTransform:"uppercase",
+                      whiteSpace:"nowrap", fontWeight: 600 }}>
+                      {j.status}
+                    </span>
+                  </div>
+                  <div style={{ fontFamily:"'Fraunces', serif", fontSize: 14.5, fontStyle:"italic",
+                    color: colors.inkSoft, lineHeight: 1.45, letterSpacing: -0.05 }}>
+                    "{j.ruling}"
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Closing observation — restored from original CausalChainSection.jsx.
+          This is the section's structural punchline: the trunk is settled
+          (forensics converged on Ukrainian operators); the disagreement
+          is over what's ABOVE the trunk (who authorized, who supplied,
+          who is preventing closure). Distinguishes "what is known" from
+          "what is being asked." */}
+      <div style={{ marginTop: 36, padding: "26px 32px",
+        background: colors.paper,
+        border: `1px solid ${colors.rule}`,
+        borderLeft: `4px solid ${colors.ink}`,
+        borderRadius: 2 }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+          color: colors.ink, letterSpacing: 1.0, textTransform:"uppercase",
+          fontWeight: 600, marginBottom: 14 }}>
+          What is known vs what is being asked
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontSize: 18,
+          color: colors.ink, lineHeight: 1.5, letterSpacing: -0.1, marginBottom: 14 }}>
+          Every storyline above must pass through the common trunk shown earlier. The question is not whether Ukrainian operators placed the charges — the forensics have converged on that.
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 14,
+          color: colors.inkSoft, lineHeight: 1.65 }}>
+          The question is <strong style={{ color: colors.ink, fontWeight: 600 }}>who authorized them</strong>, <strong style={{ color: colors.ink, fontWeight: 600 }}>who supplied the materiel</strong>, and <strong style={{ color: colors.ink, fontWeight: 600 }}>who is now preventing the answer from becoming public</strong>. That distinction — between what is known and what is being asked — is what a headline cannot show you. The judicial layer keeps moving (BGH ruled, Poland refused, Italy extradited). The political layer keeps blocking (Sweden closed, Denmark closed, Germany sealed, the UN Security Council declined). μ is the interval between those two trajectories.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// POSITION FROM REGISTER — how 14 language ecosystems speak from their
+// positions. Tone is meta-evidence: same fact + different register reveals
+// different positional relationship. This section is paired with the (future)
+// NarrativeFrameMap — frame coordinates show WHERE each ecosystem sits;
+// register shows HOW they speak from there.
+//
+// Sits between StorylineReconstructions and AnchorsRail. Reader flow:
+// "5 readings → but who is saying what, with what tone? → 13 facts everyone
+// must accept regardless."
+// ============================================================================
+
+// 14 ecosystems plotted on certainty × affective-intensity plane.
+// x ∈ [0,100]: 0 = observer / pure neutral / silence
+//              50 = evasive / hedged
+//              100 = affirmative / certain / explicit position
+// y ∈ [0,100]: 0 = distance / coolness / pure observer
+//              100 = high affective load (pride, indignation, mockery)
+// affect: pride | indignation | mockery | distance | observer
+//   colors:
+//     pride → warn (gold)         — load-bearing celebration
+//     indignation → primary (red) — adversarial heat
+//     mockery → primarySoft       — sharp criticism
+//     distance → inkSoft          — institutional cool
+//     observer → inkMute          — disengagement / silence
+// 14 language ecosystems × 4 time points (t0–t3, matching NarrativeFrameMap).
+// Each ecosystem has 4 snapshots showing register drift over time.
+//   x ∈ [0,100]: stance certainty (left = observer/neutral, right = affirmative)
+//   y ∈ [0,100]: affective intensity (low = cool/distance, high = pride/indignation)
+// Several ecosystems drift meaningfully: Polish (cautious → pride post-Łubowski),
+// Ukrainian media (state-denial cover → media pride), Swedish/Danish (cool inves-
+// tigation → mockery post-closure), German alt-left (skeptical → full mockery),
+// German judicial (silent → BGH-active), Spanish-Sachs (absent → high indignation
+// post-UN speech). Russian, Japanese, English mainstream stay near-static.
+const REGISTER_TIMES = [
+  { id:"t0", label:"Q4 2022", sub:"immediately after attack" },
+  { id:"t1", label:"2023",    sub:"Hersh report · Andromeda surfaces" },
+  { id:"t2", label:"2024",    sub:"Die Zeit · Polish extradition refused" },
+  { id:"t3", label:"2025–26", sub:"Italian arrest · BGH ruling · converging" },
+];
+
+const REGISTER_NODES = [
+  { id:"en", flag:"🇬🇧🇺🇸", lang:"English mainstream",
+    diag:"Restrained puzzlement. WSJ/NYT use 'allegedly,' 'people familiar with.' De-dramatization deflects accountability — readers don't feel urgency to demand consequences against an ally.",
+    drift:"Stable distance throughout. Tiny rightward drift as judicial rulings come in.",
+    snapshots:{
+      t0:{x:35, y:22, affect:"distance"},
+      t1:{x:38, y:24, affect:"distance"},
+      t2:{x:40, y:22, affect:"distance"},
+      t3:{x:42, y:22, affect:"distance"} } },
+
+  { id:"zh", flag:"🇨🇳", lang:"Chinese state",
+    diag:"留白即态度. Doesn't accuse — selectively amplifies (Sikorski tweet, UN vote, Sachs testimony, US silence). Attribution outsourced to the reader.",
+    drift:"Initial silence (t0); selective amplification kicks in post-Hersh (t1+).",
+    snapshots:{
+      t0:{x:15, y:10, affect:"observer"},
+      t1:{x:30, y:30, affect:"distance"},
+      t2:{x:42, y:38, affect:"distance"},
+      t3:{x:45, y:40, affect:"distance"} } },
+
+  { id:"ru", flag:"🇷🇺", lang:"Russian state",
+    diag:"Naryshkin: 'we possess reliable intelligence' — intelligence-agency syntax as authority manufacture. RT amplifies via adverb-stacking ('bizarro,' 'utterly false').",
+    drift:"High indignation from t0; saturates post-Hersh (t1) and stays.",
+    snapshots:{
+      t0:{x:80, y:78, affect:"indignation"},
+      t1:{x:88, y:86, affect:"indignation"},
+      t2:{x:90, y:86, affect:"indignation"},
+      t3:{x:90, y:86, affect:"indignation"} } },
+
+  { id:"de_j", flag:"⚖", lang:"German judicial",
+    diag:"BGH: 'mit hoher Wahrscheinlichkeit' — won't name government. Cool jurisprudential register. The hotter the topic, the colder the German legal voice.",
+    drift:"Inactive at t0–t1 (no rulings yet); emerges with investigations (t2); dominant after BGH ruling (t3).",
+    snapshots:{
+      t0:{x:20, y:10, affect:"observer"},
+      t1:{x:28, y:14, affect:"distance"},
+      t2:{x:48, y:20, affect:"distance"},
+      t3:{x:58, y:22, affect:"distance"} } },
+
+  { id:"de_g", flag:"🇩🇪", lang:"German government",
+    diag:"'Wohl der Bundesrepublik,' 'Third Party Rule' — German bureaucratic language designed to say-nothing-substantively. Procedural deflection at scale.",
+    drift:"Locks into evasion early (t1) when Third Party Rule emerges; stays.",
+    snapshots:{
+      t0:{x:22, y:22, affect:"distance"},
+      t1:{x:14, y:18, affect:"distance"},
+      t2:{x:14, y:18, affect:"distance"},
+      t3:{x:14, y:18, affect:"distance"} } },
+
+  { id:"de_alt", flag:"🇩🇪", lang:"German alt-left",
+    diag:"Multipolar / Hintergrund: 'verwesenden Körper des einstigen Rechtsstaats' (rotting corpse of the former Rechtsstaat). Maximum-saturation anti-establishment register.",
+    drift:"Skeptical at t0; sharpens to mockery as government deflection becomes structural.",
+    snapshots:{
+      t0:{x:55, y:48, affect:"mockery"},
+      t1:{x:68, y:66, affect:"mockery"},
+      t2:{x:75, y:72, affect:"mockery"},
+      t3:{x:78, y:76, affect:"mockery"} } },
+
+  { id:"pl", flag:"🇵🇱", lang:"Polish",
+    diag:"Tusk: 'sprawa zamknięta — i słusznie' (case closed, and rightly so). Łubowski's ruling uses 'wojna sprawiedliwa' (just war). Affirmation + moral activation.",
+    drift:"Cautious distance early. Pride mode emerges with extradition refusal (t2); peaks after Łubowski + Tusk (t3). Most pronounced register drift in the dataset.",
+    snapshots:{
+      t0:{x:40, y:22, affect:"distance"},
+      t1:{x:50, y:32, affect:"distance"},
+      t2:{x:80, y:72, affect:"pride"},
+      t3:{x:92, y:92, affect:"pride"} } },
+
+  { id:"ar", flag:"🌐", lang:"Arabic anti-imperial",
+    diag:"Al Jazeera Arabic amplifies Hersh significantly more than its English version. Same media, two register temperatures — editorial judgment that audiences should hear different stories.",
+    drift:"Skeptical at t0; ramps to full anti-imperial activation post-Hersh.",
+    snapshots:{
+      t0:{x:50, y:50, affect:"indignation"},
+      t1:{x:72, y:78, affect:"indignation"},
+      t2:{x:76, y:80, affect:"indignation"},
+      t3:{x:76, y:80, affect:"indignation"} } },
+
+  { id:"fr_inst", flag:"🇫🇷", lang:"French institutional",
+    diag:"Republican neutrality with adjective-inserted skepticism. France 24: 'Une figure très populaire, limogée par Zelensky' — 'popular' inserted to flag that Zaluzhnyi's removal contradicts his record.",
+    drift:"Stable institutional neutrality with subtle adjective-skepticism throughout.",
+    snapshots:{
+      t0:{x:42, y:28, affect:"distance"},
+      t1:{x:44, y:30, affect:"distance"},
+      t2:{x:44, y:30, affect:"distance"},
+      t3:{x:46, y:32, affect:"distance"} } },
+
+  { id:"fr_alt", flag:"🇫🇷", lang:"French alt (Elucid)",
+    diag:"'la nonchalance des différentes parties européennes' (European parties' nonchalance) — at the level of indictment in French. Borderline accusation of complicity.",
+    drift:"Sharpens from skepticism to indictment as European silence becomes legible.",
+    snapshots:{
+      t0:{x:55, y:55, affect:"mockery"},
+      t1:{x:64, y:64, affect:"mockery"},
+      t2:{x:68, y:68, affect:"mockery"},
+      t3:{x:70, y:70, affect:"mockery"} } },
+
+  { id:"it_ifq", flag:"🇮🇹", lang:"Italian (Il Fatto)",
+    diag:"'disobbedienza' (disobedience) for Zaluzhnyi's continuation. 'bocciata da lui stesso' (vetoed by himself) for Zelensky's reversal. Dramatic verbs as endorsement.",
+    drift:"Cautious early. Dramatization ramps continuously. Peaks at t3 with Calenda's 2026 endorsement.",
+    snapshots:{
+      t0:{x:48, y:42, affect:"indignation"},
+      t1:{x:64, y:58, affect:"indignation"},
+      t2:{x:72, y:64, affect:"indignation"},
+      t3:{x:78, y:70, affect:"indignation"} } },
+
+  { id:"es", flag:"🇪🇸", lang:"Spanish (Sachs corpus)",
+    diag:"Sachs's 'act of international terrorism' framing amplified in Spanish-language outlets with UN-charter solemnity preserved. Academic-moral register.",
+    drift:"Effectively absent at t0 (no Sachs UN speech yet). Explosive entry at t1 (Feb 2023 UN speech). Sustained.",
+    snapshots:{
+      t0:{x:15, y:15, affect:"observer"},
+      t1:{x:72, y:72, affect:"indignation"},
+      t2:{x:76, y:74, affect:"indignation"},
+      t3:{x:76, y:74, affect:"indignation"} } },
+
+  { id:"ja", flag:"🇯🇵", lang:"Japanese mainstream",
+    diag:"'欧州で議論が起きている' (a discussion is occurring in Europe) — third-person framing of a global question. Pure observer register. Silence is selected, not accidental.",
+    drift:"Static observer register across all four time points. Selective non-engagement persists.",
+    snapshots:{
+      t0:{x:8, y:6, affect:"observer"},
+      t1:{x:8, y:6, affect:"observer"},
+      t2:{x:8, y:6, affect:"observer"},
+      t3:{x:8, y:6, affect:"observer"} } },
+
+  { id:"uk_med", flag:"🇺🇦", lang:"Ukrainian (media layer)",
+    diag:"'елітний підрозділ України підірвав' (Ukraine's elite unit blew it up). State layer maintains plausible deniability; media layer builds national narrative. Two-layer structure.",
+    drift:"Cautious early (state denial dominates). Pride emerges in media as forensics surface (t2). Saturates post-arrests (t3).",
+    snapshots:{
+      t0:{x:42, y:22, affect:"distance"},
+      t1:{x:60, y:46, affect:"indignation"},
+      t2:{x:80, y:78, affect:"pride"},
+      t3:{x:94, y:92, affect:"pride"} } },
+
+  { id:"sv", flag:"🇸🇪", lang:"Swedish (SVT)",
+    diag:"'Sverige tog enklaste vägen ut' (Sweden took the easiest way out). In Swedish public discourse, 'easiest way out' carries laziness/abdication weight. Public broadcaster against own state.",
+    drift:"Cool investigative reporting at t0–t1; mockery emerges after own-state closes the case (t2); peaks at t3.",
+    snapshots:{
+      t0:{x:50, y:20, affect:"distance"},
+      t1:{x:55, y:25, affect:"distance"},
+      t2:{x:66, y:56, affect:"mockery"},
+      t3:{x:70, y:64, affect:"mockery"} } },
+
+  { id:"da", flag:"🇩🇰", lang:"Danish legal-academic",
+    diag:"Buhl: 'Selv Rusland har ikke bestridt...' (even Russia hasn't disputed...) — using opponent's silence to indict own government. Sharp questioning preserved under academic surface.",
+    drift:"Same trajectory as Swedish — cool early, mockery post-closure.",
+    snapshots:{
+      t0:{x:48, y:20, affect:"distance"},
+      t1:{x:54, y:26, affect:"distance"},
+      t2:{x:66, y:54, affect:"mockery"},
+      t3:{x:70, y:60, affect:"mockery"} } },
+
+  { id:"no_nrk", flag:"🇳🇴", lang:"Norwegian (NRK)",
+    diag:"'Skyggekrigen' methodological pride. Long-form investigations show radar / satellite / signal analysis — Nordic public-broadcaster register saying 'our method is better than Hersh's single source.'",
+    drift:"Methodological mode emerges with Skyggekrigen documentary launch (t1); sustained authority register thereafter.",
+    snapshots:{
+      t0:{x:42, y:20, affect:"distance"},
+      t1:{x:58, y:24, affect:"distance"},
+      t2:{x:64, y:26, affect:"distance"},
+      t3:{x:64, y:26, affect:"distance"} } },
+];
+
+const REGISTER_AFFECT_COLOR = {
+  pride:       "warn",
+  indignation: "primary",
+  mockery:     "primarySoft",
+  distance:    "inkSoft",
+  observer:    "inkMute",
+};
+
+const REGISTER_OBSERVATIONS = [
+  { id: 1,
+    headline: "\"Pride\" register is the rarest — and most diagnostic",
+    body: "Affirmative + honor-bearing language for the Ukrainian-sabotage narrative appears in only two ecosystems: Polish and Ukrainian-language media. France, Italy, English mainstream don't use it — even where the investigative conclusion has converged. Whoever dares to be proud holds the position. Other ecosystems may agree with the conclusion; only PL and UK-media own it." },
+  { id: 2,
+    headline: "Judicial register diverges from political register within one country",
+    body: "Germany: BGH's cool jurisprudence ('mit hoher Wahrscheinlichkeit, nicht namen') against Kanzleramt's procedural blocking ('Third Party Rule'). Poland: Łubowski's morally-activated ruling against Tusk's celebratory tweet. Italy: Cassazione's procedural neutrality against IFQ's dramatized endorsement. The split is itself the meta-evidence — courts can advance what governments cannot." },
+  { id: 3,
+    headline: "Denial intensity scales with stake",
+    body: "Ukraine official: 'смішно' (laughable), 'провокація' — contemptuous-tier denial. Russia state: 'fantastical,' 'utterly false' — baroque adjective stacking. Germany: 'Wohl der Bundesrepublik' — institutional-tier deflection. The denial volume tracks how much the speaker has to lose. Calm denials mean low stakes." },
+];
+
+const REGISTER_QUOTES = [
+  { lang:"Polish", flag:"🇵🇱", quote:"sprawa zamknięta — i słusznie",
+    translation:"\"case closed — and rightly so\"",
+    source:"Donald Tusk, X post, 2025",
+    diag:"Four-word celebratory sentence + explicit moral endorsement. In Polish political discourse this is roughly equivalent to 'we won.' The political register matching Łubowski's jurisprudential one." },
+  { lang:"Polish", flag:"🇵🇱", quote:"krwawa i ludobójcza napaść",
+    translation:"\"a bloody and genocidal assault\"",
+    source:"Łubowski ruling rationale, 2025",
+    diag:"Moral characterization of the Russia-Ukraine war placed BEFORE the legal analysis of the Nord Stream act. Polish jurisprudence permits this; the placement signals the verdict before the reasoning." },
+  { lang:"Swedish", flag:"🇸🇪", quote:"Sverige tog enklaste vägen ut",
+    translation:"\"Sweden took the easiest way out\"",
+    source:"SVT analysis headline, 2024",
+    diag:"In Swedish, 'enklaste vägen ut' carries laziness + abdication weight. Public broadcaster using this to characterize own government's investigative posture is severe — registers as cry for accountability." },
+  { lang:"Russian", flag:"🇷🇺", quote:"располагаем достоверной информацией",
+    translation:"\"we possess reliable intelligence\"",
+    source:"Sergey Naryshkin (SVR), 2023",
+    diag:"Intelligence-agency syntax used in public statement. Form is borrowed from authority-establishing genres; function is to manufacture certainty in the absence of disclosed evidence." },
+];
+
+function PositionFromRegister() {
+  const [hovered, setHovered] = useState(null);
+  const [timeIdx, setTimeIdx] = useState(3); // default to most recent (t3)
+  const [autoplay, setAutoplay] = useState(false);
+
+  // Autoplay — cycles through t0 → t3 → t0 ... while enabled.
+  useEffect(() => {
+    if (!autoplay) return;
+    const interval = setInterval(() => {
+      setTimeIdx(i => (i + 1) % REGISTER_TIMES.length);
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [autoplay]);
+
+  const tKey = REGISTER_TIMES[timeIdx].id;
+
+  const colorFor = (affect) => {
+    const k = REGISTER_AFFECT_COLOR[affect];
+    return colors[k] || colors.inkSoft;
+  };
+
+  const hoveredNode = REGISTER_NODES.find(n => n.id === hovered);
+  // Whether a node has visually meaningful drift (so we render a trail).
+  const hasDrift = (n) => {
+    const s0 = n.snapshots.t0, s3 = n.snapshots.t3;
+    return Math.abs(s0.x - s3.x) > 4 || Math.abs(s0.y - s3.y) > 4;
+  };
+
+  // Convert snapshot coords to plot percentages with [4%, 96%] padding.
+  const px = (x) => 4 + (x / 100) * 92;
+  const py = (y) => 96 - (y / 100) * 92; // flip: high y = top
+
+  return (
+    <div style={{ padding: "56px 56px 56px", background: colors.paper }}>
+      <Rule />
+
+      {/* Header */}
+      <div style={{ marginTop: 44, marginBottom: 28, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 56, alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
+            How positions reveal themselves
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 34, fontWeight: 400,
+            lineHeight: 1.1, letterSpacing: -0.5, color: colors.ink }}>
+            Tone is harder to fake than wording.
+          </div>
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 16,
+          color: colors.inkMute, lineHeight: 1.55 }}>
+          Same fact, different register reveals different positional relationship to the subject. Below: fourteen language ecosystems on the certainty × affective-intensity plane, plotted across four time points. Some ecosystems sit still — Russian state's indignation locks in early, Japanese silence persists. Others drift — Polish from cautious distance to full pride after Łubowski; Swedish from cool investigation to public mockery after closure. The drift is the data.
+        </div>
+      </div>
+
+      {/* Time slider — segmented control, click any to jump.
+          Autoplay button cycles through 4 time points to make drift visible
+          without manual interaction. Mirrors the time mechanism that the
+          (future) NarrativeFrameMap section will use. */}
+      <div style={{
+        display:"grid",
+        gridTemplateColumns:"1fr auto",
+        gap: 24,
+        alignItems:"center",
+        marginBottom: 18,
+        padding: "12px 16px",
+        background: colors.paperDeep,
+        border: `1px solid ${colors.ruleSoft}`,
+        borderRadius: 2,
+      }}>
+        <div style={{ display:"flex", gap: 0, alignItems:"stretch",
+          border: `1px solid ${colors.ruleSoft}`, borderRadius: 2,
+          background: colors.paper, overflow:"hidden" }}>
+          {REGISTER_TIMES.map((t, i) => {
+            const isActive = timeIdx === i;
+            return (
+              <button key={t.id}
+                onClick={() => { setTimeIdx(i); setAutoplay(false); }}
+                style={{
+                  flex: 1,
+                  padding: "8px 14px",
+                  background: isActive ? colors.ink : "transparent",
+                  color: isActive ? colors.paper : colors.inkSoft,
+                  border: "none",
+                  borderRight: i < REGISTER_TIMES.length - 1 ? `1px solid ${colors.ruleSoft}` : "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "background 0.15s, color 0.15s",
+                }}>
+                <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                  letterSpacing: 0.7, fontWeight: isActive ? 600 : 500,
+                  marginBottom: 3 }}>
+                  {t.id} · {t.label}
+                </div>
+                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 10.5,
+                  color: isActive ? colors.paper : colors.inkMute,
+                  opacity: isActive ? 0.85 : 1,
+                  letterSpacing: -0.05 }}>
+                  {t.sub}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => setAutoplay(!autoplay)}
+          style={{
+            padding: "8px 14px",
+            background: autoplay ? colors.warn : "transparent",
+            color: autoplay ? colors.paper : colors.inkSoft,
+            border: `1px solid ${autoplay ? colors.warn : colors.ruleSoft}`,
+            borderRadius: 2,
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            letterSpacing: 0.7, textTransform:"uppercase",
+            fontWeight: 600,
+            cursor:"pointer",
+            whiteSpace:"nowrap",
+            transition: "all 0.15s",
+          }}>
+          {autoplay ? "■ stop" : "▶ play drift"}
+        </button>
+      </div>
+
+      {/* The plot */}
+      <div style={{
+        position:"relative",
+        width: "100%",
+        aspectRatio: "1.6 / 1",
+        marginBottom: 36,
+        background: "rgba(242, 238, 228, 0.35)",
+        border: `1px solid ${colors.ruleSoft}`,
+        borderRadius: 2,
+      }}>
+        {/* Crosshair midlines */}
+        <div style={{ position:"absolute", left: "50%", top: 24, bottom: 24, width: 1,
+          background: colors.ruleSoft, opacity: 0.7 }}/>
+        <div style={{ position:"absolute", top: "50%", left: 24, right: 24, height: 1,
+          background: colors.ruleSoft, opacity: 0.7 }}/>
+
+        {/* Axis labels */}
+        <div style={{ position:"absolute", left: 24, top: "50%",
+          transform:"translateY(-50%) rotate(-90deg)", transformOrigin:"left top",
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.inkMute, letterSpacing: 1, textTransform:"uppercase",
+          whiteSpace:"nowrap" }}>
+          ↑ affective intensity
+        </div>
+        <div style={{ position:"absolute", left: "50%", bottom: 8,
+          transform:"translateX(-50%)",
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.inkMute, letterSpacing: 1, textTransform:"uppercase" }}>
+          stance certainty →
+        </div>
+
+        {/* Quadrant labels */}
+        <div style={{ position:"absolute", left: 56, top: 16,
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.inkMute, letterSpacing: 0.6, opacity: 0.7 }}>
+          mocking · adversarial
+        </div>
+        <div style={{ position:"absolute", right: 16, top: 16,
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.warnDeep, letterSpacing: 0.6, fontWeight: 600 }}>
+          PRIDE · INDIGNATION
+        </div>
+        <div style={{ position:"absolute", left: 56, bottom: 32,
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.inkMute, letterSpacing: 0.6, opacity: 0.7 }}>
+          observer · silence
+        </div>
+        <div style={{ position:"absolute", right: 16, bottom: 32,
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.inkMute, letterSpacing: 0.6, opacity: 0.7 }}>
+          institutional · cool
+        </div>
+
+        {/* DRIFT TRAILS — for ecosystems with meaningful drift, render an
+            SVG path showing position from t0 → current-time. Only past
+            positions; future positions are not shown. */}
+        <svg style={{ position:"absolute", inset: 0, width:"100%", height:"100%",
+          pointerEvents:"none" }} viewBox="0 0 100 100" preserveAspectRatio="none">
+          {REGISTER_NODES.filter(hasDrift).map(n => {
+            const isHover = hovered === n.id;
+            const dim = hovered && !isHover;
+            const color = colorFor(n.snapshots[tKey].affect);
+            // Build path from t0 → current time.
+            const points = [];
+            for (let i = 0; i <= timeIdx; i++) {
+              const s = n.snapshots[REGISTER_TIMES[i].id];
+              points.push(`${px(s.x)},${py(s.y)}`);
+            }
+            if (points.length < 2) return null;
+            return (
+              <polyline key={n.id}
+                points={points.join(" ")}
+                fill="none"
+                stroke={color}
+                strokeWidth="0.25"
+                strokeOpacity={dim ? 0.15 : (isHover ? 0.7 : 0.35)}
+                strokeDasharray="0.8 0.6"
+                strokeLinecap="round"
+                style={{ transition: "stroke-opacity 0.15s" }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* PAST-POSITION DOTS — show small faded dots for past time points
+            so the eye can read drift trajectory beyond just the line. */}
+        {REGISTER_NODES.filter(hasDrift).map(n => {
+          const isHover = hovered === n.id;
+          const dim = hovered && !isHover;
+          if (timeIdx === 0) return null; // no past positions to show
+          return (
+            <React.Fragment key={`trail-${n.id}`}>
+              {Array.from({ length: timeIdx }).map((_, i) => {
+                const s = n.snapshots[REGISTER_TIMES[i].id];
+                const c = colorFor(s.affect);
+                return (
+                  <div key={i} style={{
+                    position:"absolute",
+                    left: `${px(s.x)}%`, top: `${py(s.y)}%`,
+                    transform:"translate(-50%, -50%)",
+                    width: 4, height: 4, borderRadius:"50%",
+                    background: c,
+                    opacity: dim ? 0.1 : (isHover ? 0.4 : 0.22),
+                    pointerEvents:"none",
+                    transition:"opacity 0.15s",
+                  }}/>
+                );
+              })}
+            </React.Fragment>
+          );
+        })}
+
+        {/* CURRENT-POSITION MARKERS — full marker at the current snapshot. */}
+        {REGISTER_NODES.map(n => {
+          const isHover = hovered === n.id;
+          const dim = hovered && !isHover;
+          const snap = n.snapshots[tKey];
+          const color = colorFor(snap.affect);
+          return (
+            <div key={n.id}
+              onMouseEnter={()=>setHovered(n.id)}
+              onMouseLeave={()=>setHovered(null)}
+              style={{
+                position:"absolute",
+                left: `${px(snap.x)}%`, top: `${py(snap.y)}%`,
+                transform:"translate(-50%, -50%)",
+                display:"flex", alignItems:"center", gap: 6,
+                padding: "3px 8px 3px 4px",
+                background: isHover ? colors.paper : "transparent",
+                border: `1px solid ${isHover ? color : "transparent"}`,
+                borderRadius: 12,
+                cursor:"default",
+                transition:"all 0.45s cubic-bezier(.4, 0, .2, 1)",
+                opacity: dim ? 0.35 : 1,
+                whiteSpace:"nowrap",
+                zIndex: isHover ? 10 : 1,
+              }}>
+              <div style={{
+                width: 9, height: 9, borderRadius:"50%",
+                background: color,
+                boxShadow: isHover ? `0 0 0 3px ${color}33` : "none",
+                flexShrink: 0,
+                transition:"box-shadow 0.15s, background 0.45s",
+              }}/>
+              <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 11,
+                color: colors.ink, fontWeight: isHover ? 600 : 400,
+                letterSpacing: -0.05 }}>
+                {n.flag} {n.lang}
+              </span>
+            </div>
+          );
+        })}
+
+        {/* Hovered node — diagnostic note + drift summary */}
+        {hoveredNode && (
+          <div style={{
+            position:"absolute", left: 24, bottom: 24, right: 24,
+            padding: "14px 18px",
+            background: "rgba(250, 248, 243, 0.96)",
+            backdropFilter:"blur(6px)",
+            border: `1px solid ${colorFor(hoveredNode.snapshots[tKey].affect)}`,
+            borderLeft: `3px solid ${colorFor(hoveredNode.snapshots[tKey].affect)}`,
+            borderRadius: 2,
+            maxWidth: 600,
+            pointerEvents:"none",
+          }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap: 10, marginBottom: 8,
+              flexWrap:"wrap" }}>
+              <span style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                fontWeight: 600, color: colors.ink }}>
+                {hoveredNode.flag} {hoveredNode.lang}
+              </span>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+                color: colorFor(hoveredNode.snapshots[tKey].affect), letterSpacing: 0.7,
+                textTransform:"uppercase", fontWeight: 600 }}>
+                {hoveredNode.snapshots[tKey].affect} · {REGISTER_TIMES[timeIdx].label}
+              </span>
+            </div>
+            <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+              color: colors.inkSoft, lineHeight: 1.5, marginBottom: hoveredNode.drift ? 8 : 0 }}>
+              {hoveredNode.diag}
+            </div>
+            {hoveredNode.drift && (
+              <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: colors.meta, letterSpacing: 0.4, lineHeight: 1.5,
+                paddingTop: 8, borderTop: `1px solid ${colors.ruleSoft}` }}>
+                <span style={{ fontWeight: 600, letterSpacing: 0.7,
+                  textTransform:"uppercase", marginRight: 6 }}>
+                  drift t0→t3:
+                </span>
+                {hoveredNode.drift}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Affect legend */}
+      <div style={{ display:"flex", gap: 22, flexWrap:"wrap", marginBottom: 40,
+        fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+        color: colors.inkMute, letterSpacing: 0.5, textTransform:"uppercase" }}>
+        {Object.entries(REGISTER_AFFECT_COLOR).map(([affect, key]) => (
+          <span key={affect} style={{ display:"inline-flex", alignItems:"center", gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius:"50%",
+              background: colors[key] || colors.inkSoft, display:"inline-block" }}/>
+            {affect}
+          </span>
+        ))}
+      </div>
+
+      {/* Observations + quote callouts side by side */}
+      <div style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap: 40, marginBottom: 36 }}>
+        {/* LEFT — three structural observations */}
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+            color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase",
+            marginBottom: 18, fontWeight: 600 }}>
+            Three patterns the tone exposes
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap: 22 }}>
+            {REGISTER_OBSERVATIONS.map(obs => (
+              <div key={obs.id} style={{
+                display:"grid", gridTemplateColumns:"32px 1fr", gap: 16,
+                paddingBottom: 22, borderBottom: `1px solid ${colors.ruleSoft}` }}>
+                <div style={{ fontFamily:"'Fraunces', serif", fontSize: 24, fontStyle:"italic",
+                  color: colors.inkMute, lineHeight: 1, fontVariantNumeric:"tabular-nums",
+                  fontWeight: 400 }}>
+                  {obs.id}
+                </div>
+                <div>
+                  <div style={{ fontFamily:"'Fraunces', serif", fontSize: 18,
+                    color: colors.ink, lineHeight: 1.3, marginBottom: 8,
+                    letterSpacing: -0.2 }}>
+                    {obs.headline}
+                  </div>
+                  <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                    color: colors.inkSoft, lineHeight: 1.6 }}>
+                    {obs.body}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT — high-signal quote callouts */}
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+            color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase",
+            marginBottom: 18, fontWeight: 600 }}>
+            Four high-signal phrases
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap: 14 }}>
+            {REGISTER_QUOTES.map((q, i) => (
+              <div key={i} style={{
+                padding: "14px 16px",
+                background: colors.paper,
+                border: `1px solid ${colors.ruleSoft}`,
+                borderLeft: `3px solid ${colors.warn}`,
+                borderRadius: 2 }}>
+                <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+                  fontSize: 16, color: colors.ink, lineHeight: 1.35,
+                  letterSpacing: -0.1, marginBottom: 6 }}>
+                  "{q.quote}"
+                </div>
+                <div style={{ fontFamily:"'Fraunces', serif", fontSize: 12.5,
+                  color: colors.inkSoft, lineHeight: 1.4, marginBottom: 8 }}>
+                  {q.translation}
+                </div>
+                <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+                  color: colors.inkMute, letterSpacing: 0.5, marginBottom: 6 }}>
+                  {q.flag} {q.source}
+                </div>
+                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 11.5,
+                  color: colors.inkSoft, lineHeight: 1.5 }}>
+                  {q.diag}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Storyline-affinity grouping — connects register analysis to the
+          attribution storyline space. Each ecosystem's dominant register
+          implicitly endorses (or surfaces) one storyline. Grouping by
+          target storyline reveals which positional camps have congealed
+          around which reading. */}
+      <div style={{
+        marginBottom: 32,
+        padding: "24px 28px",
+        background: colors.paperDeep,
+        border: `1px solid ${colors.ruleSoft}`,
+        borderRadius: 2,
+      }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+          color: colors.inkSoft, letterSpacing: 1.0, textTransform:"uppercase",
+          fontWeight: 600, marginBottom: 6 }}>
+          Which storyline each register endorses
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+          color: colors.inkMute, lineHeight: 1.55, marginBottom: 22, maxWidth: 760 }}>
+          Each register doesn't just signal a position — it implicitly endorses (or surfaces) a specific storyline. Below: which language ecosystems align with which reading. Hedged endorsements appear in lighter type.
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap: 18 }}>
+          {/* α — Ukrainian attribution */}
+          <div style={{ padding: "14px 16px", background: colors.paper,
+            border: `1px solid ${colors.ruleSoft}`,
+            borderLeft: `3px solid ${colors.primary}`, borderRadius: 2 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+                fontSize: 18, color: colors.primary, lineHeight: 1, fontWeight: 400 }}>α</span>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: colors.primary, letterSpacing: 0.8, textTransform:"uppercase",
+                fontWeight: 600 }}>
+                Endorses Ukrainian attribution
+              </span>
+            </div>
+            <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
+              color: colors.ink, lineHeight: 1.6 }}>
+              <div style={{ marginBottom: 5 }}>
+                <strong>Active</strong> · 🇵🇱 Polish · 🇺🇦 Ukrainian-media · 🇮🇹 Il Fatto · ⚖ German judicial (BGH) · 🇳🇴 NRK
+              </div>
+              <div style={{ color: colors.inkMute }}>
+                <strong style={{ color: colors.inkSoft }}>Hedged</strong> · 🇬🇧🇺🇸 English mainstream (uses "allegedly")
+              </div>
+            </div>
+          </div>
+
+          {/* β — Western covert attribution */}
+          <div style={{ padding: "14px 16px", background: colors.paper,
+            border: `1px solid ${colors.ruleSoft}`,
+            borderLeft: `3px solid ${colors.secondary}`, borderRadius: 2 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+                fontSize: 18, color: colors.secondary, lineHeight: 1, fontWeight: 400 }}>β</span>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: colors.secondary, letterSpacing: 0.8, textTransform:"uppercase",
+                fontWeight: 600 }}>
+                Endorses US-led / Western coordination
+              </span>
+            </div>
+            <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
+              color: colors.ink, lineHeight: 1.6 }}>
+              <div style={{ marginBottom: 5 }}>
+                <strong>Active</strong> · 🇷🇺 Russian state · 🌐 Arabic anti-imperial · 🇪🇸 Sachs corpus · 🇫🇷 Elucid · 🇩🇪 alt-left
+              </div>
+              <div style={{ color: colors.inkMute }}>
+                <strong style={{ color: colors.inkSoft }}>Implicit</strong> · 🇨🇳 Chinese state (selective amplification)
+              </div>
+            </div>
+          </div>
+
+          {/* μ — system avoidance */}
+          <div style={{ padding: "14px 16px", background: colors.paper,
+            border: `1px solid ${colors.ruleSoft}`,
+            borderLeft: `3px solid ${colors.meta}`, borderRadius: 2 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+                fontSize: 18, color: colors.meta, lineHeight: 1, fontWeight: 400 }}>μ</span>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: colors.meta, letterSpacing: 0.8, textTransform:"uppercase",
+                fontWeight: 600 }}>
+                Surfaces system avoidance
+              </span>
+            </div>
+            <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
+              color: colors.ink, lineHeight: 1.6 }}>
+              <div style={{ marginBottom: 5 }}>
+                <strong>Active</strong> · 🇸🇪 Swedish (SVT) · 🇩🇰 Danish · 🇫🇷 institutional
+              </div>
+              <div style={{ color: colors.inkMute }}>
+                <strong style={{ color: colors.inkSoft }}>Practiced</strong> · 🇩🇪 German government (Third Party Rule)
+              </div>
+            </div>
+          </div>
+
+          {/* Silent / no-position */}
+          <div style={{ padding: "14px 16px", background: colors.paper,
+            border: `1px solid ${colors.ruleSoft}`,
+            borderLeft: `3px solid ${colors.muted}`, borderRadius: 2 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
+                fontSize: 18, color: colors.muted, lineHeight: 1, fontWeight: 400 }}>—</span>
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+                color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase",
+                fontWeight: 600 }}>
+                Silent · positioning by absence
+              </span>
+            </div>
+            <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
+              color: colors.ink, lineHeight: 1.6 }}>
+              🇯🇵 Japanese mainstream — third-person framing of a global question. Selective non-engagement, given the same outlets cover Ukraine war / tariffs / semiconductors with clear stances.
+            </div>
+          </div>
+        </div>
+
+        {/* Tight observation — the asymmetry between α and β endorsement. */}
+        <div style={{ marginTop: 18, fontFamily:"'Fraunces', serif", fontStyle:"italic",
+          fontSize: 14, color: colors.inkSoft, lineHeight: 1.5, letterSpacing: -0.05 }}>
+          α and β endorsements are not symmetric: α is endorsed where investigations have produced names; β is endorsed where political distance from the West makes the position cheap to hold. Same fact, different stakes — and stake structure shows up in the register before it shows up in the position itself.
+        </div>
+      </div>
+
+      {/* Closing punchline — propagation cascade */}
+      <div style={{
+        marginTop: 12,
+        padding: "24px 28px",
+        background: "rgba(122, 106, 84, 0.05)",
+        border: `1px solid rgba(122, 106, 84, 0.18)`,
+        borderLeft: `4px solid ${colors.meta}`,
+        borderRadius: 2,
+      }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+          color: colors.meta, letterSpacing: 1.0, textTransform:"uppercase",
+          fontWeight: 600, marginBottom: 12 }}>
+          Tone is the propagation mechanism
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontSize: 18,
+          lineHeight: 1.5, color: colors.ink, letterSpacing: -0.1, marginBottom: 12 }}>
+          Each register doesn't just position the outlet — it shapes what readers in that ecosystem can feel about the case.
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+          lineHeight: 1.65, color: colors.inkSoft }}>
+          English mainstream's de-dramatization deflates urgency — readers don't feel they need to demand consequences. Polish "sprawa zamknięta" closes the question — adjacent Polish media cannot adopt a neutral register without registering as traitorous. Japanese silence skips the question entirely — readers don't encounter it. Russian indignation activates grievance — reinforces a pre-existing anti-Western frame. <strong style={{ color: colors.ink, fontWeight: 600 }}>Same evidence, fourteen reader experiences.</strong> The tone an outlet selects is not just a signal of where they sit — it is the transmission packet they hand to the reader.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ============================================================================
 // MAIN COMPONENT
@@ -8089,8 +10416,12 @@ function LimitsSectionV04() {
 
 function TraceV04Experience({ mode, setMode }) {
 
-  // v0.3 state
-  const [idx, setIdx] = useState(TIMELINE_V03.length - 1); // start at "today"
+  // Timeline selection — pick the timeline matching current mode. Each mode
+  // has its own idx-space; when the user switches modes we cap the idx so
+  // the new timeline doesn't run past its end.
+  const activeTimeline = mode === "v04" ? TIMELINE_V04 : TIMELINE_V03;
+
+  const [idx, setIdx] = useState(activeTimeline.length - 1); // start at "today"
   const [playing, setPlaying] = useState(false);
 
   // Shared state
@@ -8178,32 +10509,80 @@ function TraceV04Experience({ mode, setMode }) {
   const [expandedBuckets, setExpandedBuckets] = useState(() => new Set()); // bucket ids that are expanded
   const [selectedCluster, setSelectedCluster] = useState(null);
 
-  // v0.3 playback
+  // Timeline playback — advances idx while `playing` is true. Works for both
+  // v0.3 and v0.4: which timeline advances is determined by `activeTimeline`.
+  // If the user presses play while at the end, rewind to the start so the
+  // animation has somewhere to go (otherwise play becomes a no-op).
   useEffect(() => {
-    if (mode !== "v03" || !playing) return;
-    if (idx >= TIMELINE_V03.length - 1) { setPlaying(false); return; }
-    const t = setTimeout(() => setIdx(i => Math.min(i + 1, TIMELINE_V03.length - 1)), 1600);
+    if (!playing) return;
+    if (idx >= activeTimeline.length - 1) {
+      setIdx(0);
+      return;
+    }
+    const t = setTimeout(
+      () => setIdx(i => Math.min(i + 1, activeTimeline.length - 1)),
+      1600
+    );
     return () => clearTimeout(t);
-  }, [playing, idx, mode]);
+  }, [playing, idx, activeTimeline.length]);
 
-  // Reset selection when switching modes
+  // Stop playback once we hit the last frame (so play doesn't auto-loop).
   useEffect(() => {
+    if (playing && idx >= activeTimeline.length - 1) {
+      const t = setTimeout(() => setPlaying(false), 1600);
+      return () => clearTimeout(t);
+    }
+  }, [playing, idx, activeTimeline.length]);
+
+  // Reset selection + cap idx when switching modes. Uses a ref to skip the
+  // initial mount so we don't fire setPlaying(false) before the user has
+  // had a chance to press play.
+  const didMountMode = useRef(false);
+  useEffect(() => {
+    if (!didMountMode.current) { didMountMode.current = true; return; }
     setSelectedEv(null);
     setHoverCand(null);
     setHoverEv(null);
     setFocusStoryline(null);
+    setPlaying(false);
+    setIdx(prev => Math.min(prev, activeTimeline.length - 1));
   }, [mode]);
 
-  // Derive v0.3 active evidence + distribution
-  const tp = TIMELINE_V03[idx];
+  // Current timepoint + evidence filtered to that timepoint's date.
+  const tp = activeTimeline[idx];
   const activeEvV03 = useMemo(() => {
     if (mode !== "v03") return [];
     return EVIDENCE_V03.filter(e => e.published <= tp.date);
   }, [mode, tp.date]);
+  const activeEvV04 = useMemo(() => {
+    if (mode !== "v04") return [];
+    return EVIDENCE_V04.filter(e => e.published <= tp.date);
+  }, [mode, tp.date]);
 
   // Active graph inputs based on mode
-  const graphEvidence = mode === "v04" ? EVIDENCE_V04 : activeEvV03;
-  const graphDistribution = mode === "v04" ? DISTRIBUTION_V04 : tp.distribution;
+  const graphEvidence = mode === "v04" ? activeEvV04 : activeEvV03;
+  const graphDistribution = tp.distribution;
+
+  // Track "newly-added" evidence ids — diff this frame's active set against
+  // last frame's. When idx advances, ids that just came in are kept in
+  // state for ~1s so the graph can flash them for visual attention.
+  const [newEvIds, setNewEvIds] = useState(new Set());
+  const prevEvIdsRef = useRef(null);
+  useEffect(() => {
+    const curr = new Set(graphEvidence.map(e => e.id));
+    const prev = prevEvIdsRef.current;
+    if (prev == null) {
+      // First render: don't flash (avoids flashing all 37 on page load).
+      prevEvIdsRef.current = curr;
+      return;
+    }
+    const added = [...curr].filter(id => !prev.has(id));
+    prevEvIdsRef.current = curr;
+    if (added.length === 0) return;
+    setNewEvIds(new Set(added));
+    const t = setTimeout(() => setNewEvIds(new Set()), 1000);
+    return () => clearTimeout(t);
+  }, [idx, mode]);
 
   // Selected evidence for drawer — must lookup across both evidence sets
   const selectedEvObj = useMemo(() => {
@@ -8313,6 +10692,7 @@ function TraceV04Experience({ mode, setMode }) {
           }}>
           <FullscreenGraph
             activeEvidence={graphEvidence}
+            newEvIds={newEvIds}
             distribution={graphDistribution}
             selectedEv={selectedEv} setSelectedEv={setSelectedEv}
             hoverCand={hoverCand} setHoverCand={setHoverCand}
@@ -8439,17 +10819,17 @@ function TraceV04Experience({ mode, setMode }) {
         <DistributionOverlay
           distribution={graphDistribution}
           hoverCand={hoverCand} setHoverCand={setHoverCand}
-          tp={mode === "v03" ? tp : null}
-          playing={mode === "v03" ? playing : false}
-          onPlayToggle={mode === "v03" ? (()=>setPlaying(p=>!p)) : null}
+          tp={tp}
+          playing={playing}
+          onPlayToggle={()=>setPlaying(p=>!p)}
           mode={mode}
           focusStoryline={focusStoryline}
           setFocusStoryline={setFocusStoryline}
         />
 
-        {mode === "v03" && (
-          <TimelineOverlay idx={idx} setIdx={setIdx} timeline={TIMELINE_V03}/>
-        )}
+        <TimelineOverlay idx={idx} setIdx={setIdx}
+          timeline={activeTimeline}
+          turningPoints={mode === "v04" ? TURNING_POINTS_V04 : TURNING_POINTS}/>
 
         {selectedEvObj && (
           <EvidenceDrawer ev={selectedEvObj}
@@ -8473,16 +10853,28 @@ function TraceV04Experience({ mode, setMode }) {
         </div>
       )}
 
-      {/* v0.4 mode: full long-form exhibit — Storylines lead; supporting analysis follows */}
+      {/* v0.4 mode: full long-form exhibit — Storylines lead; supporting analysis follows.
+          Order rationale (post-reorg):
+          · α deep dive (SubClaimBreakdown + SurvivingCausalChain) keeps current placement
+          · Cross-impact table follows, just before the 5-storyline cards, so E31's leverage
+            registers BEFORE the reader sees the cards
+          · Storyline cards now lead with leverage points (highlighted)
+          · Anchors as horizontal rail + storyline-coverage connector
+          · Raw scores only (softmax left-half cut — already shown on graph)
+          · Suppression + Judicial cards as μ's concrete content, then limits
+          · DeltaPanel folded into LimitsSectionV04 footer as expandable */}
       {mode === "v04" && !isFullscreen && (
         <>
+          <SubClaimBreakdown />
           <SurvivingCausalChain />
+          <CrossImpactTable />
           <StorylineReconstructions
             focusStoryline={focusStoryline}
             setFocusStoryline={setFocusStoryline}/>
+          <PositionFromRegister />
           <AnchorsRail />
           <AggregationReadout />
-          <DeltaPanel />
+          <SuppressionAndJudicial />
           <LimitsSectionV04 />
         </>
       )}
@@ -8616,17 +11008,5505 @@ function ModeTabStrip({ mode, setMode }) {
   );
 }
 
+
+// ############################################################################
+// V0.4.2 — STRUCTURAL EXCLUSION + PROCESS SUBCLAIM
+// (extracted from TraceCaseFileV042.jsx; SUBCLAIM_MU_V04 omitted because
+//  this file already has it; PROCESS_SUBCLAIM_V042 above replaces
+//  V042's SUBCLAIM_DISTRIBUTION_V04.)
+// ############################################################################
+
+// --- Excluded/subclaim candidate sets ---
+const CAND_EXCLUDED_V04 = new Set(["C1","C3","C4"]);
+const CAND_SUBCLAIM_V04 = new Set(["C_insufficient"]);  // not attribution-claim candidates
+
+// --- STRUCTURAL_EXCLUSIONS_V04 (data the StructurallyExcluded function reads) ---
+// v0.4.1 — explicit structural exclusions.
+// A candidate appears here when it carries L2 rules_out_a_class or L3 breaks_a_story
+// refutations from sources above the gate threshold. This surfaces WHY the candidate's
+// weight is zero, so readers can distinguish "structurally impossible" from "low-weight".
+const STRUCTURAL_EXCLUSIONS_V04 = [
+  {
+    candidate: "C1",
+    label: "United States — direct execution (Hersh version)",
+    formerSoftmaxWeight: 0.057,
+    excluded_by: [
+      { id: "E6",  type: "GATE",
+        reason: "Andromeda forensic chain (HMX residue, DNA, fingerprints, forged identity papers) points to a Ukrainian-operator execution layer, not US Navy personnel. Rules out US-direct-execution as a class." },
+      { id: "F3",  type: "BREAKS",
+        reason: "17-hour detonation gap is incompatible with Hersh's sonar-triggered one-shot remote mechanism. The predicted synchronous detonation did not occur." },
+      { id: "F12", type: "BREAKS",
+        reason: "One of four pipeline strands survived intact — inconsistent with a professional state-navy operation that would have ensured all four. Signature of a resource-constrained team." },
+    ],
+    preservedQuestion: "A wider Western coordination (US enabling, UK possible, Poland staging) is NOT refuted by the above. That question is preserved in β′ (Western coordination, principal unclear) and ζ (UK-layer, under-examined).",
+  },
+  {
+    candidate: "C3",
+    label: "Ukraine — independent rogue operators (no state authorization)",
+    formerSoftmaxWeight: 0.042,
+    excluded_by: [
+      { id: "F2",  type: "GATE",
+        reason: "Military-grade HMX explosive supply chain requires state-level access. Rules out the class of non-state-enabled operators regardless of executor identity." },
+      { id: "E17", type: "BREAKS",
+        reason: "BGH (German Federal Court of Justice) December 2025 ruling explicitly classifies the operation as 'a foreign government intelligence agency' action. Judicial T1 authority directly contradicts rogue-operator framing." },
+    ],
+    preservedQuestion: null,
+  },
+  {
+    candidate: "C4",
+    label: "Russia — self-sabotage (false flag)",
+    formerSoftmaxWeight: 0.054,
+    excluded_by: [
+      { id: "E25", type: "GATE",
+        reason: "Jeffrey Sachs at the UN Security Council enumerates seven plausible Western actors (US, UK, Poland, Norway, Germany, Denmark, Sweden) and explicitly excludes Russia. Academic-authority derived analysis in a high-authority forum." },
+      { id: "F7",  type: "GATE",
+        reason: "Andromeda forensic chain survives three years of cross-jurisdictional review (German, Polish, Italian judicial systems). A false-flag δ would require fabricated forensics to withstand three independent judiciaries — structurally implausible." },
+    ],
+    preservedQuestion: null,
+  },
+];
+
+// Evidence layer — 37 items (16 v0.3 + 21 v0.4 new)
+// Edges use modality-corrected values from audit round.
+
+// --- ProcessSubclaim ---
+function ProcessSubclaim() {
+  const sub = SUBCLAIM_MU_V04;
+
+  return (
+    <div style={{ padding: "48px 56px 48px", background: colors.paperDeep }}>
+      <Rule />
+      <div style={{ marginTop: 40, marginBottom: 32, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 72, alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.meta, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
+            Subclaim · separate question
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 32, fontWeight: 400,
+            lineHeight: 1.1, letterSpacing: -0.5, color: colors.ink }}>
+            Why has this not been institutionally closed?
+          </div>
+          <div style={{ marginTop: 12, fontFamily:"'Fraunces', serif", fontStyle:"italic",
+            fontSize: 15, color: colors.inkMute, lineHeight: 1.5 }}>
+            Parent claim: <span style={{ color: colors.inkSoft }}>{sub.parentClaim}</span>
+          </div>
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 16,
+          color: colors.inkSoft, lineHeight: 1.55, maxWidth: 620 }}>
+          μ addresses a question the attribution distribution above cannot answer. It is a subclaim, not a sibling reconstruction — its percentage lives on a different axis and is not comparable to α, β, ε, ζ. 13.6% of the total evidence corpus (via C_insufficient edges) addresses this subclaim; within that subclaim, μ is the sole answer the evidence supports. Previously μ sat alongside attribution storylines in the main distribution, which created a category error — readers were invited to compare apples with oranges. v0.4.2 separates them.
+        </div>
+      </div>
+
+      {/* Subclaim card — μ */}
+      <div style={{
+        border: `1px solid ${colors.ruleSoft}`,
+        borderLeft: `3px solid ${colors.meta}`,
+        borderRadius: 2,
+        background: colors.paper,
+      }}>
+        {/* Header */}
+        <div style={{ padding: "22px 30px", display:"grid",
+          gridTemplateColumns:"auto 1fr auto", gap: 24, alignItems:"center" }}>
+          <div style={{ display:"flex", alignItems:"baseline", gap: 10, minWidth: 100 }}>
+            <div style={{ fontFamily:"'Fraunces', serif", fontSize: 40, fontStyle:"italic",
+              color: colors.meta, fontVariantNumeric:"tabular-nums", lineHeight: 0.95,
+              fontWeight: 400 }}>
+              100<span style={{ fontSize: 18, opacity: 0.55, marginLeft: 1 }}>%</span>
+            </div>
+            <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 14,
+              color: colors.meta, fontWeight: 600, letterSpacing: 0.5, lineHeight: 1 }}>
+              μ
+            </div>
+          </div>
+          <div>
+            <div style={{ fontFamily:"'Fraunces', serif", fontSize: 20, fontWeight: 400,
+              color: colors.ink, lineHeight: 1.25, letterSpacing: -0.25 }}>
+              {sub.label}
+            </div>
+            <div style={{ marginTop: 6, display:"inline-block",
+              fontFamily:"'JetBrains Mono', monospace", fontSize: 8.5,
+              color: colors.meta, letterSpacing: 1, textTransform:"uppercase",
+              background: `${colors.meta}15`, padding:"3px 7px",
+              border: `1px solid ${colors.meta}40`, borderRadius: 2 }}>
+              Within-subclaim coverage · 100% · evidence share {Math.round(sub.evidenceShare * 100)}%
+            </div>
+          </div>
+        </div>
+
+        {/* Expanded body — reuse the MuExpansion component */}
+        <div style={{ borderTop: `1px solid ${colors.ruleSoft}`,
+          padding: "26px 30px 30px", background: colors.paperDeep }}>
+          <MuExpansion story={sub} />
+        </div>
+      </div>
+
+      {/* Cross-claim orientation note */}
+      <div style={{ marginTop: 24, padding: "18px 22px",
+        background: colors.paper, border: `1px solid ${colors.ruleSoft}`,
+        borderLeft: `3px solid ${colors.ink}`, borderRadius: 2 }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+          color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase", marginBottom: 8 }}>
+          How this relates to the attribution distribution above
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+          color: colors.inkSoft, lineHeight: 1.6, maxWidth: 900 }}>
+          α's 70% coverage and μ's 100% coverage are NOT on the same axis. α occupies 70% of the attribution-claim space ("who attacked"). μ occupies 100% of the process-subclaim space ("why not institutionally closed"). The two questions are related — α being answered would reduce the need for μ — but they are not competing answers. In v0.4 original, both sat in a single percentage bar, which misled readers into treating μ as a fractional attribution answer. v0.4.2 separates them into parallel claim spaces.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- StructurallyExcluded (with header) ---
 // ============================================================================
-// TOP-LEVEL EXPORT — routes between v0.3 case file and v0.4 locked preview
+// STRUCTURALLY EXCLUDED CANDIDATES — surfaces C1, C3, C4 exclusion at the
+// candidate layer (not the storyline layer). δ is also preserved as an excluded
+// storyline card above; this section addresses the same concern from the data-
+// layer perspective: these are candidate hypotheses that L2 exclusion gating
+// (§2.5.4 Step 1) mandates be set to zero before softmax, not after.
+// ============================================================================
+
+function StructurallyExcluded({ setSelectedEv }) {
+  const totalFormer = STRUCTURAL_EXCLUSIONS_V04.reduce((s,x)=> s + x.formerSoftmaxWeight, 0);
+
+  // Wired to the top-level graph region and to the AnchorsRail section.
+  // F-prefix IDs (F1–F13) are anchor facts that live in AnchorsRail; E-prefix
+  // IDs are evidence nodes in the graph. Click an evidence pill → scroll to the
+  // appropriate section → briefly flash the target so the reader can audit the
+  // refutation source without losing context.
+  const onEvidenceClick = (evId) => {
+    const isAnchor = evId && evId.startsWith("F");
+    if (!isAnchor && setSelectedEv) setSelectedEv(evId);
+
+    setTimeout(() => {
+      const targetEl = isAnchor
+        ? document.getElementById(`anchor-${evId}`)
+        : document.getElementById("trace-graph-region");
+      if (!targetEl) return;
+      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (isAnchor) {
+        // Brief flash to spotlight the anchor the reader was sent to.
+        const prevOutline = targetEl.style.outline;
+        const prevOffset  = targetEl.style.outlineOffset;
+        const prevZ       = targetEl.style.zIndex;
+        targetEl.style.outline = `2px solid ${colors.warn}`;
+        targetEl.style.outlineOffset = "3px";
+        targetEl.style.zIndex = "2";
+        setTimeout(() => {
+          targetEl.style.outline = prevOutline;
+          targetEl.style.outlineOffset = prevOffset;
+          targetEl.style.zIndex = prevZ;
+        }, 1600);
+      }
+    }, 40);
+  };
+
+  return (
+    <div style={{ padding: "48px 56px 48px", background: colors.paper }}>
+      <Rule />
+      <div style={{ marginTop: 40, marginBottom: 32, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 72, alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.warn, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 14 }}>
+            Structurally excluded · {STRUCTURAL_EXCLUSIONS_V04.length} candidates
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 32, fontWeight: 400,
+            lineHeight: 1.1, letterSpacing: -0.5, color: colors.ink }}>
+            Three candidates ruled out — not low-weight, structurally impossible.
+          </div>
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 16,
+          color: colors.inkSoft, lineHeight: 1.55, maxWidth: 620 }}>
+          Each candidate below carries at least one L2 <code style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 13, fontStyle:"normal", color: colors.ink }}>rules_out_a_class</code> or L3 <code style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 13, fontStyle:"normal", color: colors.ink }}>breaks_a_story</code> refutation above the gate threshold. Per §2.5.4 Step 1, these exclusions precede softmax, not follow it. Weight is <strong style={{ color: colors.ink, fontStyle:"normal" }}>0 by construction</strong>. Preserved here in full — not buried in a footnote — so a reader can audit the exclusion logic the same way they audit any live candidate.
+        </div>
+      </div>
+
+      {/* Summary totals row */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap: 1,
+        background: colors.ruleSoft, border: `1px solid ${colors.ruleSoft}`,
+        borderRadius: 2, overflow:"hidden", marginBottom: 24 }}>
+        <div style={{ background: colors.paper, padding: "18px 22px" }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 6 }}>
+            Former softmax weight (v0.4)
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 28, fontStyle:"italic",
+            color: colors.inkMute, textDecoration:"line-through",
+            textDecorationColor: colors.warn, textDecorationThickness: "1.5px",
+            fontVariantNumeric:"tabular-nums", lineHeight: 1 }}>
+            {(totalFormer * 100).toFixed(1)}<span style={{ fontSize: 14, opacity: 0.6 }}>%</span>
+          </div>
+        </div>
+        <div style={{ background: colors.paper, padding: "18px 22px" }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 6 }}>
+            Current weight (v0.4.1)
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 28, fontStyle:"italic",
+            color: colors.ink, fontVariantNumeric:"tabular-nums", lineHeight: 1 }}>
+            0.0<span style={{ fontSize: 14, opacity: 0.6 }}>%</span>
+          </div>
+        </div>
+        <div style={{ background: colors.paper, padding: "18px 22px" }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase", marginBottom: 6 }}>
+            Freed mass redistributed
+          </div>
+          <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+            color: colors.inkSoft, lineHeight: 1.45 }}>
+            → Combined with the 13.6% moved to the μ subclaim, the attribution distribution rescales by factor 1.404. C2b goes from 33.5% → 47.0%; every active attribution candidate scales up proportionally. No discretionary discount applied.
+          </div>
+        </div>
+      </div>
+
+      {/* Per-candidate cards */}
+      <div style={{ display:"flex", flexDirection:"column", gap: 14 }}>
+        {STRUCTURAL_EXCLUSIONS_V04.map(ex => (
+          <ExcludedCandidateCard key={ex.candidate} ex={ex} onEvidenceClick={onEvidenceClick} />
+        ))}
+      </div>
+
+      {/* Methodological note */}
+      <div style={{ marginTop: 26, padding: "18px 22px",
+        background: colors.paperDeep, border: `1px solid ${colors.ruleSoft}`,
+        borderLeft: `3px solid ${colors.ink}`, borderRadius: 2 }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+          color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase", marginBottom: 8 }}>
+          Why exclusion is not the same as low weight
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+          color: colors.inkSoft, lineHeight: 1.6, maxWidth: 900 }}>
+          A low-weight candidate is one the evidence does not strongly support. A structurally excluded candidate is one the evidence <em style={{ color: colors.ink }}>forbids</em> — its mechanism is incompatible with observation, or its narrative is falsified by a specific counterfactual. The two were conflated in v0.4's softmax distribution, which assigned floor weights of 4.2–5.7% to candidates that should have been at zero. v0.4.1 separates them. Readers consulting historical v0.4 output should note: those floor weights were a display artifact of softmax aggregation, not a claim that the candidates were alive.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// --- ExcludedCandidateCard ---
+function ExcludedCandidateCard({ ex, onEvidenceClick }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div style={{
+      border: `1px solid ${colors.ruleSoft}`,
+      borderLeft: `3px solid ${colors.warn}`,
+      borderRadius: 2,
+      background: colors.paper,
+    }}>
+      {/* Header row */}
+      <div onClick={()=>setIsOpen(!isOpen)}
+        style={{ padding: "18px 24px", cursor:"pointer",
+          display:"grid", gridTemplateColumns:"auto 1fr auto auto", gap: 20,
+          alignItems:"center" }}>
+        {/* Candidate code */}
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 13,
+          color: colors.warn, fontWeight: 600, letterSpacing: 0.5,
+          minWidth: 32 }}>
+          {ex.candidate}
+        </div>
+
+        {/* Label + excluded-by evidence summary (clickable badges) */}
+        <div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 17,
+            color: colors.ink, lineHeight: 1.3, letterSpacing: -0.2 }}>
+            {ex.label}
+          </div>
+          <div style={{ marginTop: 6, display:"flex", flexWrap:"wrap", gap: 6,
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+            alignItems:"center" }}>
+            <span style={{ color: colors.inkMute, letterSpacing: 0.7,
+              textTransform:"uppercase" }}>Excluded by</span>
+            {ex.excluded_by.map((e,i) => (
+              <button key={i}
+                onClick={(event)=>{ event.stopPropagation(); onEvidenceClick && onEvidenceClick(e.id); }}
+                title={`Open ${e.id} in the evidence graph`}
+                style={{
+                  padding:"2px 7px", borderRadius: 2,
+                  background: e.type === "GATE" ? `${colors.warn}18` : `${colors.primary}12`,
+                  color: e.type === "GATE" ? colors.warn : colors.primary,
+                  border: `1px solid ${e.type === "GATE" ? `${colors.warn}40` : `${colors.primary}30`}`,
+                  fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+                  letterSpacing: 0.4, fontWeight: 600, cursor:"pointer",
+                  transition:"background 0.15s, transform 0.1s" }}
+                onMouseEnter={(ev)=>{ ev.currentTarget.style.background = e.type === "GATE" ? `${colors.warn}30` : `${colors.primary}22`; }}
+                onMouseLeave={(ev)=>{ ev.currentTarget.style.background = e.type === "GATE" ? `${colors.warn}18` : `${colors.primary}12`; }}>
+                {e.type} · {e.id} ↗
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Former weight — struck through */}
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 8.5,
+            color: colors.inkMute, letterSpacing: 0.7, textTransform:"uppercase",
+            marginBottom: 3 }}>
+            former softmax
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 20, fontStyle:"italic",
+            color: colors.inkMute, textDecoration:"line-through",
+            textDecorationColor: colors.warn, textDecorationThickness: "1.5px",
+            fontVariantNumeric:"tabular-nums", lineHeight: 1 }}>
+            {(ex.formerSoftmaxWeight * 100).toFixed(1)}%
+          </div>
+        </div>
+
+        {/* Current weight — zero */}
+        <div style={{ textAlign:"right", minWidth: 60 }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 8.5,
+            color: colors.warn, letterSpacing: 0.7, textTransform:"uppercase",
+            marginBottom: 3 }}>
+            gated out
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 20, fontStyle:"italic",
+            color: colors.ink, fontVariantNumeric:"tabular-nums", lineHeight: 1 }}>
+            0%
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded body: evidence reasons + preserved question */}
+      {isOpen && (
+        <div style={{ borderTop: `1px solid ${colors.ruleSoft}`,
+          padding: "22px 28px 24px", background: colors.paperDeep }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+            color: colors.inkMute, letterSpacing: 0.8, textTransform:"uppercase",
+            marginBottom: 14 }}>
+            Refutations — {ex.excluded_by.length} {ex.excluded_by.length === 1 ? "entry" : "entries"}
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap: 14 }}>
+            {ex.excluded_by.map((e,i) => (
+              <div key={i} style={{ display:"grid",
+                gridTemplateColumns:"auto 1fr", gap: 16, alignItems:"start" }}>
+                <div>
+                  <div style={{
+                    display:"inline-block",
+                    padding:"4px 8px", borderRadius: 2,
+                    background: e.type === "GATE" ? `${colors.warn}18` : `${colors.primary}12`,
+                    color: e.type === "GATE" ? colors.warn : colors.primary,
+                    border: `1px solid ${e.type === "GATE" ? `${colors.warn}40` : `${colors.primary}30`}`,
+                    fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+                    letterSpacing: 0.7, fontWeight: 600, textTransform:"uppercase",
+                    marginBottom: 4, whiteSpace:"nowrap" }}>
+                    {e.type === "GATE" ? "L2 · rules out a class" : "L3 · breaks a story"}
+                  </div>
+                  <button
+                    onClick={()=> onEvidenceClick && onEvidenceClick(e.id)}
+                    title={`Open ${e.id} in the evidence graph`}
+                    style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+                      color: colors.ink, fontWeight: 600, letterSpacing: 0.3,
+                      background: "transparent", border: "none",
+                      padding: 0, cursor:"pointer",
+                      textDecoration: "underline",
+                      textDecorationColor: colors.ruleSoft,
+                      textDecorationThickness: "1px",
+                      textUnderlineOffset: "3px",
+                      transition: "text-decoration-color 0.15s" }}
+                    onMouseEnter={(ev)=>{ ev.currentTarget.style.textDecorationColor = colors.ink; }}
+                    onMouseLeave={(ev)=>{ ev.currentTarget.style.textDecorationColor = colors.ruleSoft; }}>
+                    {e.id} ↗
+                  </button>
+                </div>
+                <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                  color: colors.inkSoft, lineHeight: 1.6, paddingTop: 2 }}>
+                  {e.reason}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {ex.preservedQuestion && (
+            <div style={{ marginTop: 22, padding: "14px 18px",
+              background: colors.paper,
+              border: `1px solid ${colors.ruleSoft}`, borderLeft: `3px solid ${colors.ink}`,
+              borderRadius: 2 }}>
+              <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+                color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase",
+                marginBottom: 6 }}>
+                What this exclusion does NOT refute
+              </div>
+              <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                color: colors.ink, lineHeight: 1.6 }}>
+                {ex.preservedQuestion}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- ExcludedExpansion ---
+function ExcludedExpansion({ story }) {
+  return (
+    <div>
+      <div style={{ marginBottom: 18, padding: "14px 18px",
+        background: `${colors.warn}10`,
+        border: `1px solid ${colors.warn}30`, borderLeft: `3px solid ${colors.warn}`,
+        borderRadius: 2 }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+          color: colors.warn, letterSpacing: 0.9, textTransform:"uppercase",
+          marginBottom: 8 }}>
+          Why this storyline is excluded, not low-weight
+        </div>
+        <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+          color: colors.inkSoft, lineHeight: 1.6 }}>
+          {story.excludedReason}
+        </div>
+        <div style={{ marginTop: 10, fontFamily:"'Instrument Sans', sans-serif",
+          fontSize: 12, color: colors.inkMute, lineHeight: 1.5,
+          fontStyle:"italic" }}>
+          δ is one of three structurally excluded hypotheses. The corresponding candidate (C4) is also listed in the <strong style={{ color: colors.ink, fontStyle:"normal" }}>Structurally Excluded</strong> section below, alongside C1 (US direct / Hersh) and C3 (independent rogue operators). δ is the only excluded storyline because C1 and C3 were not standalone v0.4 storylines — they existed only at the candidate layer.
+        </div>
+      </div>
+      <div style={{ marginBottom: 12, fontFamily:"'JetBrains Mono', monospace",
+        fontSize: 9, color: colors.inkMute, letterSpacing: 0.9,
+        textTransform:"uppercase" }}>
+        Narrative preserved for audit — not a live hypothesis
+      </div>
+      <div style={{ fontFamily:"'Fraunces', serif", fontSize: 15,
+        color: colors.inkMute, lineHeight: 1.65, fontStyle:"italic",
+        paddingLeft: 14, borderLeft: `1px solid ${colors.ruleSoft}` }}>
+        {story.narrative}
+      </div>
+    </div>
+  );
+}
+
+
+// ############################################################################
+// V0.5 — READ / EXAMINE / AUDIT MODE ARCHITECTURE (extracted from TraceCaseFileV05.jsx)
+// 6 conflicting identifiers renamed with _V05 suffix:
+//   ANCHORS, Rule, STORYLINES, StorylineCard, Tag, colors
+// ############################################################################
+
+
+// ============================================================================
+// TRACE CASE FILE — Nord Stream Pipeline Sabotage (v0.5)
+//
+// Layered workspace:
+//   READ    → Reader-grade orientation. Current understanding + 5 storyline
+//             cards. The α hero card carries strongest argument / weakest
+//             point / what would change directly on its face.
+//   EXAMINE → Analyst-grade dissection. Four lenses:
+//             Claim Map · Evidence · Contradictions · Register.
+//   AUDIT   → Source-grade trail. Timeline · Provenance · Briefing.
+//
+// Visual language preserved from v0.4.2: paper aesthetic, Fraunces +
+// Instrument Sans + JetBrains Mono, primary rust + secondary navy,
+// no rounded corners (border-radius ≤ 2).
+// ============================================================================
+
+
+// ============================================================================
+// DESIGN TOKENS
+// ============================================================================
+
+const colors_V05 = {
+  paper:        "#FAF8F3",
+  paperDeep:    "#F2EEE4",
+  paperGlass:   "rgba(250, 248, 243, 0.88)",
+  ink:          "#1A1A1A",
+  inkSoft:      "#4A4A4A",
+  inkMute:      "#8A8A8A",
+  rule:         "#D9D4C7",
+  ruleSoft:     "#E8E4D8",
+  primary:      "#A03A2C",   // rust — α, leading reconstruction
+  primarySoft:  "#C87769",
+  primaryDeep:  "#7A2C20",
+  secondary:    "#1C3A5E",   // navy — analytical accent
+  secondarySoft:"#6B8AAE",
+  warn:         "#B8902E",   // ochre — turning points / structural exclusion
+  warnDeep:     "#8B6A20",
+  muted:        "#B7B0A0",
+  meta:         "#7A6A54",
+  good:         "#5A6E48",   // moss — established / supports
+  goodSoft:     "#8A9C76",
+};
+
+const fonts = {
+  serif: "'Fraunces', 'Georgia', serif",
+  sans:  "'Instrument Sans', 'Helvetica Neue', sans-serif",
+  mono:  "'JetBrains Mono', 'SFMono-Regular', monospace",
+};
+
+// Proof-state palette — used for Claim Map subclaims and Anchors
+const proofPalette = {
+  anchor:      { fg: colors_V05.good,      bg: "#E8EDE0", bd: colors_V05.goodSoft, label: "Established anchor" },
+  strong:      { fg: colors_V05.primary,   bg: "#F4E4E0", bd: colors_V05.primarySoft, label: "Strong inference" },
+  plausible:   { fg: colors_V05.secondary, bg: "#E4ECF4", bd: colors_V05.secondarySoft, label: "Plausible reconstruction" },
+  speculative: { fg: colors_V05.warn,      bg: "#F4ECD8", bd: "#D4B870", label: "Speculative" },
+  excluded:    { fg: colors_V05.muted,     bg: colors_V05.paperDeep, bd: colors_V05.rule, label: "Structurally excluded" },
+};
+
+
+// ============================================================================
+// CASE META
+// ============================================================================
+
+const CASE_META = {
+  id: "001",
+  version: "v0.5",
+  lastUpdated: "April 2026",
+  question: "Who attacked the Nord Stream pipelines on 26 September 2022?",
+  state: "Converging on structure · not closed on identity",
+  stateRationale:
+    "Three years on, judicial systems in Germany, Poland, and Italy converge on a state-level Ukrainian-linked operation. Political institutions across Sweden, Denmark, Germany, and the UN do not advance. The case is no longer evenly contested across competing actors — but it is also not institutionally resolved.",
+  counts: {
+    storylinesLive:        4,   // α, β′, ε, ζ
+    storylinesExcluded:    1,   // δ kept for audit
+    candidatesExcluded:    3,   // C1, C3, C4
+    subclaim:              1,   // μ
+    anchorFacts:          13,
+    evidenceRecords:      37,
+    contradictions:        8,
+    languagesSurveyed:    14,
+    jurisdictionsActive:   5,   // DE, PL, IT, SE, DK
+  },
+};
+
+
+// ============================================================================
+// CURRENT UNDERSTANDING — READ mode opener
+// ============================================================================
+
+const CURRENT_UNDERSTANDING = {
+  headline: "A Ukrainian military-command operation, executed via the Zaluzhnyi track, with Polish post-facto protection and US prior awareness.",
+  bodyLong: "The strongest current reconstruction is a Ukrainian military-command operation, led through the Zaluzhnyi track after presidential approval was withdrawn, with Polish logistical and judicial complicity and US foreknowledge that did not foreclose. It is the only live storyline that simultaneously absorbs the Andromeda forensic chain, the BGH ruling, the Polish refusal to extradite, the Italian Cassazione transfers, and the CIA warning to Germany. It is not a verdict. It is a structured reading of which reconstruction the surviving evidence makes most coherent.",
+  notFullyExplains: "Why several institutions — Sweden, Denmark, Germany's political layer, the UN Security Council — have continued to avoid closure rather than name what their judicial counterparts already name.",
+  leadingStoryline: "alpha",
+};
+
+
+// ============================================================================
+// LOAD-BEARING UNKNOWNS — three tiers
+// ============================================================================
+
+const LOAD_BEARING_UNKNOWNS = {
+  changeLeading: {
+    label: "Unknowns that would change the leading reconstruction",
+    rationale: "Disclosure here would either confirm α or move probability mass to β′ or ε.",
+    items: [
+      {
+        q: "What exactly did Zaluzhnyi authorize, and on what date?",
+        why: "Operational authorization is the single weakest documentary link in α. Spiegel 2026 reports Zaluzhnyi approved; Il Fatto reports Zelensky approved-then-withdrew. Direct documentation would adjudicate the split.",
+        wouldShift: "α → confirm or fork into γ-variant",
+      },
+      {
+        q: "Was CIA's 2022 stance passive awareness or tacit green light?",
+        why: "The Spiegel-reported 'interested, not opposed' permits both readings. Declassified CIA cables would adjudicate between α (passive) and β′ (tacit permission).",
+        wouldShift: "α ↔ β′",
+      },
+      {
+        q: "What did Polish state actors know, and when?",
+        why: "Hanning's Die Welt testimony names Polish authorization. Polish refusal to execute the German EAW is documented but its decision-making record is not.",
+        wouldShift: "α → broaden complicity layer; β′ → strengthen",
+      },
+      {
+        q: "What is in the full German prosecution file?",
+        why: "BGH ruling text is public; the underlying evidentiary record is sealed under Third Party Rule. Disclosure would either confirm 'foreign government' as Ukraine or surface a wider coordination signal.",
+        wouldShift: "Adjudicates α vs β′ on multiple axes",
+      },
+    ],
+  },
+  interesting: {
+    label: "Unknowns that are interesting but not load-bearing",
+    rationale: "Disclosure here would enrich the exhibit but not move probability mass between live storylines.",
+    items: [
+      {
+        q: "Origin of the HMX supply chain.",
+        why: "If traced to Ukrainian-captured Russian stock, α strengthens incrementally. If traced to US/NATO inventory, β′ strengthens incrementally. Either would refine α — neither would unseat it.",
+      },
+      {
+        q: "Exact wording of Truss's SMS to Blinken.",
+        why: "Independent retellings show variation. Resolving the wording bounds ζ's content credibility but does not adjudicate whether the UK question deserves its own storyline.",
+      },
+      {
+        q: "Why the seventeen-hour interval between blasts.",
+        why: "F3 is anchored as a physical anomaly incompatible with sonar-triggered remote detonation. The operational reasoning for the gap (resource-limited team, two-pass execution, deliberate signature) remains under-examined.",
+      },
+    ],
+  },
+  silence: {
+    label: "Unknowns generated by institutional silence",
+    rationale: "These are the load-bearing absences. Each is a case where an institution capable of resolving a question has chosen non-resolution. They feed μ and define the gap between converging structure and unclosed identity.",
+    items: [
+      {
+        q: "Sweden's substantive jurisdictional reasoning.",
+        why: "Closure cited 'kan antas saknas' (may be presumed lacking). Danish legal scholar Buhl publicly disputes this. The substantive reasoning record is not public.",
+      },
+      {
+        q: "Denmark's substantive closure record.",
+        why: "Defence Academy experts report being barred from public discussion. The legal basis is not in the public record.",
+      },
+      {
+        q: "German Chancellor's Office record on US-intelligence sharing.",
+        why: "Wolfgang Schmidt invoked Third Party Rule on the Bundestag inquiry. The underlying communications are sealed.",
+      },
+      {
+        q: "Identities of the 12 UN Security Council abstainers' rationales.",
+        why: "Non-vetoes by abstention are not customarily explained. The pattern of mass abstention buried the resolution; the per-state reasoning was not entered into record.",
+      },
+    ],
+  },
+};
+
+
+// ============================================================================
+// STORYLINES_V05 — five live (α/β′/ε/ζ/μ) + one structurally excluded (δ)
+//
+// Each storyline carries the new front-of-card fields:
+//   strongestArgument · weakestPoint · whatWouldChange
+// ============================================================================
+
+const STORYLINES_V05 = [
+  // -------------------------------------------------------------------------
+  {
+    id: "alpha",
+    glyph: "α",
+    kind: "leading_reconstruction",
+    coverage: 0.70,
+    isHero: true,
+    label: "Ukrainian military bypass, Polish complicity, US awareness",
+    shortLabel: "Ukrainian military bypass · Polish complicity · US awareness",
+    claim:
+      "Zaluzhnyi-led Ukrainian military leadership executed the operation after presidential approval was withdrawn. Poland enabled and protected operationally and judicially. The CIA was informed and chose not to foreclose.",
+
+    strongestArgument: {
+      headline: "α uniquely reconciles three otherwise awkward facts.",
+      bullets: [
+        "The Andromeda forensic trail (HMX, DNA, fingerprints, forged identity papers) points to a smaller operational layer with Ukrainian-linked execution — not a state-navy professional operation.",
+        "The CIA's June 2022 warning to Germany via the Dutch MIVD chain implies prior knowledge, not surprise — and was followed by no foreclosure.",
+        "Polish refusal to execute the German EAW, Italian Cassazione's three-step transfer, and the BGH's December 2025 'foreign government intelligence' ruling cohere only if Ukrainian state-linked authorship is the operative frame.",
+      ],
+    },
+    weakestPoint: {
+      headline: "Operational authorization is α's least documented link.",
+      body:
+        "α depends on reconstructing what Zaluzhnyi authorized, what Zelensky knew, and what Polish state actors agreed to — and when. The forensic and judicial record is strong on operational traces; the documentary record on command intent is sparse. Spiegel 2026 (Zaluzhnyi approved) and Il Fatto 2025 (Zelensky approved-then-withdrew under US pressure, Zaluzhnyi continued) are testimonial, not documentary.",
+    },
+    whatWouldChange: {
+      headline: "Disclosure here would either confirm α or fork it.",
+      items: [
+        "Direct documentation of command authorization (Zaluzhnyi or General Staff communications).",
+        "Clarification of Polish state-level knowledge and timing (Tusk-era Cabinet record).",
+        "Full German prosecution file currently sealed under Third Party Rule.",
+        "CIA / MIVD warning chain primary documents (currently classified).",
+        "Trial record from Kuznetsov / Zhuravlev proceedings, if and when held.",
+      ],
+    },
+
+    overlaySummary:
+      "α is the only live storyline that simultaneously absorbs Andromeda, the BGH ruling, the Polish refusal, the Italian transfer, the CIA warning chain, and the post-facto Polish judicial legitimation. The 70% coverage is what is left when three candidates structurally exclude (15.3%) and the institutional non-resolution question is moved to its own subclaim (13.6%) — α is not propped up. It is what the surviving attribution-claim space converges on.",
+
+    keyEvidence:    ["E6","E10","E11","E12","E13","E14","E17","E18","E24","E29","E30"],
+    keyAnchors:     ["F1","F2","F3","F7","F8","F9","F10","F11","F12"],
+    challengedBy:   ["E36"],
+    contradictionStance: {
+      "DE_judicial_vs_political":    "absorbs",
+      "forensic_vs_official_silence":"absorbs",
+      "ua_denial_vs_ua_media_pride": "absorbs",
+      "pl_judicial_vs_de_criminal":  "absorbs",
+      "cia_warning_vs_cia_denial":   "absorbs",
+      "se_jurisdiction_vs_buhl":     "strains",
+      "wsj_vs_spiegel":              "absorbs",
+      "andromeda_vs_state_navy":     "absorbs",
+    },
+
+    sourceFromCandidates:
+      "C2b (47.0%) + C2a (8.8%) + C2c (9.0%) + half of C7 (4.7%) ≈ 70%. Distribution rescaled by 1.404 after structural exclusion of C1/C3/C4 and after C_insufficient was moved to the μ subclaim.",
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: "beta_prime",
+    glyph: "β′",
+    kind: "alternate_reconstruction",
+    coverage: 0.05,
+    isHero: false,
+    label: "Western coordination, principal unclear",
+    shortLabel: "Western coordination — principal unclear",
+    claim:
+      "A wider Western coordination — US enabling, Polish staging, possible UK involvement — extended beyond Ukrainian military leadership alone. β′ does NOT claim US-direct-execution; that version (Hersh) is structurally excluded.",
+
+    strongestArgument: {
+      headline: "β′ preserves a coordination question the rest of the exhibit cannot fully retire.",
+      bullets: [
+        "CIA's 2022 'interested, not opposed' is compatible with passive awareness AND with tacit green light. The exhibit cannot adjudicate.",
+        "Sikorski's 'Thank you, USA' tweet and the Polish refusal pattern read coherently as either post-facto alignment (α) or pre-coordinated structure (β′).",
+        "12 UN Security Council abstentions on independent investigation are compatible with both readings; under β′, the voting pattern is itself a coordination signature.",
+      ],
+    },
+    weakestPoint: {
+      headline: "β′ cannot separate awareness from permission on current evidence.",
+      body:
+        "The structural distinguisher between α and β′ is whether the CIA's 2022 stance crossed from awareness into tacit permission. The available evidence (Spiegel 'not opposed', the June warning) supports both readings. β′ also cannot adjudicate whether UK signals (Truss SMS, Naryshkin accusation, Sachs enumeration) point at active involvement or third-party amplification — a question ζ holds open separately.",
+    },
+    whatWouldChange: {
+      headline: "Declassification of intelligence-layer communications would adjudicate β′.",
+      items: [
+        "CIA 2022 cables on the Podol disclosure and the June warning.",
+        "MIVD records on what Dutch intelligence knew and shared.",
+        "UK Defence Intelligence Staff records on the period.",
+        "Internal communications between Blinken, Sullivan, and Nuland in late 2022.",
+      ],
+    },
+
+    overlaySummary:
+      "β′ is what remains of the original 'Western coordination' hypothesis after Hersh's specific US-direct-execution version is structurally excluded. It does not claim a single principal; it claims that the enabling structure is wider than Ukrainian military + passive CIA. It is α's principal alternative on the 'width of coordination' axis.",
+
+    keyEvidence:    ["E5","E21","E22","E23","E24","E25","E27","E28","E30","E33"],
+    keyAnchors:     ["F4","F5","F6"],
+    challengedBy:   ["E17","E29"],
+    contradictionStance: {
+      "DE_judicial_vs_political":    "absorbs",
+      "forensic_vs_official_silence":"absorbs",
+      "ua_denial_vs_ua_media_pride": "strains",
+      "pl_judicial_vs_de_criminal":  "absorbs",
+      "cia_warning_vs_cia_denial":   "strains",
+      "se_jurisdiction_vs_buhl":     "absorbs",
+      "wsj_vs_spiegel":              "strains",
+      "andromeda_vs_state_navy":     "strains",
+    },
+
+    sourceFromCandidates:
+      "Third of C7 (3.1%) + third of C5 (2.9%) ≈ 5%. Down from 10% in v0.4 — β lost C1 (5.7%, structurally excluded) entirely.",
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: "epsilon",
+    glyph: "ε",
+    kind: "candidate_space_unknown",
+    coverage: 0.19,
+    isHero: false,
+    label: "Unidentified actor or incomplete candidate set",
+    shortLabel: "Unknown actor — candidate set may be incomplete",
+    claim:
+      "The enumerated candidate set may not be complete. Weight assigned to ε represents probability mass that no listed storyline coherently absorbs.",
+
+    strongestArgument: {
+      headline: "v0.3's candidate set was demonstrably blind. v0.4 closed those gaps. v0.5 cannot prove completeness.",
+      bullets: [
+        "v0.3 collapsed all Ukrainian attribution into one C2 candidate — missing the presidential / military-bypass / agency split that later evidence forced. ε is the protocol's record of having been wrong before.",
+        "Compound attribution (Ukrainian operation with CIA enabling) was structurally invisible until C7 was added in v0.4.",
+        "ε does not assert hidden truth. It refuses to force all weight into the buckets currently named.",
+      ],
+    },
+    weakestPoint: {
+      headline: "ε cannot point to what it covers.",
+      body:
+        "By definition, ε is what no listed storyline absorbs. Any specific candidate proposed for ε would either be admitted (and ε would shrink) or dismissed (and ε would not grow). Its 19% is a function of softmax floor mass plus unenumerated configurations — not a probability over any specific reconstruction.",
+    },
+    whatWouldChange: {
+      headline: "Disclosure that names a previously unenumerated configuration shrinks ε directly.",
+      items: [
+        "A whistleblower account from inside the Andromeda operation naming a non-listed actor.",
+        "An explicit named-third-party acknowledgment from any party currently in the exhibit.",
+        "Declassification surfacing a coordination structure not currently in the candidate set.",
+      ],
+    },
+
+    overlaySummary:
+      "ε is a declared blind spot. It carries the v0.3 → v0.4 lesson that candidate sets are revisable. The 19% does not assert that something specific is missing — it asserts that the protocol does not force mass into named buckets when the evidence does not support them.",
+
+    keyEvidence:    [],
+    keyAnchors:     ["F12"],
+    challengedBy:   [],
+    contradictionStance: {
+      "DE_judicial_vs_political":    "absorbs",
+      "forensic_vs_official_silence":"absorbs",
+      "ua_denial_vs_ua_media_pride": "absorbs",
+      "pl_judicial_vs_de_criminal":  "absorbs",
+      "cia_warning_vs_cia_denial":   "absorbs",
+      "se_jurisdiction_vs_buhl":     "absorbs",
+      "wsj_vs_spiegel":              "absorbs",
+      "andromeda_vs_state_navy":     "absorbs",
+    },
+
+    sourceFromCandidates:
+      "C_unknown (8.8%) + C6 (8.1%) + fifth of C7 (1.9%) ≈ 19%. Rescaled by 1.404 under attribution-only distribution.",
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: "zeta",
+    glyph: "ζ",
+    kind: "alternate_reconstruction",
+    coverage: 0.06,
+    isHero: false,
+    label: "UK-layer, under-examined",
+    shortLabel: "UK-layer · under-examined",
+    claim:
+      "The UK question has its own evidence base — independent of the Ukrainian and US tracks — and has not been adjudicated by any institution in the exhibit. ζ asserts the question, not an answer.",
+
+    strongestArgument: {
+      headline: "Three independent UK signals from three different source positions.",
+      bullets: [
+        "Liz Truss reportedly SMSed Blinken 'it's done' — multiple independent retellings, event-credibility above content-credibility.",
+        "SVR Chief Naryshkin formally accused US and UK on RT Arabic — adversarial, but on record.",
+        "Jeffrey Sachs at the UN Security Council enumerated UK among seven plausible Western actors — academic-authority derived analysis in a high forum.",
+      ],
+    },
+    weakestPoint: {
+      headline: "Each UK signal is individually weak.",
+      body:
+        "Truss SMS: content-credibility 0.30. Naryshkin: adversarial-source. Sachs: derived analysis, not direct evidence. The combined signal is non-zero only because the three sources are independent and their convergence on a UK frame is not generated by any single ecosystem. No piece of v0.4 evidence rules UK involvement out, at any layer.",
+    },
+    whatWouldChange: {
+      headline: "Either confirm or retire the UK question.",
+      items: [
+        "Independent confirmation of Truss SMS content from a non-Russian-amplified source.",
+        "UK Defence Intelligence or Cabinet records from the period.",
+        "Forensic linkage of the operation to UK-specific assets or training.",
+        "Authoritative ruling-out from an institution with capacity to investigate.",
+      ],
+    },
+
+    overlaySummary:
+      "ζ is the protocol's refusal to fold the UK signal into β′ when the evidence base is independent. It is a small storyline because the signals are weak — but it is its own storyline because the question has not been adjudicated.",
+
+    keyEvidence:    ["E25","E27","E28"],
+    keyAnchors:     [],
+    challengedBy:   [],
+    contradictionStance: {
+      "DE_judicial_vs_political":    "neutral",
+      "forensic_vs_official_silence":"strains",
+      "ua_denial_vs_ua_media_pride": "neutral",
+      "pl_judicial_vs_de_criminal":  "neutral",
+      "cia_warning_vs_cia_denial":   "neutral",
+      "se_jurisdiction_vs_buhl":     "absorbs",
+      "wsj_vs_spiegel":              "neutral",
+      "andromeda_vs_state_navy":     "strains",
+    },
+
+    sourceFromCandidates:
+      "C5 (8.7%) − overlap with β′ (≈3%) ≈ 6%. ζ does not double-count UK signals shared with β′.",
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: "mu",
+    glyph: "μ",
+    kind: "process_subclaim",
+    coverage: null,                        // not an attribution candidate
+    evidenceShare: 0.136,
+    isHero: false,
+    isSubclaim: true,
+    label: "Institutional non-resolution as a stance",
+    shortLabel: "Collective non-resolution",
+    claim:
+      "Five jurisdictions and one international body each had the capacity to advance the attribution question. Each chose not to. μ does not compete with α/β′/ε/ζ for attribution weight — it answers a different question (why has this not closed?) and lives in its own subclaim panel.",
+
+    strongestArgument: {
+      headline: "Six institutional non-advancements, each documented, each independent.",
+      bullets: [
+        "Sweden closed citing a jurisdictional doctrine Buhl publicly disputes. Denmark followed within weeks; its Defence Academy reports being barred from public discussion.",
+        "Germany's executive invoked the Third Party Rule on parliamentary inquiry while its judicial layer continued — and the BGH ruled 'foreign government intelligence agency' without naming the government.",
+        "Poland did not execute the German EAW; Polish courts framed the act as 'organized action by services of a warring state'; Tusk endorsed.",
+        "Italy's Cassazione reversed itself three times on the same extradition question within six weeks.",
+        "The UN Security Council buried the independent-investigation resolution by twelve abstentions, not by vetoes.",
+      ],
+    },
+    weakestPoint: {
+      headline: "μ cannot fully explain the BGH-vs-Kanzleramt internal split.",
+      body:
+        "If μ describes a system-wide avoidance, why does the German judicial layer advance (BGH ruling, ongoing prosecutions) while the German political layer suppresses (Third Party Rule)? The split is itself part of the exhibit and indicates that 'avoidance' is not uniform within a single state — it operates along the judicial-vs-executive axis.",
+    },
+    whatWouldChange: {
+      headline: "Any single institution breaking the non-advancement pattern would shift μ.",
+      items: [
+        "Sweden or Denmark publishing the substantive jurisdictional reasoning behind closure.",
+        "The German Chancellor's Office releasing the intelligence-sharing record under retroactive Bundestag pressure.",
+        "The UN re-tabling the independent-investigation resolution.",
+        "A trial in Germany producing a publicly-named state actor.",
+      ],
+    },
+
+    overlaySummary:
+      "μ is structurally separated from the attribution claim. The 13.6% of evidence that addresses 'why has this not closed?' was previously aggregated into C_insufficient — which forced it to compete with attribution candidates as if it answered the same question. v0.4.2 split it out. μ is now read on its own axis.",
+
+    keyEvidence:    ["E8","E9","E19","E31","E32","E33","E34","E35"],
+    keyAnchors:     ["F13"],
+    challengedBy:   ["E17"],
+    contradictionStance: {
+      "DE_judicial_vs_political":    "centers",   // μ is the home for this contradiction
+      "forensic_vs_official_silence":"centers",
+      "ua_denial_vs_ua_media_pride": "neutral",
+      "pl_judicial_vs_de_criminal":  "absorbs",
+      "cia_warning_vs_cia_denial":   "absorbs",
+      "se_jurisdiction_vs_buhl":     "centers",
+      "wsj_vs_spiegel":              "neutral",
+      "andromeda_vs_state_navy":     "neutral",
+    },
+
+    sourceFromCandidates:
+      "Subclaim. 13.6% of total evidence addresses this question. Within the subclaim, μ is the only live answer (coverage 1.00 within μ-subclaim space).",
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: "delta",
+    glyph: "δ",
+    kind: "structurally_excluded",
+    coverage: 0.00,
+    isHero: false,
+    excluded: true,
+    label: "Russian self-sabotage",
+    shortLabel: "Russian self-sabotage — structurally excluded",
+    claim:
+      "Russia destroyed its own infrastructure to weaponize attribution chaos against the West.",
+
+    strongestArgument: { headline: "—", bullets: [] },
+    weakestPoint:      { headline: "—", body: "" },
+    whatWouldChange:   { headline: "—", items: [] },
+
+    excludedBy: ["E25","F7"],
+    excludedReason:
+      "Two independent GATE-level refutations. (1) Sachs at the UN Security Council enumerates seven plausible Western actors and explicitly excludes Russia. (2) The Andromeda forensic chain (HMX, DNA, fingerprints, forged identities) survives three years of cross-jurisdictional review across German, Polish, and Italian judicial systems. δ would require the entire forensic chain to be Russian fabrication that escapes three independent judiciaries. Putin's UN General Assembly speech blaming 'Anglo-Saxons' is the single most internally inconsistent move for a self-author — it directs international scrutiny precisely toward the actors most capable of having done it. The narrative is preserved here for audit transparency, not as a live hypothesis.",
+
+    overlaySummary:
+      "STRUCTURALLY EXCLUDED. Retained for audit transparency. Readers consulting historical v0.4 output that shows δ at 5% should understand that this reflects pre-audit softmax behavior, not surviving hypothesis weight.",
+
+    keyEvidence:    [],
+    keyAnchors:     [],
+    challengedBy:   [],
+    contradictionStance: {},
+    sourceFromCandidates: "0% by structural exclusion. Former softmax weight (5%) was a pre-audit floor that L2 exclusion gating should have zeroed before aggregation.",
+  },
+];
+
+
+// ============================================================================
+// STRUCTURALLY EXCLUDED CANDIDATES — at the candidate layer, not storyline
+// ============================================================================
+
+const STRUCTURAL_EXCLUSIONS = [
+  {
+    candidate: "C1",
+    label: "United States — direct execution (Hersh version)",
+    formerWeight: 0.057,
+    excludedBy: [
+      { id: "E6",  type: "GATE",
+        reason: "Andromeda forensic chain (HMX, DNA, fingerprints, forged identity papers) points to a Ukrainian-operator execution layer, not US Navy personnel." },
+      { id: "F3",  type: "BREAKS",
+        reason: "17-hour detonation gap is incompatible with Hersh's sonar-triggered one-shot remote mechanism." },
+      { id: "F12", type: "BREAKS",
+        reason: "One of four pipeline strands survived intact — inconsistent with a professional state-navy operation." },
+    ],
+    preservedQuestion:
+      "A wider Western coordination (US enabling, UK possible, Poland staging) is NOT refuted. That question is preserved in β′ and ζ.",
+  },
+  {
+    candidate: "C3",
+    label: "Ukraine — independent rogue operators (no state authorization)",
+    formerWeight: 0.042,
+    excludedBy: [
+      { id: "F2",  type: "GATE",
+        reason: "Military-grade HMX explosive supply chain requires state-level access. Rules out non-state-enabled operators as a class." },
+      { id: "E17", type: "BREAKS",
+        reason: "BGH December 2025 ruling explicitly classifies the operation as 'a foreign government intelligence agency' action. Judicial T1 authority directly contradicts rogue-operator framing." },
+    ],
+    preservedQuestion: null,
+  },
+  {
+    candidate: "C4",
+    label: "Russia — self-sabotage (false flag)",
+    formerWeight: 0.054,
+    excludedBy: [
+      { id: "E25", type: "GATE",
+        reason: "Sachs at the UN Security Council enumerates seven plausible Western actors and explicitly excludes Russia." },
+      { id: "F7",  type: "GATE",
+        reason: "Andromeda forensic chain survives three years of cross-jurisdictional review (DE, PL, IT). A false-flag δ would require fabricated forensics to withstand three independent judiciaries." },
+    ],
+    preservedQuestion: null,
+  },
+];
+
+
+// ============================================================================
+// ANCHOR FACTS — F1–F13, undisputed across 14 languages surveyed
+// Each carries a proof-state of "anchor" and is referenced from Claim Map.
+// ============================================================================
+
+const ANCHORS_V05 = [
+  { id:"F1",  time:"2022-09-26 04:03 & 19:03 UTC",
+    fact:"Two pipeline sections detonate seventeen hours apart. Three of four lines destroyed; one intact. Swedish, Danish, and German seismographs record simultaneously.",
+    flagged:false },
+  { id:"F2",  time:"2022-09 forensic",
+    fact:"Blast depth 70–80 m. Military-grade HMX residue confirmed by Swedish prosecutor; traces on the Andromeda yacht.",
+    flagged:false },
+  { id:"F3",  time:"Physical anomaly",
+    fact:"The 17-hour interval between blasts. Incompatible with sonar-triggered remote one-shot detonation; consistent with manual or semi-automatic timed execution.",
+    flagged:true },
+  { id:"F4",  time:"2022-02-07",
+    fact:"Biden, standing next to Scholz, publicly commits to 'ending' Nord Stream 2 if Russia invades. On camera; uncontested.",
+    flagged:false },
+  { id:"F5",  time:"2022–2023 public record",
+    fact:"Blinken and Nuland express post-facto satisfaction. Nuland: 'a piece of metal at the bottom of the sea.'",
+    flagged:false },
+  { id:"F6",  time:"2022-06",
+    fact:"CIA issues strategic warning to Germany and other European allies that Nord Stream may be a target. Provenance chain: MIVD (Dutch) → CIA → Germany.",
+    flagged:false },
+  { id:"F7",  time:"Forensic, multi-jurisdictional",
+    fact:"Andromeda: forged identities, HMX residue, DNA, fingerprints. Accessed independently by German, Polish, and Italian judicial authorities.",
+    flagged:false },
+  { id:"F8",  time:"Identified individuals",
+    fact:"Volodymyr Zhuravlev (Poland) and Serhii Kuznetsov (Italy, Rimini) — identities, backgrounds, arrests, and judicial proceedings all in public records.",
+    flagged:false },
+  { id:"F9",  time:"2025-12-10",
+    fact:"BGH (German Federal Court of Justice) formally classifies the operation, 'with high probability', as an intelligence-agency action ordered by a foreign government. Rejects functional-immunity appeal.",
+    flagged:true },
+  { id:"F10", time:"2025-10-17",
+    fact:"Polish Judge Łubowski's ruling characterizes the act as 'organized action by services of a warring state' — a judicial categorization.",
+    flagged:true },
+  { id:"F11", time:"2022-09-26",
+    fact:"Polish FM Sikorski tweets 'Thank you, USA' hours after the blasts. Tweet timestamp independently verifiable.",
+    flagged:false },
+  { id:"F12", time:"Physical anomaly",
+    fact:"Fourth pipeline intact. Multi-source confirmed. Inconsistent with professional naval SEAL-level operation; consistent with resource-limited team.",
+    flagged:true },
+  { id:"F13", time:"2024-02",
+    fact:"Sweden and Denmark close investigations without attribution. Germany continues; Kuznetsov transferred to Germany for trial.",
+    flagged:false },
+];
+
+
+// ============================================================================
+// CLAIM MAP — 6 subclaims under the main attribution question
+// Each carries a proof state and pointers to anchors / evidence.
+// ============================================================================
+
+const CLAIM_MAP = {
+  rootClaim: CASE_META.question,
+  rootProof: "strong",
+  subclaims: [
+    {
+      id: "S1",
+      label: "Physical mechanism",
+      question: "What operation type physically caused the rupture?",
+      proof: "anchor",
+      summary: "A team-executed timed-charge operation at 70–80 m depth, conducted in two passes seventeen hours apart, with one of four strands surviving. Not sonar-triggered, not single-shot, not naval-professional in signature.",
+      established: [
+        "F1 — two-wave detonation, three of four lines destroyed",
+        "F2 — HMX military-grade explosive at 70–80 m",
+        "F3 — 17-hour interval rules out remote sonar-triggered execution",
+        "F12 — surviving fourth strand inconsistent with state-navy professional signature",
+      ],
+      tensions: [
+        "F2 (state-grade explosive) and F12 (non-professional execution signature) point to a state-enabled but resource-limited team — a structural pattern matching α and β′, not Hersh's C1.",
+      ],
+      stateInfluence: "Locks the operation type. Forces command-authorization debate (S3) onto a smaller-team operational layer. Excludes C1's mechanism.",
+    },
+    {
+      id: "S2",
+      label: "Operational actor identity",
+      question: "Who executed the operation on site?",
+      proof: "strong",
+      summary: "Ukrainian-linked operators executed: identified individuals (Zhuravlev, Kuznetsov), Andromeda forensic trail, German EU arrest warrant, embassy-plated exit. Identity is judicially anchored across three jurisdictions.",
+      established: [
+        "F7 — Andromeda forensic chain accessed by DE, PL, IT independently",
+        "F8 — identified individuals with public-record arrests and proceedings",
+        "F11 — embassy-plated exit through Poland (state apparatus enabled)",
+      ],
+      tensions: [
+        "α's forensic identity narrative is shared with β′ and ζ at the execution layer — disagreement among live storylines is over enabling structure, not executors.",
+      ],
+      stateInfluence: "Strong inference for Ukrainian-linked execution. Distinguishes from C1 (US-direct) and C4 (Russian self-authorship). Does not by itself adjudicate command-layer authorization — that is S3.",
+      keyEvidence: ["E6","E10","E11","E12","E13"],
+    },
+    {
+      id: "S3",
+      label: "Command authorization",
+      question: "Was this presidential, military-command, agency-level, rogue, or foreign-state directed?",
+      proof: "plausible",
+      summary: "α's reading: Zaluzhnyi-led military command after Zelensky withdrew approval. Spiegel 2026 (Zaluzhnyi approved) and Il Fatto 2025 (Zelensky approved-then-withdrew) are testimonial. Documentary record on command intent is sparse.",
+      established: [
+        "F9 — BGH rules 'foreign government intelligence agency' — rules out C3 (rogue independent)",
+      ],
+      tensions: [
+        "Spiegel 2026 and Il Fatto 2025 reconcile as a temporal split (Zelensky early-yes, then-no; Zaluzhnyi continued) but neither is documentary.",
+        "Hanning's Die Welt testimony names Polish authorization and 'both presidents' — ex-BND chief authority, but contradicts the Zaluzhnyi-bypass framing α prefers.",
+      ],
+      stateInfluence: "α's least-documented link. Disclosure here adjudicates α vs β′ on the most consequential axis.",
+      keyEvidence: ["E11","E29","E31","E24"],
+    },
+    {
+      id: "S4",
+      label: "State knowledge and complicity",
+      question: "Which states knew, facilitated, protected, or obstructed?",
+      proof: "plausible",
+      summary: "Polish post-facto protection is documented (refusal to execute EAW, Łubowski ruling, Tusk endorsement). US prior knowledge is documented (CIA June 2022 warning). UK question is unresolved (held in ζ).",
+      established: [
+        "F6 — CIA warned Germany via MIVD chain in June 2022",
+        "F10 — Polish judicial framing as 'organized action by services of a warring state'",
+        "F11 — Sikorski tweet immediately post-event",
+      ],
+      tensions: [
+        "CIA's stance is undetermined between passive awareness (α) and tacit permission (β′).",
+        "Polish state-level knowledge timing is undocumented in the public record.",
+      ],
+      stateInfluence: "Defines the 'enabling structure' axis along which α and β′ diverge. ζ holds the UK piece separately because it is independently sourced.",
+      keyEvidence: ["E5","E14","E18","E21","E22","E24"],
+    },
+    {
+      id: "S5",
+      label: "Institutional non-resolution",
+      question: "Why has this attribution question not been institutionally closed?",
+      proof: "anchor",
+      summary: "Five jurisdictions and one international body have each had capacity to advance — and each has not. This is the μ subclaim. It does not compete with attribution storylines for weight.",
+      established: [
+        "F13 — Sweden and Denmark close without attribution",
+        "Sweden's prosecutor self-describes the case as 'a battlefield for influence operations'",
+        "BGH advances criminal proceedings while the German Chancellor's Office invokes Third Party Rule",
+      ],
+      tensions: [
+        "BGH-vs-Kanzleramt internal split: the German judiciary advances while the German executive suppresses. μ describes system-wide avoidance but cannot fully account for this intra-state divergence.",
+      ],
+      stateInfluence: "Centers the contradiction set on a jurisdictional-avoidance pattern. Surfaces 'silence as evidence' as a first-class object.",
+      keyEvidence: ["E8","E9","E32","E33","E34","E35"],
+    },
+    {
+      id: "S6",
+      label: "Narrative behavior consistency",
+      question: "Do public statements, omissions, and register shifts behave as predicted under the leading reconstruction?",
+      proof: "strong",
+      summary: "Official Ukrainian denials coexist with Ukrainian-language media pride. Polish state moralizes; German judiciary criminalizes; German executive suppresses; Italian judiciary oscillates. The aggregate register pattern is not random — it tracks the alliance-and-jurisdiction structure α predicts.",
+      established: [
+        "Cross-record register pattern: Germany criminalizes, Poland moralizes, Italy proceduralizes (see Register lens)",
+        "Domestic broadcaster critique of own government (SVT editorial, Splidsboel public dissent)",
+      ],
+      tensions: [
+        "ζ's UK signals are register-anomalous: SVR amplification of an SMS that the UK has neither confirmed nor denied — a register pattern that does not yet have a clean reading.",
+      ],
+      stateInfluence: "Register is positional evidence, not factual evidence. It strengthens α structurally without grounding causal claims directly.",
+      keyEvidence: ["E37","E32","E22","E18","E19"],
+    },
+  ],
+};
+
+
+// ============================================================================
+// EVIDENCE LEDGER — 37 records with v0.5 audit fields:
+//   whatItOnlyShows · whatRemainsMissing · supportsStorylines · contradictsStorylines
+// (Edges preserved from v0.4.2 for storyline mapping.)
+// ============================================================================
+
+const EVIDENCE = [
+  {
+    id:"E1", label:"Hersh Substack report", date:"2023-02-08",
+    type:"testimony", credibility:0.35, language:"en", cluster:"single_source",
+    detail:"Single anonymous source. The narrative that built β. Cross-examination finds the 17-hour blast interval (F3) incompatible with sonar-triggered one-shot detonation; the fourth intact pipeline (F12) inconsistent with professional US Navy operation.",
+    whatItOnlyShows:"That a long-form journalistic account exists alleging US Navy execution under BALTOPS cover, sourced to a single anonymous individual.",
+    whatRemainsMissing:"Independent corroboration of the source. The specific mechanism Hersh describes (sonar-triggered single-shot) does not match physical anchors F3 and F12.",
+    supports:["beta_prime"],
+    refutes:[],
+    structurallyExcludedFor:"C1 — Hersh's specific US-direct mechanism is the version structurally refuted.",
+  },
+  {
+    id:"E2", label:"White House denial", date:"2023-02-08",
+    type:"official_statement", credibility:0.50, language:"en", cluster:null,
+    detail:"Same-day denial. Weight bounded by obvious interest of issuing party.",
+    whatItOnlyShows:"That the US executive branch issued an official denial within hours of Hersh's publication.",
+    whatRemainsMissing:"Substantive engagement with the specific mechanism. A pro forma denial does not adjudicate.",
+    supports:[],
+    refutes:[],
+  },
+  {
+    id:"E3", label:"NYT 'pro-Ukrainian group' report", date:"2023-03-07",
+    type:"testimony", credibility:0.55, language:"en", cluster:"western_intel_leaks",
+    detail:"NYT attribution to pro-Ukrainian group, sourced to anonymous US officials familiar with intelligence. First pivot away from US-direct framing.",
+    whatItOnlyShows:"That a Western intelligence narrative shifted public framing toward 'Ukrainian-group' attribution in early 2023.",
+    whatRemainsMissing:"The provenance chain of the leak. The reporting itself is potentially correlated with later WaPo/Spiegel leaks (cluster: western_intel_leaks).",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E4", label:"WaPo + Spiegel: Chervinsky named", date:"2023-11-01",
+    type:"derived_analysis", credibility:0.65, language:"en", cluster:"western_intel_leaks",
+    detail:"Col. Roman Chervinsky named as coordinator. Ukraine denies. Part of western_intel_leaks cluster.",
+    whatItOnlyShows:"That a named individual at the operational coordination layer was identified by Western reporting in late 2023.",
+    whatRemainsMissing:"Direct documentary evidence of the coordination role. Cluster-dampened weight (correlated leak ecosystem).",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E5", label:"WaPo leaked docs / CIA June 2022 warning", date:"2023-06-01",
+    type:"documentary", credibility:0.70, language:"en", cluster:"western_intel_leaks",
+    detail:"Discord leaks: CIA warned Germany June 2022 of Ukrainian plan. Provenance chain MIVD → CIA → Germany.",
+    whatItOnlyShows:"That a documentary record exists of CIA prior knowledge in June 2022 and a formal warning to Germany.",
+    whatRemainsMissing:"Whether the CIA's stance was passive (α) or tacit-permission (β′). The warning itself is compatible with both readings.",
+    supports:["alpha","beta_prime"],
+    refutes:[],
+  },
+  {
+    id:"E6", label:"Die Zeit / ARD / SZ: Andromeda forensic", date:"2023-04-01",
+    type:"forensic", credibility:0.75, language:"de", cluster:null,
+    detail:"Andromeda yacht: HMX residue, DNA, fingerprints. Forensic-level for 'Ukrainian team executed'; correlational for distinguishing state-layer candidates.",
+    whatItOnlyShows:"That the operational layer was Ukrainian-linked and that physical evidence is recoverable and consistent.",
+    whatRemainsMissing:"Adjudication between C2a/C2b/C2c (presidential / military-bypass / agency authorization). Andromeda alone cannot separate these.",
+    supports:["alpha"],
+    refutes:[],
+    structurallyExcludedFor:"C1 — physical evidence points away from US-Navy execution.",
+  },
+  {
+    id:"E7", label:"Kiesewetter: evidence too thin", date:"2023-04-15",
+    type:"derived_analysis", credibility:0.60, language:"de", cluster:null,
+    detail:"Bundestag intelligence committee skepticism. Primarily a Layer-4 challenge to E6.",
+    whatItOnlyShows:"That German political opposition voiced skepticism about the Andromeda framing in early 2023.",
+    whatRemainsMissing:"Substantive counter-evidence. Skepticism is not evidence; it is a position on evidence sufficiency.",
+    supports:[],
+    refutes:["alpha"],
+  },
+  {
+    id:"E8", label:"Sweden closes investigation", date:"2024-02-07",
+    type:"inconclusive_statement", credibility:0.80, language:"sv", cluster:null,
+    detail:"Jurisdiction framed as 'kan antas saknas' (may be presumed lacking). Danish legal scholar Buhl publicly disputes this.",
+    whatItOnlyShows:"That Sweden ended its investigation without attribution and offered jurisdictional doctrine as the public reasoning.",
+    whatRemainsMissing:"The substantive evidentiary record. Whether jurisdiction was actually examined or used as a closing mechanism.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E9", label:"Denmark closes investigation", date:"2024-02-26",
+    type:"inconclusive_statement", credibility:0.80, language:"da", cluster:null,
+    detail:"Denmark follows Sweden. Danish Defence Academy experts later report being barred from public discussion.",
+    whatItOnlyShows:"That Denmark closed within weeks of Sweden, with consistent non-attribution language.",
+    whatRemainsMissing:"The legal basis for closure. The Defence Academy gag is itself a μ-signal but not a substantive reasoning record.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E10", label:"Germany: EU arrest warrant, Volodymyr Z.", date:"2024-06-20",
+    type:"official_statement", credibility:0.80, language:"de", cluster:null,
+    detail:"EU arrest warrant for Ukrainian diver. Causal for 'Ukrainian individual targeted'; correlational for state-layer distinction.",
+    whatItOnlyShows:"That the German Federal Prosecutor identified a Ukrainian individual at the operational layer as a criminal suspect.",
+    whatRemainsMissing:"State-layer authorization. EAWs are issued against individuals, not states.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E11", label:"WSJ: Zaluzhnyi knowledge narrative", date:"2024-08-14",
+    type:"derived_analysis", credibility:0.65, language:"en", cluster:"western_intel_leaks",
+    detail:"Zaluzhnyi named as knowing; narrows from rogue operators toward military chain. Cluster-dampened with E3/E4/E5.",
+    whatItOnlyShows:"That a Western reporting layer began naming Zaluzhnyi at the command level in 2024.",
+    whatRemainsMissing:"Direct command-authorization documentation. Provenance dampened by western_intel_leaks correlation.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E12", label:"Z. exits Poland on embassy diplomatic plates", date:"2024-07-06",
+    type:"open_source_intelligence", credibility:0.70, language:"de", cluster:null,
+    detail:"Strongest direct evidence of state-level protection. Causal for 'state apparatus enabled exit'; correlational for the specific Zaluzhnyi-bypass layer.",
+    whatItOnlyShows:"That Ukrainian state apparatus actively enabled Zhuravlev's exit from Polish territory through diplomatic channels.",
+    whatRemainsMissing:"Whether the protection was authorized at presidential, ministerial, or services-only level inside Ukraine.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E13", label:"Italian arrest of Serhii K.", date:"2025-08-21",
+    type:"official_statement", credibility:0.80, language:"it", cluster:null,
+    detail:"Alleged coordinator detained in Rimini. A judicial proceedings event, not a verdict.",
+    whatItOnlyShows:"That a second identified individual was arrested by an EU member state on the German EAW.",
+    whatRemainsMissing:"Trial outcome. The arrest establishes capacity, not finding.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E14", label:"Poland refuses extradition", date:"2025-10-17",
+    type:"official_statement", credibility:0.80, language:"pl", cluster:null,
+    detail:"Judge Łubowski's ruling frames the act as 'organized action by wartime services' — a judicial categorization bordering on legitimation.",
+    whatItOnlyShows:"That a Polish judicial body refused extradition on grounds compatible with state-level authorship.",
+    whatRemainsMissing:"Whether the refusal reflects independent judicial reasoning or aligns with executive preference (Tusk endorsement E22 suggests the latter).",
+    supports:["alpha","mu"],
+    refutes:[],
+  },
+  {
+    id:"E15", label:"Berlin refuses AfD question on US intel", date:"2024-07-17",
+    type:"official_statement", credibility:0.70, language:"de", cluster:null,
+    detail:"Government refusal to confirm or deny US involvement. In v0.4 this edge is removed from C1 and re-routed: the refusal is a coverage-meta signal (feeds μ), not direct evidence for any enumerated candidate.",
+    whatItOnlyShows:"That the German government chose non-disclosure as its public stance on US-intelligence involvement.",
+    whatRemainsMissing:"What the government would say if compelled. The refusal itself is positional evidence (μ), not factual evidence.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E16", label:"Weltwoche: USS Kearsarge UUV capability", date:"2024-10-15",
+    type:"open_source_intelligence", credibility:0.45, language:"de", cluster:null,
+    detail:"Keeps β technically alive but at low credibility.",
+    whatItOnlyShows:"That UUV capability existed near the timeframe in question.",
+    whatRemainsMissing:"Linkage to the specific operation. Capability is not action.",
+    supports:[],
+    refutes:[],
+  },
+  {
+    id:"E17", label:"BGH ruling: 'foreign government intelligence agency'", date:"2025-12-10",
+    type:"official_statement", credibility:0.90, language:"de", cluster:"german_judicial",
+    detail:"Federal Court of Justice (3rd Criminal Senate): the operation is 'with high probability an intelligence-agency action ordered by a foreign government'. Rejects Kuznetsov's functional-immunity appeal — implying state authorship does not shield the individual. Deliberately does NOT name Ukraine.",
+    whatItOnlyShows:"That the German judiciary believes the operation was highly likely a foreign-government-directed intelligence action.",
+    whatRemainsMissing:"Which foreign government. The BGH's deliberate non-naming is itself informative — the evidentiary threshold for 'foreign government' was crossed; the diplomatic threshold for naming was not.",
+    supports:["alpha"],
+    refutes:["delta","mu"],
+    structurallyExcludedFor:"C3 — rules out independent rogue operators by judicial finding.",
+  },
+  {
+    id:"E18", label:"Polish Judge Łubowski ruling", date:"2025-10-17",
+    type:"official_statement", credibility:0.85, language:"pl", cluster:null,
+    detail:"'Organized action by services of a warring state' — a judicial categorization that treats Ukrainian state authorship as the operative frame, not a hypothesis.",
+    whatItOnlyShows:"That a Polish judicial body has categorized the act in language treating Ukrainian state authorship as a legal frame.",
+    whatRemainsMissing:"Whether other Polish jurisdictions would reach the same finding under appellate review.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E19", label:"Italian Cassazione reversals", date:"2025-11-27",
+    type:"official_statement", credibility:0.85, language:"it", cluster:null,
+    detail:"Oct 17 extradition denied → Nov 19 approved → Nov 27 transfer. Three-step judicial volatility.",
+    whatItOnlyShows:"That European judicial procedure is non-consensual on this case across just six weeks.",
+    whatRemainsMissing:"The political pressure context (if any) behind each reversal.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E20", label:"Italian court cites Polish ruling as precedent", date:"2025-11-19",
+    type:"derived_analysis", credibility:0.65, language:"it", cluster:null,
+    detail:"Defense attorney invokes Polish Judge Łubowski's functional-immunity reasoning in an Italian courtroom. Cross-jurisdictional position transfer.",
+    whatItOnlyShows:"That the Polish judicial frame is travelling laterally across EU member-state proceedings.",
+    whatRemainsMissing:"Whether Italian judges are persuaded.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E21", label:"Sikorski 'Thank you, USA' tweet", date:"2022-09-27",
+    type:"documentary", credibility:0.75, language:"pl", cluster:null,
+    detail:"Polish Foreign Minister tweets 'Thank you, USA' hours after the blasts. Independently timestamp-verifiable.",
+    whatItOnlyShows:"That a senior Polish official publicly signaled approval of US action within hours of detonation.",
+    whatRemainsMissing:"Whether 'Thank you' reflects knowledge of specific authorship or rhetorical alignment.",
+    supports:["alpha","beta_prime"],
+    refutes:[],
+  },
+  {
+    id:"E22", label:"Tusk: 'case closed'", date:"2025-10-20",
+    type:"official_statement", credibility:0.85, language:"pl", cluster:null,
+    detail:"Polish Prime Minister publicly endorses Łubowski's non-extradition decision. State-level validation of legitimation narrative.",
+    whatItOnlyShows:"That the Polish executive backs the judicial framing of non-extradition.",
+    whatRemainsMissing:"The internal Cabinet record. Public endorsement is positional, not procedural.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E23", label:"Trump: 'Russia wasn't involved, many people know'", date:"2025-05-14",
+    type:"adversarial_first_party", credibility:0.65, language:"en", cluster:null,
+    detail:"A sitting US president signals that the prior US administration was involved, without formal statement. Event-cred high (he said it publicly), content-cred bounded by political motive.",
+    whatItOnlyShows:"That a sitting US president publicly excluded Russia and signaled prior-administration awareness.",
+    whatRemainsMissing:"Specifics. Bipartisan signaling does not adjudicate principal-vs-enabler structure.",
+    supports:["beta_prime"],
+    refutes:["delta"],
+  },
+  {
+    id:"E24", label:"Ex-BND Hanning: Poland and both presidents approved", date:"2024-09-22",
+    type:"testimony", credibility:0.85, language:"de", cluster:null,
+    detail:"Former Director of German BND in Die Welt: 'The operation must have had Poland's backing, and the approval of both presidents.'",
+    whatItOnlyShows:"That a T1-level former intelligence chief, on the record, names Polish authorization and 'both presidents'.",
+    whatRemainsMissing:"Sources for Hanning's claim. As ex-officer testimony, his credibility is high but his evidentiary base is not public.",
+    supports:["beta_prime","alpha"],
+    refutes:[],
+  },
+  {
+    id:"E25", label:"Sachs at UN Security Council: 7 Western actors", date:"2023-02-21",
+    type:"derived_analysis", credibility:0.80, language:"en", cluster:null,
+    detail:"Sachs (Columbia, former UN advisor) enumerates US, UK, Poland, Norway, Germany, Denmark, Sweden as plausible — and explicitly excludes Russia.",
+    whatItOnlyShows:"That academic authority in a UN forum has placed UK and other Western states in the plausible-actor frame and excluded Russia.",
+    whatRemainsMissing:"Specific evidence for each enumerated actor. Sachs's enumeration is analytical, not investigative.",
+    supports:["zeta","beta_prime"],
+    refutes:["delta"],
+    structurallyExcludedFor:"C4 — Sachs's exclusion of Russia is a GATE-level refutation.",
+  },
+  {
+    id:"E26", label:"SS-750 Russian ship over blast zone", date:"2022-09-22",
+    type:"forensic", credibility:0.80, language:"ru", cluster:null,
+    detail:"Danish Nymfen photographed SS-750 + mini-sub AS-26 over the blast zone 4 days before detonation. Prosecutor Ljungqvist confirms photos exist.",
+    whatItOnlyShows:"That Russian deep-sea capability was present in the area four days before.",
+    whatRemainsMissing:"Distinguishing between monitoring presence and operational presence. Most plausible reading: monitoring.",
+    supports:[],
+    refutes:[],
+  },
+  {
+    id:"E27", label:"Truss 'it's done' SMS to Blinken", date:"2022-09-26",
+    type:"testimony", credibility:0.45, language:"en", cluster:null,
+    detail:"Reported SMS from UK PM to US Secretary of State on the day. Event-cred 0.75 (widely reported), content-cred 0.30 (sourcing divergent). Net 0.45.",
+    whatItOnlyShows:"That multiple independent retellings exist of an SMS exchange consistent with UK foreknowledge.",
+    whatRemainsMissing:"Verification of the SMS content. UK has neither confirmed nor denied.",
+    supports:["zeta"],
+    refutes:[],
+  },
+  {
+    id:"E28", label:"SVR Chief Naryshkin: direct US/UK involvement", date:"2025-10-21",
+    type:"official_statement", credibility:0.50, language:"ru", cluster:"russian_state",
+    detail:"Head of Russian Foreign Intelligence Service, formal statement on RT Arabic. Event-cred high (he said it), content-cred low (adversarial source).",
+    whatItOnlyShows:"That the Russian state has formally accused the US and UK on the record.",
+    whatRemainsMissing:"Independent corroboration. Adversarial-source content credibility is bounded.",
+    supports:["zeta"],
+    refutes:[],
+  },
+  {
+    id:"E29", label:"Der Spiegel 2026: Zaluzhnyi approved, Zelensky uninformed", date:"2026-02-12",
+    type:"derived_analysis", credibility:0.70, language:"de", cluster:null,
+    detail:"CIA learned of plan in spring 2022 Podol; initially 'not opposed'; later warned but did not stop. Zaluzhnyi authorized; Zelensky office not informed of final version. Operation codename 'Diameter'.",
+    whatItOnlyShows:"That investigative reporting has reconstructed an operational timeline naming Zaluzhnyi at the authorization layer and excluding Zelensky's office from the final version.",
+    whatRemainsMissing:"Documentary corroboration. Spiegel's account is testimonial-derived, not document-released.",
+    supports:["alpha"],
+    refutes:["delta"],
+  },
+  {
+    id:"E30", label:"t-online: 'CIA son', non-Ukrainian explosive origin", date:"2026-04-08",
+    type:"testimony", credibility:0.60, language:"de", cluster:null,
+    detail:"Coordinator was a former Ukrainian intelligence officer trained by CIA since 2015; military-grade explosive 'not from Ukraine'. A composite-attribution narrative v0.3 candidate-set could not house; drives the existence of C7.",
+    whatItOnlyShows:"That a composite-attribution layer (Ukrainian operator + non-Ukrainian explosive + CIA training history) is being seriously reported.",
+    whatRemainsMissing:"Verification of the explosive supply chain origin. The 'not from Ukraine' claim is sourced but not anchored.",
+    supports:["alpha","beta_prime"],
+    refutes:[],
+  },
+  {
+    id:"E31", label:"Il Fatto: Zelensky approved then withdrew", date:"2025-11-03",
+    type:"derived_analysis", credibility:0.55, language:"it", cluster:null,
+    detail:"Zelensky initially authorized, then withdrew at US urging — but Zaluzhnyi continued. Reconciles the apparent Spiegel/WSJ contradiction as a temporal split.",
+    whatItOnlyShows:"That a reconciling temporal-split narrative exists which makes Spiegel's and WSJ's accounts consistent.",
+    whatRemainsMissing:"Primary documentation. The temporal-split reading is plausible but not anchored.",
+    supports:["alpha"],
+    refutes:[],
+  },
+  {
+    id:"E32", label:"Kanzleramt invokes Third Party Rule", date:"2024-09-05",
+    type:"coverage_meta_evidence", credibility:0.70, language:"de", cluster:"coverage_meta",
+    detail:"Chancellor's Office chief Schmidt restricts Bundestag access to intelligence-sharing details.",
+    whatItOnlyShows:"That a named individual in the Chancellor's Office is taking positional action to restrict legislative inquiry.",
+    whatRemainsMissing:"What is being protected. The Third Party Rule invocation is the act itself, not a window into its content.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E33", label:"UN Security Council: 12 abstentions", date:"2023-03-27",
+    type:"coverage_meta_evidence", credibility:0.80, language:"en", cluster:"coverage_meta",
+    detail:"Russian-sponsored resolution for independent international investigation blocked not by vetoes but by mass abstention.",
+    whatItOnlyShows:"That at the UN level, the institutional response was burial-by-abstention rather than substantive engagement.",
+    whatRemainsMissing:"Per-state rationales. Abstention-without-explanation is institutional opacity, not record.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E34", label:"Germany refuses AfD question", date:"2024-07-17",
+    type:"coverage_meta_evidence", credibility:0.75, language:"de", cluster:"coverage_meta",
+    detail:"'For reasons of state welfare' — no answer given.",
+    whatItOnlyShows:"That the German government explicitly invoked state welfare as the reason for parliamentary non-disclosure.",
+    whatRemainsMissing:"What state welfare is protecting against. The reason given names a category, not a content.",
+    supports:["mu"],
+    refutes:[],
+  },
+  {
+    id:"E35", label:"Polish prosecutor: procedural failure on German EAW", date:"2024-08-20",
+    type:"coverage_meta_evidence", credibility:0.75, language:"pl", cluster:"coverage_meta",
+    detail:"Rzeczpospolita documents the procedural breakdown in Poland's non-execution of the German EAW. Not mere refusal — failure of process.",
+    whatItOnlyShows:"That the Polish non-execution of the German EAW had procedural-failure structure, not just refusal structure.",
+    whatRemainsMissing:"Whether the failure was managed or accidental.",
+    supports:["mu","alpha"],
+    refutes:[],
+  },
+  {
+    id:"E36", label:"Kuznetsov defense: 'never left Ukraine'", date:"2025-09-02",
+    type:"testimony", credibility:0.30, language:"it", cluster:null,
+    detail:"Defendant statement through counsel.",
+    whatItOnlyShows:"That a defendant statement asserting non-presence at the operational layer has been entered into the record.",
+    whatRemainsMissing:"Cross-examination. Defendant statements are weighted accordingly.",
+    supports:[],
+    refutes:["alpha"],
+  },
+  {
+    id:"E37", label:"Ukrainian-language media: pride tone", date:"2025-09-10",
+    type:"derived_analysis", credibility:0.55, language:"uk", cluster:null,
+    detail:"Aggregated Ukrainian-language outlet register analysis: pride/positive tone toward operation, contrasting with Podolyak's official denial. Intra-position contradiction.",
+    whatItOnlyShows:"That the Ukrainian-language media register pattern diverges from the official Ukrainian governmental denial pattern.",
+    whatRemainsMissing:"Whether media register reflects state preference or autonomous editorial position. Register is positional, not factual.",
+    supports:["alpha"],
+    refutes:[],
+  },
+];
+
+
+// ============================================================================
+// CONTRADICTIONS — eight cross-cutting tensions
+// Each row carries per-storyline absorption: absorbs · strains · breaks · centers · neutral
+// ============================================================================
+
+const CONTRADICTIONS = [
+  {
+    id: "DE_judicial_vs_political",
+    title: "German judicial layer rules; German political layer suppresses",
+    type: "Institutional contradiction (intra-state)",
+    poles: [
+      { side: "Judicial", evidence: ["E17"],
+        position: "BGH (Dec 2025): 'foreign government intelligence agency' — formal classification at the highest German judicial authority." },
+      { side: "Political", evidence: ["E32","E34"],
+        position: "Chancellor's Office invokes Third Party Rule on Bundestag inquiry; refuses AfD parliamentary question 'for reasons of state welfare'." },
+    ],
+    why:
+      "Within a single state, the judicial branch advances and rules in language naming state authorship; the executive branch withholds. The split is itself part of the exhibit — 'avoidance' is not uniform across institutions.",
+    bestAbsorbedBy: "mu",
+    notes: "μ centers this contradiction. α absorbs it as 'judicial layer signals what political layer cannot' — consistent with Germany not naming its ally publicly.",
+  },
+  {
+    id: "forensic_vs_official_silence",
+    title: "Forensic trail concrete; Nordic prosecutorial closures absent of attribution",
+    type: "Institutional contradiction (cross-state)",
+    poles: [
+      { side: "Forensic", evidence: ["E6","F2","F7","F8"],
+        position: "Andromeda yacht: HMX residue, DNA, fingerprints, forged identity papers, identified individuals — accessed by three independent jurisdictions." },
+      { side: "Closure", evidence: ["E8","E9"],
+        position: "Sweden and Denmark close investigations within weeks of each other, citing jurisdictional doctrine (SE) or following pattern (DK), without attribution." },
+    ],
+    why:
+      "The same physical trail that produced the German EAW and the BGH ruling could not produce attribution in Sweden or Denmark — despite both being closer to the blast geography. Disparity is between investigative output, not investigative input.",
+    bestAbsorbedBy: "mu",
+    notes: "α absorbs as 'jurisdictions choose what they investigate'. β′ absorbs as evidence of coordinated non-resolution preference. μ centers this as the defining pattern.",
+  },
+  {
+    id: "ua_denial_vs_ua_media_pride",
+    title: "Ukrainian official denial coexists with Ukrainian-language media pride",
+    type: "Source-position contradiction (intra-state)",
+    poles: [
+      { side: "Official", evidence: ["E36"],
+        position: "Podolyak and successive Ukrainian government statements deny operational involvement." },
+      { side: "Media", evidence: ["E37"],
+        position: "Ukrainian-language outlets aggregate to a pride/positive register on the operation — diverging from official denial." },
+    ],
+    why:
+      "Within Ukraine, the official line (denial) and the domestic media register (pride) move in opposite directions. Either the denial is technically narrow ('the president did not order it' — α-compatible) or the media is operating outside state preference.",
+    bestAbsorbedBy: "alpha",
+    notes: "α absorbs cleanly via the Zelensky-withdrew / Zaluzhnyi-continued split: both readings can coexist. β′ strains because the pride register is specifically Ukrainian, not Western-coordination.",
+  },
+  {
+    id: "pl_judicial_vs_de_criminal",
+    title: "Polish judicial framing legitimizes; German judicial framing criminalizes",
+    type: "Legal-classification contradiction (cross-state)",
+    poles: [
+      { side: "Polish", evidence: ["E14","E18","E22"],
+        position: "Łubowski: 'organized action by services of a warring state' — categorization bordering on legitimation. Tusk endorses." },
+      { side: "German", evidence: ["E17","E10","E13"],
+        position: "BGH: criminal sabotage by foreign-government intelligence; EAWs and prosecutions ongoing." },
+    ],
+    why:
+      "Two EU member-state judicial systems characterize the same act in opposite frames — legitimate wartime action (PL) vs criminal sabotage (DE). The frames cannot both be operative under a single legal order.",
+    bestAbsorbedBy: "alpha",
+    notes: "α absorbs as expected: Polish state has rhetorical and operational stakes that pull toward legitimation; German criminal apparatus operates under its own institutional logic. β′ also absorbs cleanly. μ absorbs as part of jurisdictional fragmentation.",
+  },
+  {
+    id: "cia_warning_vs_cia_denial",
+    title: "CIA warned Germany in June 2022; CIA later denied involvement",
+    type: "Source-position contradiction (within-actor)",
+    poles: [
+      { side: "Documented prior knowledge", evidence: ["E5","E29","F6"],
+        position: "Spring 2022 Podol disclosure to CIA; June 2022 formal warning to Germany via MIVD chain; 'interested, not opposed' (Spiegel 2026)." },
+      { side: "Public denial", evidence: [],
+        position: "CIA spokespeople and successive US administration statements deny operational involvement." },
+    ],
+    why:
+      "The CIA cannot be both 'informed in advance and chose to warn but not foreclose' and 'uninvolved' under any reasonable read. The denial is technically compatible with α (passive awareness) and β′ (tacit permission) — neither makes it untrue, but both make it incomplete.",
+    bestAbsorbedBy: "alpha",
+    notes: "α absorbs by reading denial narrowly: CIA did not execute. β′ strains because β′'s structural distinguisher requires more than awareness. μ absorbs as institutional pattern.",
+  },
+  {
+    id: "se_jurisdiction_vs_buhl",
+    title: "Sweden's jurisdictional closure vs Buhl's substantive legal critique",
+    type: "Domain-expertise contradiction",
+    poles: [
+      { side: "Prosecutorial closure", evidence: ["E8"],
+        position: "Sweden cites 'kan antas saknas' (jurisdiction may be presumed lacking) as basis for closure." },
+      { side: "Legal-academic dispute", evidence: [],
+        position: "Kenneth Buhl (Danish Defence Academy): 'If you say you have jurisdiction, then you have it — unless someone disputes it. Not even Russia disputed Sweden's or Denmark's jurisdiction.'" },
+    ],
+    why:
+      "A peer-jurisdiction legal scholar publicly contradicts the legal reasoning of a neighbouring prosecutor's closure. The technical legal claim has been challenged on the record; the closure has not been re-examined.",
+    bestAbsorbedBy: "mu",
+    notes: "μ centers this. α and β′ absorb as expected. ζ absorbs because Buhl's challenge expands the institutional-dissent layer.",
+  },
+  {
+    id: "wsj_vs_spiegel",
+    title: "WSJ Zaluzhnyi-knowledge narrative vs Spiegel 2026 Zelensky-uninformed account",
+    type: "Timeline contradiction",
+    poles: [
+      { side: "WSJ 2024", evidence: ["E11"],
+        position: "Zaluzhnyi knew of the plan." },
+      { side: "Spiegel 2026", evidence: ["E29"],
+        position: "Zaluzhnyi authorized; Zelensky's office was not informed of the final version." },
+    ],
+    why:
+      "The two accounts appear contradictory only on first read. Il Fatto's reconciling reading (Zelensky approved-then-withdrew under US pressure, Zaluzhnyi continued) makes them consistent as a temporal split. Whether one accepts the reconciliation depends on whether one accepts Il Fatto's sourcing.",
+    bestAbsorbedBy: "alpha",
+    notes: "α absorbs via the temporal-split reading. β′ strains because β′ does not predict a Ukrainian-internal authorization fork — it predicts a Western-coordination structure. μ neutral.",
+  },
+  {
+    id: "andromeda_vs_state_navy",
+    title: "Andromeda physical trail concrete; signature does not match professional state-navy",
+    type: "Physical-mechanism contradiction",
+    poles: [
+      { side: "Forensic concreteness", evidence: ["F2","F7","E6"],
+        position: "Military-grade HMX, recovered DNA, fingerprints, forged identities — at 70–80m operational depth." },
+      { side: "Operational signature", evidence: ["F12","F3"],
+        position: "One of four lines survives intact; 17-hour interval between blasts. Inconsistent with a professional, well-resourced state-navy operation." },
+    ],
+    why:
+      "The forensic trail evidences a real, state-grade-equipped team. The operational signature evidences a resource-constrained, two-pass execution. The combination matches a state-enabled but not state-executed operation — α's principal structural prediction.",
+    bestAbsorbedBy: "alpha",
+    notes: "α absorbs cleanly: state-enabled, military-bypass-executed, resource-limited team. β′ strains because the resource-limited signature does not fit a wider-coordination thesis. ε absorbs (declared blind spot for unenumerated configurations).",
+  },
+];
+
+
+// ============================================================================
+// REGISTER PATTERNS — cross-record positional analysis (v0.5 register layer)
+//
+// Register is positional, not factual. These patterns are surfaced as a
+// secondary lens — they strengthen α structurally without grounding causal
+// claims directly. (Per spec §1.2 inference firewall.)
+// ============================================================================
+
+const REGISTER_PATTERNS = [
+  {
+    id: "RP1",
+    title: "Germany criminalizes; Poland moralizes; Italy proceduralizes",
+    locus: "Cross-jurisdictional EU register variation",
+    sources: ["E17 (BGH)","E18 (Łubowski)","E19 (Cassazione)","E22 (Tusk)"],
+    description:
+      "Three EU member states each engage the same act in three categorically different registers. Germany maps the act onto Straftatbestand-Subsumtion (criminal-element matching) — procedural coldness, foreign-government finding without naming. Poland maps the act onto wartime-services framing — moral legitimation (Łubowski) endorsed by the executive (Tusk). Italy maps the act onto extradition procedure — three reversals in six weeks, no substantive position.",
+    onlyShows:
+      "That the case crosses register-incompatible institutional cultures. Each system describes its own perceived stakes.",
+    doesNotShow:
+      "Causal attribution. Register variation is a function of institutional grammar, not of state participation.",
+    relevantTo: ["alpha","mu"],
+  },
+  {
+    id: "RP2",
+    title: "Domestic broadcaster critique of own government (Sweden, Denmark)",
+    locus: "Within-state state-media tension",
+    sources: ["SVT editorial 2024","Splidsboel 2024","Buhl 2024","E8","E9"],
+    description:
+      "Swedish public broadcaster (SVT) editorial: 'Sweden took the easiest way out.' Danish Defence Academy senior researcher Splidsboel publicly dissents from his own government's closure rationale. Danish legal scholar Buhl publicly disputes Sweden's jurisdictional doctrine. The within-state register is divided — official prosecutorial register defaults to closure; institutional-academic register defaults to substantive critique.",
+    onlyShows:
+      "That the Nordic closure pattern is not endorsed by the Nordic expert ecosystem.",
+    doesNotShow:
+      "What the Nordic states actually concluded. The dissent is positional, not investigative.",
+    relevantTo: ["mu"],
+  },
+  {
+    id: "RP3",
+    title: "Ukrainian official denial + Ukrainian-language media pride",
+    locus: "Within-state state-media split",
+    sources: ["E36","E37","Podolyak public statements"],
+    description:
+      "Ukrainian government register on the operation is denial — narrow, technical, repeatable. Ukrainian-language media register on the operation is pride — affirmative, positive, audience-internal. The two registers do not converge because they speak to different audiences: government to the international diplomatic forum, media to the domestic public. The split is α-predicted.",
+    onlyShows:
+      "That the within-state register division tracks an audience-management strategy compatible with α.",
+    doesNotShow:
+      "Whether the operation occurred as α describes. Register is positional evidence; α's claim must be supported by causal-layer evidence (it is — see Storylines lens).",
+    relevantTo: ["alpha"],
+  },
+  {
+    id: "RP4",
+    title: "BGH structural-affirmation + politically-evasive non-naming",
+    locus: "Single-source dual-aspect register",
+    sources: ["E17","F9"],
+    description:
+      "The BGH's December 2025 ruling is dual-aspect: AFFIRMATIVE on the structural finding ('foreign government intelligence operation') and EVASIVE on naming the specific government. The deviation from BGH baseline is high — German high courts default to procedural retreat in state-secrecy cases. Pushing further than baseline on structure while withholding the politically-loadable specificity is a register pattern compatible with the judicial-vs-executive split surfaced in S5.",
+    onlyShows:
+      "That the BGH crossed its evidentiary threshold for category but did not cross its political threshold for naming. The gap between 'foreign government' (asserted) and naming (withheld) is positional information.",
+    doesNotShow:
+      "Which government. Register cannot fill what the ruling withholds.",
+    relevantTo: ["alpha","mu"],
+  },
+  {
+    id: "RP5",
+    title: "US bipartisan ambiguity",
+    locus: "Within-state cross-administration register continuity",
+    sources: ["E2","E5","E23"],
+    description:
+      "Biden-administration register: pro-forma denial (E2), then post-facto satisfaction (Blinken 'tremendous opportunity', Nuland 'piece of metal'). Trump 2025 register: 'Russia wasn't involved, many people know.' Cross-administration register is consistent on (a) excluding Russia, (b) refusing to name the actual actor, (c) signaling implicit alignment with the outcome. The bipartisan continuity is itself register evidence — it signals institutional, not partisan, position.",
+    onlyShows:
+      "That the US register on this question is administration-invariant.",
+    doesNotShow:
+      "What the US position actually is on principal-vs-enabler structure.",
+    relevantTo: ["beta_prime","alpha"],
+  },
+];
+
+
+// ============================================================================
+// VERSION CHANGELOG — what changed across versions
+// ============================================================================
+
+const CHANGELOG = [
+  { version:"v0.3", date:"2025-08", title:"English-only baseline",
+    notes:[
+      "Sixteen evidence items; eight candidates; twelve time points.",
+      "Treated all Ukrainian attribution as one undifferentiated C2.",
+      "C_insufficient competed with attribution candidates as if it answered the same question.",
+      "δ (Russian self-sabotage) carried 5% softmax floor weight.",
+    ] },
+  { version:"v0.4", date:"2026-01", title:"Fourteen-language intake + new evidence tiers",
+    notes:[
+      "Added 21 evidence items (E17–E37). Total 37.",
+      "Added candidates C2a/C2b/C2c (presidential/military/agency authorization) and C7 (Ukrainian + CIA enabling).",
+      "Added BGH ruling, Polish Łubowski ruling, Italian Cassazione reversals as judicial-tier evidence.",
+      "Added coverage-meta evidence (E32–E35) feeding the institutional non-resolution question.",
+    ] },
+  { version:"v0.4.1", date:"2026-02", title:"Structural exclusion audit",
+    notes:[
+      "Audited C1, C3, C4 against GATE/BREAKS criteria — all three structurally excluded.",
+      "C1 (Hersh US-direct): excluded by E6/F3/F12.",
+      "C3 (rogue independent): excluded by F2/E17.",
+      "C4 (Russian self-sabotage): excluded by E25/F7.",
+      "Surfaced as Structurally Excluded section rather than weight 0 in main distribution.",
+    ] },
+  { version:"v0.4.2", date:"2026-03", title:"Attribution / subclaim split",
+    notes:[
+      "Separated attribution claim from process subclaim. C_insufficient moved to μ subclaim.",
+      "Distribution rescaled by 1.404 to remaining seven attribution candidates.",
+      "α: 50% → 70% (not propped up — what remains when structurally excluded mass and subclaim mass are removed).",
+      "β: 10% → 5% (β′: lost C1's 5.7% entirely).",
+    ] },
+  { version:"v0.5", date:"2026-04", title:"Layered workspace + register lens",
+    notes:[
+      "Front-end IA: READ → EXAMINE → AUDIT three-mode shell.",
+      "Storyline cards carry strongest argument / weakest point / what would change directly on face.",
+      "Claim Map surfaces six subclaims with proof-state badges (anchor / strong / plausible / speculative / excluded).",
+      "Contradiction Matrix renders 8 cross-cutting tensions × 5 storylines, with absorbs / strains / breaks / centers per cell.",
+      "Register lens added as positional-evidence layer (per v0.5 spec §1.2 inference firewall).",
+    ] },
+];
+
+
+// ============================================================================
+// UTILITY COMPONENTS
+// ============================================================================
+
+function Rule_V05({ tone = "default", style = {} }) {
+  const bg = tone === "soft" ? colors_V05.ruleSoft
+           : tone === "strong" ? colors_V05.ink
+           : colors_V05.rule;
+  return <div style={{ height: 1, background: bg, ...style }} />;
+}
+
+function MonoLabel({ children, color = colors_V05.inkMute, size = 9.5, letterSpacing = 1, style = {} }) {
+  return (
+    <div style={{
+      fontFamily: fonts.mono, fontSize: size, color,
+      letterSpacing, textTransform: "uppercase", fontWeight: 500,
+      lineHeight: 1.3, ...style,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function Tag_V05({ children, tone = "default" }) {
+  const tones = {
+    default:   { bg: colors_V05.paperDeep,  fg: colors_V05.inkSoft,    bd: colors_V05.rule },
+    primary:   { bg: "#F4E4E0",          fg: colors_V05.primary,    bd: colors_V05.primarySoft },
+    secondary: { bg: "#E4ECF4",          fg: colors_V05.secondary,  bd: colors_V05.secondarySoft },
+    warn:      { bg: "#F4ECD8",          fg: colors_V05.warnDeep,   bd: "#D4B870" },
+    good:      { bg: "#E8EDE0",          fg: colors_V05.good,       bd: colors_V05.goodSoft },
+    mute:      { bg: "transparent",      fg: colors_V05.inkMute,    bd: colors_V05.rule },
+    inverse:   { bg: colors_V05.ink,         fg: colors_V05.paper,      bd: colors_V05.ink },
+  };
+  const t = tones[tone] || tones.default;
+  return (
+    <span style={{
+      fontFamily: fonts.mono, fontSize: 9.5, letterSpacing: 0.8,
+      textTransform: "uppercase", padding: "3px 7px", borderRadius: 2,
+      background: t.bg, color: t.fg, border: `1px solid ${t.bd}`,
+      display: "inline-block", lineHeight: 1.2, fontWeight: 500,
+    }}>
+      {children}
+    </span>
+  );
+}
+
+function ProofBadge({ proof, compact = false }) {
+  const p = proofPalette[proof] || proofPalette.plausible;
+  if (compact) {
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        fontFamily: fonts.mono, fontSize: 9, color: p.fg,
+        letterSpacing: 0.7, textTransform: "uppercase", fontWeight: 500,
+      }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.fg, display: "inline-block" }} />
+        {p.label}
+      </span>
+    );
+  }
+  return (
+    <span style={{
+      fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.9,
+      textTransform: "uppercase", padding: "4px 9px", borderRadius: 2,
+      background: p.bg, color: p.fg, border: `1px solid ${p.bd}`,
+      display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 500,
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.fg }} />
+      {p.label}
+    </span>
+  );
+}
+
+function GlyphBadge({ glyph, color = colors_V05.ink, size = 28 }) {
+  return (
+    <span style={{
+      fontFamily: fonts.mono, fontSize: size, color,
+      fontWeight: 600, letterSpacing: 0, lineHeight: 1, display: "inline-block",
+    }}>
+      {glyph}
+    </span>
+  );
+}
+
+function CoverageDisplay({ value, large = false, color = colors_V05.ink, strikethrough = false }) {
+  if (value == null) {
+    return (
+      <div style={{
+        fontFamily: fonts.serif, fontStyle: "italic",
+        fontSize: large ? 36 : 24, color: colors_V05.inkMute,
+        fontVariantNumeric: "tabular-nums", lineHeight: 0.95, fontWeight: 400,
+      }}>—</div>
+    );
+  }
+  return (
+    <div style={{
+      fontFamily: fonts.serif, fontStyle: "italic",
+      fontSize: large ? 56 : 36, color, fontVariantNumeric: "tabular-nums",
+      lineHeight: 0.95, fontWeight: 400, textDecoration: strikethrough ? "line-through" : "none",
+      textDecorationThickness: strikethrough ? "1.5px" : undefined,
+      textDecorationColor: strikethrough ? colors_V05.inkMute : undefined,
+    }}>
+      {(value * 100).toFixed(0)}<span style={{ fontSize: large ? 24 : 17, opacity: 0.55, marginLeft: 1 }}>%</span>
+    </div>
+  );
+}
+
+function StorylineColor(id) {
+  switch (id) {
+    case "alpha":      return colors_V05.primary;
+    case "beta_prime": return colors_V05.secondary;
+    case "epsilon":    return colors_V05.inkSoft;
+    case "zeta":       return colors_V05.meta;
+    case "mu":         return colors_V05.warnDeep;
+    case "delta":      return colors_V05.muted;
+    default:           return colors_V05.inkSoft;
+  }
+}
+
+function StorylineGlyph(id) {
+  const map = { alpha:"α", beta_prime:"β′", epsilon:"ε", zeta:"ζ", mu:"μ", delta:"δ" };
+  return map[id] || "·";
+}
+
+function StorylineShortLabel(id) {
+  const s = STORYLINES_V05.find(x => x.id === id);
+  return s ? s.shortLabel : id;
+}
+
+// Simple flag for evidence cards
+function LangBadge({ lang }) {
+  const map = { en:"EN", de:"DE", pl:"PL", it:"IT", ru:"RU", sv:"SV", da:"DA", uk:"UK", no:"NO" };
+  const label = map[lang] || lang.toUpperCase();
+  return (
+    <span style={{
+      fontFamily: fonts.mono, fontSize: 9, color: colors_V05.inkMute,
+      letterSpacing: 0.4, padding: "2px 5px",
+      border: `1px solid ${colors_V05.rule}`, borderRadius: 1, background: colors_V05.paper,
+    }}>{label}</span>
+  );
+}
+
+// Absorption indicator for the contradiction matrix cells
+function AbsorptionMark({ kind, size = 18 }) {
+  // kind: absorbs · strains · breaks · centers · neutral
+  const styles = {
+    absorbs:  { fg: colors_V05.good,    bg: "#E8EDE0",  glyph: "●", title: "Absorbs cleanly" },
+    strains:  { fg: colors_V05.warn,    bg: "#F4ECD8",  glyph: "◐", title: "Strains — partial absorption" },
+    breaks:   { fg: colors_V05.primary, bg: "#F4E4E0",  glyph: "✕", title: "Breaks — storyline cannot accommodate" },
+    centers:  { fg: colors_V05.ink,     bg: colors_V05.ink, glyph: "★", title: "Centers — this is the storyline's home contradiction", inverse: true },
+    neutral:  { fg: colors_V05.muted,   bg: "transparent", glyph: "·", title: "Neutral — does not engage" },
+  };
+  const s = styles[kind] || styles.neutral;
+  return (
+    <div title={s.title} style={{
+      width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center",
+      background: s.inverse ? s.bg : s.bg,
+      color: s.inverse ? colors_V05.paper : s.fg,
+      border: `1px solid ${s.inverse ? s.bg : s.fg}`,
+      fontFamily: fonts.mono, fontSize: size * 0.55, fontWeight: 600,
+      borderRadius: 2, lineHeight: 1,
+    }}>
+      {s.glyph}
+    </div>
+  );
+}
+
+
+// ============================================================================
+// MODE SHELL — top nav with three modes + case identity
+// ============================================================================
+
+function ModeShell({ mode, setMode, children }) {
+  const modes = [
+    { id: "READ",    label: "Read",    sub: "Reader-grade orientation" },
+    { id: "EXAMINE", label: "Examine", sub: "Analyst lenses" },
+    { id: "AUDIT",   label: "Audit",   sub: "Source trail" },
+  ];
+
+  return (
+    <div style={{
+      minHeight: "100vh", width: "100%",
+      background: colors_V05.paper, color: colors_V05.ink,
+      fontFamily: fonts.sans,
+      WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale",
+    }}>
+      {/* Sticky top bar — Trace identity + mode selector */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 50,
+        background: colors_V05.paperGlass,
+        backdropFilter: "blur(14px) saturate(140%)",
+        WebkitBackdropFilter: "blur(14px) saturate(140%)",
+        borderBottom: `1px solid ${colors_V05.rule}`,
+      }}>
+        <div style={{
+          maxWidth: 1480, margin: "0 auto",
+          padding: "14px 32px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 24, flexWrap: "wrap",
+        }}>
+          {/* Left: Trace mark + case identity */}
+          <div style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
+            <div style={{
+              fontFamily: fonts.serif, fontWeight: 600, fontSize: 22,
+              letterSpacing: -0.3, color: colors_V05.ink, lineHeight: 1,
+            }}>
+              Trace
+            </div>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 10,
+              color: colors_V05.inkMute, letterSpacing: 1, textTransform: "uppercase",
+            }}>
+              Case file {CASE_META.id} · {CASE_META.version} · {CASE_META.lastUpdated}
+            </div>
+          </div>
+
+          {/* Right: Mode picker */}
+          <div style={{
+            display: "inline-flex", border: `1px solid ${colors_V05.rule}`,
+            borderRadius: 2, background: colors_V05.paper, padding: 1,
+          }}>
+            {modes.map(m => {
+              const active = m.id === mode;
+              return (
+                <button key={m.id} onClick={() => setMode(m.id)}
+                  style={{
+                    fontFamily: fonts.mono, fontSize: 10, fontWeight: 500,
+                    letterSpacing: 1, textTransform: "uppercase",
+                    padding: "8px 18px", borderRadius: 1, border: "none",
+                    cursor: "pointer", whiteSpace: "nowrap",
+                    background: active ? colors_V05.ink : "transparent",
+                    color: active ? colors_V05.paper : colors_V05.inkSoft,
+                    transition: "all 0.15s",
+                  }}>
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Case header strip — main question + state */}
+      <div style={{
+        background: colors_V05.paper, borderBottom: `1px solid ${colors_V05.rule}`,
+        padding: "26px 32px 28px",
+      }}>
+        <div style={{ maxWidth: 1480, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "stretch", gap: 14 }}>
+            <div style={{ width: 3, background: colors_V05.primary, flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <MonoLabel color={colors_V05.primary} letterSpacing={1.4} size={9.5} style={{ marginBottom: 8 }}>
+                {CASE_META.state}
+              </MonoLabel>
+              <h1 style={{
+                fontFamily: fonts.serif, fontWeight: 400, fontStyle: "italic",
+                fontSize: "clamp(22px, 2.4vw, 32px)", color: colors_V05.ink,
+                letterSpacing: -0.5, lineHeight: 1.2, margin: 0,
+              }}>
+                {CASE_META.question}
+              </h1>
+            </div>
+          </div>
+
+          {/* Status chips */}
+          <div style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Chip num={CASE_META.counts.evidenceRecords} label="evidence records" />
+            <Chip num={CASE_META.counts.anchorFacts} label="anchor facts" />
+            <Chip num={CASE_META.counts.storylinesLive} label="live storylines" tone="primary" />
+            <Chip num={CASE_META.counts.subclaim} label="process subclaim" tone="warn" />
+            <Chip num={CASE_META.counts.contradictions} label="cross-cutting contradictions" />
+            <Chip num={CASE_META.counts.candidatesExcluded} label="structurally excluded" tone="mute" />
+            <Chip num={CASE_META.counts.languagesSurveyed} label="languages surveyed" />
+            <Chip num={CASE_META.counts.jurisdictionsActive} label="jurisdictions active" />
+          </div>
+        </div>
+      </div>
+
+      {/* Mode body */}
+      <div style={{ maxWidth: 1480, margin: "0 auto" }}>
+        {children}
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        borderTop: `1px solid ${colors_V05.rule}`, marginTop: 60,
+        padding: "26px 32px 40px",
+      }}>
+        <div style={{ maxWidth: 1480, margin: "0 auto",
+          display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 18 }}>
+          <MonoLabel size={9} letterSpacing={0.9}>
+            Trace · Claim-intelligence workspace · {CASE_META.version}
+          </MonoLabel>
+          <MonoLabel size={9} letterSpacing={0.9}>
+            Not a verdict · A structured reading of contested attribution
+          </MonoLabel>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Chip({ num, label, tone = "default" }) {
+  const tones = {
+    default:  { fg: colors_V05.ink,       bg: colors_V05.paper,    bd: colors_V05.rule },
+    primary:  { fg: colors_V05.primary,   bg: "#F4E4E0",        bd: colors_V05.primarySoft },
+    warn:     { fg: colors_V05.warnDeep,  bg: "#F4ECD8",        bd: "#D4B870" },
+    mute:     { fg: colors_V05.inkMute,   bg: colors_V05.paperDeep, bd: colors_V05.rule },
+  };
+  const t = tones[tone] || tones.default;
+  return (
+    <div style={{
+      display: "inline-flex", alignItems: "baseline", gap: 8,
+      padding: "7px 12px", border: `1px solid ${t.bd}`, background: t.bg,
+      borderRadius: 2,
+    }}>
+      <span style={{
+        fontFamily: fonts.serif, fontStyle: "italic",
+        fontSize: 18, color: t.fg, fontVariantNumeric: "tabular-nums",
+        fontWeight: 400, lineHeight: 1,
+      }}>{num}</span>
+      <span style={{
+        fontFamily: fonts.mono, fontSize: 9.5, color: t.fg,
+        letterSpacing: 0.6, textTransform: "uppercase", lineHeight: 1, fontWeight: 500,
+      }}>{label}</span>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// READ MODE — Current Understanding + storyline cards
+// ============================================================================
+
+function ReadMode() {
+  const liveStorylines    = STORYLINES_V05.filter(s => !s.excluded);
+  const heroStoryline     = liveStorylines.find(s => s.isHero);
+  const otherStorylines   = liveStorylines.filter(s => !s.isHero);
+  const excludedStoryline = STORYLINES_V05.find(s => s.excluded);
+
+  const [openIds, setOpenIds] = useState(() => new Set([heroStoryline?.id]));
+
+  const toggle = (id) => {
+    setOpenIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div style={{ padding: "40px 32px 0" }}>
+      <CurrentUnderstandingPanel leadingId={CURRENT_UNDERSTANDING.leadingStoryline} />
+
+      <SectionHeading
+        eyebrow="Five live reconstructions"
+        title="Competing storylines"
+        body="Each card carries the storyline's strongest argument, weakest point, and what would change it. The hero card (α) is expanded by default. Open the others to compare directly."
+      />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        {/* Hero card — always expanded by default */}
+        {heroStoryline && (
+          <StorylineCard_V05
+            story={heroStoryline}
+            isOpen={openIds.has(heroStoryline.id)}
+            onToggle={() => toggle(heroStoryline.id)}
+            isHero
+          />
+        )}
+
+        {/* Other live storylines */}
+        {otherStorylines.map(s => (
+          <StorylineCard_V05
+            key={s.id}
+            story={s}
+            isOpen={openIds.has(s.id)}
+            onToggle={() => toggle(s.id)}
+          />
+        ))}
+      </div>
+
+      {/* Structurally excluded fold */}
+      {excludedStoryline && (
+        <ExcludedFold story={excludedStoryline} />
+      )}
+
+      {/* Load-bearing unknowns rail */}
+      <LoadBearingUnknownsRail />
+    </div>
+  );
+}
+
+function SectionHeading({ eyebrow, title, body, dense = false }) {
+  return (
+    <div style={{ margin: dense ? "32px 0 18px" : "56px 0 26px", maxWidth: 760 }}>
+      {eyebrow && (
+        <MonoLabel color={colors_V05.primary} letterSpacing={1.3} size={9.5} style={{ marginBottom: 10 }}>
+          {eyebrow}
+        </MonoLabel>
+      )}
+      <h2 style={{
+        fontFamily: fonts.serif, fontWeight: 400, fontStyle: "italic",
+        fontSize: dense ? 22 : 28, color: colors_V05.ink, letterSpacing: -0.4,
+        lineHeight: 1.2, margin: 0,
+      }}>{title}</h2>
+      {body && (
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.55,
+          color: colors_V05.inkSoft, marginTop: 12, marginBottom: 0, maxWidth: 720,
+        }}>{body}</p>
+      )}
+    </div>
+  );
+}
+
+function CurrentUnderstandingPanel({ leadingId }) {
+  const leading = STORYLINES_V05.find(s => s.id === leadingId);
+  if (!leading) return null;
+
+  return (
+    <div style={{
+      border: `1px solid ${colors_V05.rule}`,
+      background: colors_V05.paperDeep,
+      padding: "32px 36px 36px",
+      display: "grid", gridTemplateColumns: "minmax(0, 1.55fr) minmax(0, 1fr)", gap: 36,
+      borderRadius: 2,
+    }}>
+      {/* Left — current understanding text */}
+      <div>
+        <MonoLabel color={colors_V05.primary} letterSpacing={1.3} size={9.5} style={{ marginBottom: 14 }}>
+          Current understanding · {CASE_META.lastUpdated}
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.serif, fontStyle: "italic", fontSize: 22,
+          fontWeight: 400, color: colors_V05.ink, letterSpacing: -0.3, lineHeight: 1.32,
+          marginBottom: 22,
+        }}>
+          {CURRENT_UNDERSTANDING.headline}
+        </div>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.65,
+          color: colors_V05.inkSoft, marginBottom: 22,
+        }}>
+          {CURRENT_UNDERSTANDING.bodyLong}
+        </div>
+        <div style={{
+          padding: "16px 18px",
+          background: colors_V05.paper, border: `1px solid ${colors_V05.ruleSoft}`, borderLeft: `3px solid ${colors_V05.warn}`,
+          borderRadius: 2,
+        }}>
+          <MonoLabel color={colors_V05.warnDeep} size={9} letterSpacing={1} style={{ marginBottom: 8 }}>
+            What this still does not fully explain
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.55, color: colors_V05.inkSoft,
+          }}>
+            {CURRENT_UNDERSTANDING.notFullyExplains}
+          </div>
+        </div>
+      </div>
+
+      {/* Right — leading reconstruction summary card */}
+      <div style={{
+        background: colors_V05.paper, border: `1px solid ${colors_V05.primarySoft}`,
+        padding: "20px 22px 22px", borderRadius: 2,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <MonoLabel color={colors_V05.primary} letterSpacing={1.3} size={9}>
+            Leading reconstruction
+          </MonoLabel>
+          <GlyphBadge glyph={leading.glyph} color={colors_V05.primary} size={20} />
+        </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 14 }}>
+          <CoverageDisplay value={leading.coverage} large color={colors_V05.primary} />
+          <div style={{
+            fontFamily: fonts.mono, fontSize: 9, color: colors_V05.inkMute,
+            letterSpacing: 0.8, textTransform: "uppercase",
+          }}>
+            attribution coverage
+          </div>
+        </div>
+        <div style={{
+          fontFamily: fonts.serif, fontSize: 17, fontWeight: 400, color: colors_V05.ink,
+          letterSpacing: -0.2, lineHeight: 1.3, marginBottom: 16,
+        }}>
+          {leading.shortLabel}
+        </div>
+        <Rule_V05 tone="soft" />
+        <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+          <SmallStat label="Strongest argument" body={leading.strongestArgument.headline} fg={colors_V05.good} />
+          <SmallStat label="Weakest point" body={leading.weakestPoint.headline} fg={colors_V05.warnDeep} />
+          <SmallStat label="What would change" body={leading.whatWouldChange.headline} fg={colors_V05.secondary} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SmallStat({ label, body, fg }) {
+  return (
+    <div>
+      <MonoLabel color={fg} letterSpacing={0.9} size={8.5} style={{ marginBottom: 4 }}>
+        {label}
+      </MonoLabel>
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 12, lineHeight: 1.5, color: colors_V05.inkSoft,
+      }}>
+        {body}
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// StorylineCard_V05 — α hero variant + standard variant
+// ----------------------------------------------------------------------------
+
+function StorylineCard_V05({ story, isOpen, onToggle, isHero = false }) {
+  const isSubclaim = story.isSubclaim;
+  const accent = StorylineColor(story.id);
+  const showCoverage = story.coverage != null;
+
+  return (
+    <div style={{
+      border: `1px solid ${isHero ? colors_V05.primary : colors_V05.ruleSoft}`,
+      background: colors_V05.paper, borderRadius: 2,
+      transition: "border-color 0.2s",
+    }}>
+      {/* Header */}
+      <div onClick={onToggle}
+        style={{
+          padding: isHero ? "26px 32px" : "20px 28px",
+          cursor: "pointer", display: "grid",
+          gridTemplateColumns: "auto 1fr auto", gap: 28, alignItems: "center",
+        }}>
+        {/* Coverage + glyph */}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, minWidth: 110 }}>
+          {showCoverage ? (
+            <CoverageDisplay value={story.coverage} large={isHero} color={accent} />
+          ) : (
+            <div style={{
+              fontFamily: fonts.serif, fontStyle: "italic", fontSize: isHero ? 56 : 36,
+              color: accent, lineHeight: 0.95, fontWeight: 400,
+            }}>μ</div>
+          )}
+          {showCoverage && (
+            <GlyphBadge glyph={story.glyph} color={accent} size={isHero ? 18 : 14} />
+          )}
+        </div>
+
+        {/* Label + chips */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontFamily: fonts.serif, fontSize: isHero ? 23 : 17, fontWeight: 400,
+            color: colors_V05.ink, letterSpacing: -0.25, lineHeight: 1.3,
+          }}>
+            {story.label}
+          </div>
+          {isSubclaim && (
+            <div style={{ marginTop: 8 }}>
+              <Tag_V05 tone="warn">Subclaim · not an attribution candidate</Tag_V05>
+            </div>
+          )}
+          {!isSubclaim && !isHero && (
+            <div style={{
+              marginTop: 8, fontFamily: fonts.sans, fontSize: 12,
+              color: colors_V05.inkMute, lineHeight: 1.5, maxWidth: 720,
+            }}>
+              {story.claim.length > 200 ? story.claim.slice(0, 200) + "…" : story.claim}
+            </div>
+          )}
+        </div>
+
+        {/* Toggle indicator */}
+        <button
+          aria-label={isOpen ? "collapse" : "expand"}
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          style={{
+            fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkSoft,
+            background: isOpen ? colors_V05.paperDeep : "transparent",
+            border: `1px solid ${colors_V05.rule}`, padding: "6px 12px",
+            borderRadius: 2, cursor: "pointer",
+            letterSpacing: 0.8, textTransform: "uppercase", whiteSpace: "nowrap",
+          }}>
+          {isOpen ? "− collapse" : "+ expand"}
+        </button>
+      </div>
+
+      {/* Expanded body */}
+      {isOpen && (
+        <div style={{
+          borderTop: `1px solid ${colors_V05.ruleSoft}`,
+          padding: isHero ? "30px 32px 32px" : "24px 28px 26px",
+          background: isHero ? colors_V05.paper : colors_V05.paperDeep,
+        }}>
+          <StorylineExpansion story={story} isHero={isHero} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StorylineExpansion({ story, isHero }) {
+  const accent = StorylineColor(story.id);
+  return (
+    <>
+      {/* Claim text */}
+      <div style={{
+        fontFamily: fonts.serif, fontSize: isHero ? 16 : 14, fontStyle: "italic",
+        fontWeight: 400, color: colors_V05.inkSoft, lineHeight: 1.55,
+        paddingLeft: 14, borderLeft: `1px solid ${colors_V05.ruleSoft}`,
+        marginBottom: 26, maxWidth: 880,
+      }}>
+        {story.claim}
+      </div>
+
+      {/* Three judgment cards */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14,
+        marginBottom: 28,
+      }}>
+        <JudgmentCard
+          label="Strongest argument"
+          accent={colors_V05.good}
+          headline={story.strongestArgument.headline}
+          bullets={story.strongestArgument.bullets}
+        />
+        <JudgmentCard
+          label="Weakest point"
+          accent={colors_V05.warnDeep}
+          headline={story.weakestPoint.headline}
+          body={story.weakestPoint.body}
+        />
+        <JudgmentCard
+          label="What would change it"
+          accent={colors_V05.secondary}
+          headline={story.whatWouldChange.headline}
+          bullets={story.whatWouldChange.items}
+        />
+      </div>
+
+      {/* Overlay summary block */}
+      <div style={{
+        padding: "16px 18px", background: colors_V05.paperDeep,
+        border: `1px solid ${colors_V05.ruleSoft}`, borderLeft: `3px solid ${accent}`,
+        borderRadius: 2, marginBottom: 22,
+      }}>
+        <MonoLabel color={accent} size={9} letterSpacing={1} style={{ marginBottom: 8 }}>
+          {story.isSubclaim ? "What this subclaim does" : "What this storyline does"}
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.6, color: colors_V05.inkSoft,
+        }}>
+          {story.overlaySummary}
+        </div>
+      </div>
+
+      {/* Evidence + anchors footer */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 18,
+        paddingTop: 16, borderTop: `1px solid ${colors_V05.ruleSoft}`,
+      }}>
+        <div>
+          <MonoLabel size={9} letterSpacing={0.9} style={{ marginBottom: 8 }}>
+            Key supporting evidence ({story.keyEvidence.length})
+          </MonoLabel>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {story.keyEvidence.length === 0 ? (
+              <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute }}>
+                — meta-storyline, no direct evidence —
+              </span>
+            ) : (
+              story.keyEvidence.map(eid => <EvidencePill key={eid} eid={eid} />)
+            )}
+          </div>
+        </div>
+        <div>
+          <MonoLabel size={9} letterSpacing={0.9} style={{ marginBottom: 8 }}>
+            Anchored to facts ({story.keyAnchors.length}/13)
+          </MonoLabel>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {story.keyAnchors.length === 0 ? (
+              <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute }}>—</span>
+            ) : (
+              story.keyAnchors.map(fid => (
+                <span key={fid} style={{
+                  fontFamily: fonts.mono, fontSize: 9.5, color: colors_V05.good,
+                  padding: "2px 6px", border: `1px solid ${colors_V05.goodSoft}`,
+                  background: "#E8EDE0", borderRadius: 1, letterSpacing: 0.4,
+                }}>{fid}</span>
+              ))
+            )}
+          </div>
+        </div>
+        <div>
+          <MonoLabel size={9} letterSpacing={0.9} style={{ marginBottom: 8 }}>
+            Challenged by
+          </MonoLabel>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {story.challengedBy.length === 0 ? (
+              <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute }}>— none active —</span>
+            ) : (
+              story.challengedBy.map(eid => <EvidencePill key={eid} eid={eid} variant="warn" />)
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Distribution provenance */}
+      <div style={{
+        marginTop: 18, padding: "10px 12px", background: colors_V05.paper,
+        border: `1px dashed ${colors_V05.ruleSoft}`, borderRadius: 2,
+      }}>
+        <MonoLabel size={8.5} letterSpacing={0.9} style={{ marginBottom: 4 }}>
+          Distribution source
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.mono, fontSize: 10.5, color: colors_V05.inkMute,
+          lineHeight: 1.55, fontVariantNumeric: "tabular-nums",
+        }}>
+          {story.sourceFromCandidates}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function JudgmentCard({ label, accent, headline, body, bullets }) {
+  return (
+    <div style={{
+      border: `1px solid ${colors_V05.ruleSoft}`, background: colors_V05.paper,
+      padding: "16px 16px 18px", borderRadius: 2,
+      borderTop: `2px solid ${accent}`,
+    }}>
+      <MonoLabel color={accent} size={9} letterSpacing={1} style={{ marginBottom: 10 }}>
+        {label}
+      </MonoLabel>
+      <div style={{
+        fontFamily: fonts.serif, fontStyle: "italic", fontSize: 15,
+        fontWeight: 400, color: colors_V05.ink, letterSpacing: -0.15,
+        lineHeight: 1.35, marginBottom: 12,
+      }}>
+        {headline}
+      </div>
+      {body && (
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 12, lineHeight: 1.55, color: colors_V05.inkSoft,
+        }}>
+          {body}
+        </div>
+      )}
+      {bullets && bullets.length > 0 && (
+        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+          {bullets.map((b, i) => (
+            <li key={i} style={{
+              fontFamily: fonts.sans, fontSize: 12, lineHeight: 1.55, color: colors_V05.inkSoft,
+              paddingLeft: 14, position: "relative", marginBottom: 7,
+            }}>
+              <span style={{
+                position: "absolute", left: 0, top: 7, width: 6, height: 1,
+                background: accent,
+              }} />
+              {b}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function EvidencePill({ eid, variant = "default" }) {
+  const ev = EVIDENCE.find(e => e.id === eid);
+  const tone = variant === "warn" ? { fg: colors_V05.warnDeep, bg: "#F4ECD8", bd: "#D4B870" }
+                                  : { fg: colors_V05.secondary, bg: "#E4ECF4", bd: colors_V05.secondarySoft };
+  return (
+    <span title={ev ? ev.label : eid}
+      style={{
+        fontFamily: fonts.mono, fontSize: 9.5, color: tone.fg,
+        padding: "2px 6px", border: `1px solid ${tone.bd}`, background: tone.bg,
+        borderRadius: 1, letterSpacing: 0.4, cursor: "help",
+      }}>
+      {eid}
+    </span>
+  );
+}
+
+function ExcludedFold({ story }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      marginTop: 24, border: `1px solid ${colors_V05.ruleSoft}`,
+      background: colors_V05.paperDeep, borderRadius: 2,
+    }}>
+      <div onClick={() => setOpen(o => !o)}
+        style={{
+          padding: "16px 24px", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <Tag_V05 tone="warn">Structurally excluded</Tag_V05>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 13, color: colors_V05.inkSoft, fontWeight: 500,
+          }}>
+            {story.label} · retained for audit transparency
+          </div>
+        </div>
+        <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute, letterSpacing: 0.8 }}>
+          {open ? "− collapse" : "+ expand"}
+        </span>
+      </div>
+      {open && (
+        <div style={{
+          borderTop: `1px solid ${colors_V05.ruleSoft}`, padding: "20px 24px 22px",
+          background: colors_V05.paper,
+        }}>
+          <div style={{
+            padding: "14px 16px", background: "#F4ECD8", border: `1px solid #D4B870`,
+            borderLeft: `3px solid ${colors_V05.warn}`, borderRadius: 2, marginBottom: 16,
+          }}>
+            <MonoLabel color={colors_V05.warnDeep} size={9} letterSpacing={1} style={{ marginBottom: 6 }}>
+              Why this storyline is excluded, not low-weight
+            </MonoLabel>
+            <div style={{
+              fontFamily: fonts.sans, fontSize: 12.5, lineHeight: 1.6, color: colors_V05.inkSoft,
+            }}>
+              {story.excludedReason}
+            </div>
+          </div>
+          <MonoLabel size={9} letterSpacing={0.9} style={{ marginBottom: 8 }}>
+            See also: structurally excluded candidates
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkMute, lineHeight: 1.55,
+          }}>
+            δ is one of one excluded storyline. At the candidate layer, three candidates (C1 Hersh / C3 rogue / C4 Russian) are also structurally excluded — see Examine → Claim Map for the full audit trail.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoadBearingUnknownsRail() {
+  const tiers = [
+    { key: "changeLeading", data: LOAD_BEARING_UNKNOWNS.changeLeading, accent: colors_V05.primary },
+    { key: "interesting",   data: LOAD_BEARING_UNKNOWNS.interesting,   accent: colors_V05.inkSoft },
+    { key: "silence",       data: LOAD_BEARING_UNKNOWNS.silence,       accent: colors_V05.warnDeep },
+  ];
+  return (
+    <>
+      <SectionHeading
+        eyebrow="What we don't know — structured"
+        title="Load-bearing unknowns"
+        body="Trace's distinguishing move from generic case summaries: not 'here is what is missing', but 'here is what is missing AND whether disclosure would change anything'. Three tiers."
+      />
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16,
+      }}>
+        {tiers.map(({ key, data, accent }) => (
+          <div key={key} style={{
+            background: colors_V05.paper, border: `1px solid ${colors_V05.ruleSoft}`,
+            borderTop: `2px solid ${accent}`, padding: "18px 18px 20px", borderRadius: 2,
+          }}>
+            <MonoLabel color={accent} size={9} letterSpacing={1} style={{ marginBottom: 10 }}>
+              {data.label}
+            </MonoLabel>
+            <div style={{
+              fontFamily: fonts.sans, fontSize: 12, fontStyle: "italic", color: colors_V05.inkMute,
+              lineHeight: 1.5, marginBottom: 14,
+            }}>
+              {data.rationale}
+            </div>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+              {data.items.map((item, i) => (
+                <li key={i} style={{ marginBottom: 12 }}>
+                  <div style={{
+                    fontFamily: fonts.serif, fontSize: 13.5, color: colors_V05.ink,
+                    fontStyle: "italic", lineHeight: 1.4, marginBottom: 4,
+                  }}>
+                    {item.q}
+                  </div>
+                  <div style={{
+                    fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkSoft, lineHeight: 1.5,
+                  }}>
+                    {item.why}
+                  </div>
+                  {item.wouldShift && (
+                    <div style={{ marginTop: 5 }}>
+                      <span style={{
+                        fontFamily: fonts.mono, fontSize: 9, color: colors_V05.primary,
+                        letterSpacing: 0.7, textTransform: "uppercase", padding: "2px 6px",
+                        background: "#F4E4E0", border: `1px solid ${colors_V05.primarySoft}`, borderRadius: 1,
+                      }}>
+                        would shift: {item.wouldShift}
+                      </span>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+
+// ============================================================================
+// EXAMINE MODE — four lenses: Claim Map · Evidence · Contradictions · Register
+// ============================================================================
+
+function ExamineMode() {
+  const [lens, setLens] = useState("claim_map");
+
+  const lenses = [
+    { id: "claim_map",     label: "Claim Map",      sub: "Structure of the question" },
+    { id: "evidence",      label: "Evidence Ledger", sub: "37 records · audit fields" },
+    { id: "contradictions",label: "Contradictions",  sub: "8 cross-cutting tensions" },
+    { id: "register",      label: "Register",        sub: "5 patterns + ecosystem map" },
+  ];
+
+  return (
+    <div style={{ padding: "32px 32px 0" }}>
+      {/* Lens picker — secondary nav */}
+      <div style={{
+        display: "flex", gap: 0, borderBottom: `1px solid ${colors_V05.rule}`, marginBottom: 32,
+      }}>
+        {lenses.map(l => {
+          const active = l.id === lens;
+          return (
+            <button key={l.id} onClick={() => setLens(l.id)}
+              style={{
+                background: "transparent", border: "none", cursor: "pointer",
+                padding: "16px 22px 14px", borderBottom: active ? `2px solid ${colors_V05.primary}` : "2px solid transparent",
+                marginBottom: -1, textAlign: "left", transition: "all 0.15s",
+              }}>
+              <div style={{
+                fontFamily: fonts.serif, fontStyle: "italic", fontSize: 18,
+                color: active ? colors_V05.ink : colors_V05.inkSoft, fontWeight: 400,
+                letterSpacing: -0.2, lineHeight: 1.2, marginBottom: 4,
+              }}>
+                {l.label}
+              </div>
+              <MonoLabel size={9} letterSpacing={0.7} color={active ? colors_V05.primary : colors_V05.inkMute}>
+                {l.sub}
+              </MonoLabel>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Lens body */}
+      {lens === "claim_map"      && <ClaimMapLens />}
+      {lens === "evidence"       && <EvidenceLens />}
+      {lens === "contradictions" && <ContradictionsLens />}
+      {lens === "register"       && <RegisterLens />}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// LENS 1 — CLAIM MAP
+// ----------------------------------------------------------------------------
+
+function ClaimMapLens() {
+  const [selectedId, setSelectedId] = useState("S1");
+  const selected = CLAIM_MAP.subclaims.find(s => s.id === selectedId);
+
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Claim Map"
+        title="The question, decomposed"
+        body="The attribution question is not one claim but a tree. Each subclaim is anchored to facts and challenged by evidence at a different proof state. Click a node to inspect."
+      />
+
+      <div style={{
+        display: "grid", gridTemplateColumns: "minmax(360px, 1fr) minmax(0, 1.6fr)", gap: 28,
+      }}>
+        {/* Left — tree */}
+        <div>
+          <div style={{
+            background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+            padding: "20px 22px", borderRadius: 2, marginBottom: 12,
+          }}>
+            <MonoLabel size={9} letterSpacing={1} color={colors_V05.primary} style={{ marginBottom: 8 }}>
+              Root claim
+            </MonoLabel>
+            <div style={{
+              fontFamily: fonts.serif, fontStyle: "italic", fontSize: 18,
+              color: colors_V05.ink, letterSpacing: -0.25, lineHeight: 1.3, marginBottom: 12,
+            }}>
+              {CLAIM_MAP.rootClaim}
+            </div>
+            <ProofBadge proof={CLAIM_MAP.rootProof} compact />
+          </div>
+
+          {/* Subclaim list */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {CLAIM_MAP.subclaims.map((s, i) => {
+              const active = s.id === selectedId;
+              const palette = proofPalette[s.proof];
+              return (
+                <button key={s.id} onClick={() => setSelectedId(s.id)}
+                  style={{
+                    background: active ? colors_V05.paperDeep : colors_V05.paper,
+                    border: `1px solid ${active ? colors_V05.ink : colors_V05.ruleSoft}`,
+                    borderTop: i > 0 && !active ? `1px solid ${colors_V05.ruleSoft}` : `1px solid ${active ? colors_V05.ink : colors_V05.ruleSoft}`,
+                    padding: "14px 18px", textAlign: "left", cursor: "pointer",
+                    display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 14, alignItems: "center",
+                    borderRadius: 2, marginTop: i === 0 ? 0 : -1,
+                    transition: "all 0.12s",
+                  }}>
+                  <div style={{
+                    fontFamily: fonts.mono, fontSize: 12, color: colors_V05.inkMute,
+                    fontVariantNumeric: "tabular-nums", fontWeight: 500,
+                  }}>
+                    S{i + 1}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: fonts.serif, fontSize: 15, color: colors_V05.ink,
+                      letterSpacing: -0.15, lineHeight: 1.3, marginBottom: 3,
+                    }}>
+                      {s.label}
+                    </div>
+                    <div style={{
+                      fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkMute,
+                      lineHeight: 1.45,
+                    }}>
+                      {s.question}
+                    </div>
+                  </div>
+                  <span style={{
+                    width: 8, height: 8, borderRadius: "50%", background: palette.fg,
+                    border: `2px solid ${palette.bg}`,
+                  }} />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Structurally excluded fold */}
+          <div style={{ marginTop: 16 }}>
+            <StructurallyExcludedAccordion />
+          </div>
+        </div>
+
+        {/* Right — selected subclaim detail */}
+        {selected && (
+          <ClaimDetailPanel s={selected} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClaimDetailPanel({ s }) {
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: "26px 30px 30px", borderRadius: 2, alignSelf: "flex-start",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
+        <div>
+          <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.primary} style={{ marginBottom: 8 }}>
+            Subclaim · {s.id}
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.serif, fontStyle: "italic", fontSize: 22,
+            color: colors_V05.ink, letterSpacing: -0.3, lineHeight: 1.25,
+          }}>
+            {s.label}
+          </div>
+        </div>
+        <ProofBadge proof={s.proof} />
+      </div>
+
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 13, color: colors_V05.inkSoft,
+        fontStyle: "italic", lineHeight: 1.55, marginBottom: 22,
+      }}>
+        {s.question}
+      </div>
+
+      <div style={{
+        padding: "14px 16px", background: colors_V05.paperDeep,
+        border: `1px solid ${colors_V05.ruleSoft}`, borderLeft: `3px solid ${colors_V05.primary}`,
+        borderRadius: 2, marginBottom: 22,
+      }}>
+        <MonoLabel size={9} letterSpacing={1} style={{ marginBottom: 6 }}>
+          Current reading
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 13, color: colors_V05.inkSoft, lineHeight: 1.6,
+        }}>
+          {s.summary}
+        </div>
+      </div>
+
+      {s.established && s.established.length > 0 && (
+        <SubclaimList
+          label="Established"
+          items={s.established}
+          accent={colors_V05.good}
+        />
+      )}
+
+      {s.tensions && s.tensions.length > 0 && (
+        <SubclaimList
+          label="Tensions and what is not yet established"
+          items={s.tensions}
+          accent={colors_V05.warnDeep}
+        />
+      )}
+
+      {s.keyEvidence && s.keyEvidence.length > 0 && (
+        <div style={{ marginTop: 18 }}>
+          <MonoLabel size={9} letterSpacing={0.9} style={{ marginBottom: 8 }}>
+            Key evidence
+          </MonoLabel>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {s.keyEvidence.map(eid => <EvidencePill key={eid} eid={eid} />)}
+          </div>
+        </div>
+      )}
+
+      <div style={{
+        marginTop: 22, paddingTop: 16, borderTop: `1px solid ${colors_V05.ruleSoft}`,
+      }}>
+        <MonoLabel size={9} letterSpacing={0.9} color={colors_V05.secondary} style={{ marginBottom: 6 }}>
+          Why this matters for the case
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.55,
+        }}>
+          {s.stateInfluence}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubclaimList({ label, items, accent }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <MonoLabel color={accent} size={9} letterSpacing={1} style={{ marginBottom: 8 }}>
+        {label}
+      </MonoLabel>
+      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+        {items.map((item, i) => (
+          <li key={i} style={{
+            fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft,
+            lineHeight: 1.6, paddingLeft: 14, position: "relative", marginBottom: 6,
+          }}>
+            <span style={{
+              position: "absolute", left: 0, top: 9, width: 6, height: 1, background: accent,
+            }} />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function StructurallyExcludedAccordion() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      border: `1px solid ${colors_V05.ruleSoft}`, background: colors_V05.paperDeep, borderRadius: 2,
+    }}>
+      <div onClick={() => setOpen(o => !o)}
+        style={{
+          padding: "12px 18px", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
+        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Tag_V05 tone="warn">{STRUCTURAL_EXCLUSIONS.length} structurally excluded candidates</Tag_V05>
+        </div>
+        <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute, letterSpacing: 0.8 }}>
+          {open ? "−" : "+"}
+        </span>
+      </div>
+      {open && (
+        <div style={{ borderTop: `1px solid ${colors_V05.ruleSoft}`, padding: "12px 18px 16px" }}>
+          {STRUCTURAL_EXCLUSIONS.map(ex => (
+            <div key={ex.candidate} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: `1px dashed ${colors_V05.ruleSoft}` }}>
+              <div style={{
+                fontFamily: fonts.serif, fontSize: 14, fontStyle: "italic",
+                color: colors_V05.inkSoft, marginBottom: 6, textDecoration: "line-through",
+                textDecorationColor: colors_V05.inkMute,
+              }}>
+                {ex.candidate} · {ex.label}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {ex.excludedBy.map((x, i) => (
+                  <div key={i} style={{
+                    fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkSoft,
+                    lineHeight: 1.5,
+                  }}>
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 9, color: colors_V05.warnDeep,
+                      padding: "1px 5px", background: "#F4ECD8", border: `1px solid #D4B870`,
+                      letterSpacing: 0.5, marginRight: 6,
+                    }}>{x.id} · {x.type}</span>
+                    {x.reason}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ----------------------------------------------------------------------------
+// LENS 2 — EVIDENCE LEDGER
+// ----------------------------------------------------------------------------
+
+function EvidenceLens() {
+  const [filter, setFilter]   = useState("all");
+  const [selectedId, setSelectedId] = useState("E17");
+
+  const filters = [
+    { id: "all",       label: "All", count: EVIDENCE.length },
+    { id: "anchor",    label: "Anchored facts", count: ANCHORS_V05.length },
+    { id: "judicial",  label: "Judicial", count: EVIDENCE.filter(e => e.cluster === "german_judicial" || ["E14","E18","E19","E20","E13"].includes(e.id)).length },
+    { id: "forensic",  label: "Forensic", count: EVIDENCE.filter(e => e.type === "forensic").length },
+    { id: "intel",     label: "Intel-leak cluster", count: EVIDENCE.filter(e => e.cluster === "western_intel_leaks").length },
+    { id: "official",  label: "Official", count: EVIDENCE.filter(e => e.type === "official_statement").length },
+    { id: "register",  label: "Coverage / register", count: EVIDENCE.filter(e => e.cluster === "coverage_meta" || e.id === "E37").length },
+  ];
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return EVIDENCE;
+    if (filter === "anchor") return [];   // anchors shown separately
+    if (filter === "judicial") return EVIDENCE.filter(e =>
+      e.cluster === "german_judicial" || ["E14","E18","E19","E20","E13"].includes(e.id));
+    if (filter === "forensic") return EVIDENCE.filter(e => e.type === "forensic");
+    if (filter === "intel")    return EVIDENCE.filter(e => e.cluster === "western_intel_leaks");
+    if (filter === "official") return EVIDENCE.filter(e => e.type === "official_statement");
+    if (filter === "register") return EVIDENCE.filter(e => e.cluster === "coverage_meta" || e.id === "E37");
+    return EVIDENCE;
+  }, [filter]);
+
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Evidence Ledger"
+        title="Audit-grade record"
+        body="Each record carries five fields: what it is · what it supports · what it contradicts · what it only shows · what remains missing. Anchored facts (F1–F13) are foundation; evidence (E1–E37) is interpretive."
+      />
+
+      {/* Filter row */}
+      <div style={{
+        display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 24,
+        paddingBottom: 14, borderBottom: `1px solid ${colors_V05.ruleSoft}`,
+      }}>
+        {filters.map(f => {
+          const active = f.id === filter;
+          return (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+              style={{
+                fontFamily: fonts.mono, fontSize: 9.5, letterSpacing: 0.7,
+                textTransform: "uppercase", padding: "6px 12px", borderRadius: 2,
+                cursor: "pointer", border: `1px solid ${active ? colors_V05.ink : colors_V05.rule}`,
+                background: active ? colors_V05.ink : "transparent",
+                color: active ? colors_V05.paper : colors_V05.inkSoft, fontWeight: 500,
+                transition: "all 0.12s",
+              }}>
+              {f.label} <span style={{ opacity: 0.6, marginLeft: 5 }}>{f.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {filter === "anchor" ? (
+        <AnchorsList />
+      ) : (
+        <div style={{
+          display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.3fr)", gap: 24,
+        }}>
+          {/* Evidence list */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {filtered.map(e => {
+              const active = e.id === selectedId;
+              return (
+                <button key={e.id} onClick={() => setSelectedId(e.id)}
+                  style={{
+                    background: active ? colors_V05.paperDeep : colors_V05.paper,
+                    border: `1px solid ${active ? colors_V05.ink : colors_V05.ruleSoft}`,
+                    padding: "12px 16px", textAlign: "left", cursor: "pointer",
+                    display: "grid", gridTemplateColumns: "auto auto 1fr auto", gap: 12, alignItems: "center",
+                    borderRadius: 2,
+                  }}>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 11, color: colors_V05.inkMute,
+                    fontVariantNumeric: "tabular-nums", fontWeight: 500, minWidth: 28,
+                  }}>{e.id}</span>
+                  <LangBadge lang={e.language} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: fonts.serif, fontSize: 13.5, color: colors_V05.ink,
+                      lineHeight: 1.3, marginBottom: 2,
+                    }}>{e.label}</div>
+                    <div style={{
+                      fontFamily: fonts.mono, fontSize: 9, color: colors_V05.inkMute,
+                      letterSpacing: 0.5,
+                    }}>{e.date} · {e.type.replace(/_/g, " ")}</div>
+                  </div>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkSoft,
+                    fontVariantNumeric: "tabular-nums",
+                  }}>{e.credibility.toFixed(2)}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Detail panel */}
+          {selectedId && (
+            <EvidenceDetailPanel ev={EVIDENCE.find(e => e.id === selectedId)} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EvidenceDetailPanel({ ev }) {
+  if (!ev) return null;
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: "26px 30px 28px", borderRadius: 2, alignSelf: "flex-start",
+    }}>
+      {/* Header */}
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+        <span style={{
+          fontFamily: fonts.mono, fontSize: 13, color: colors_V05.primary,
+          fontVariantNumeric: "tabular-nums", fontWeight: 600,
+        }}>{ev.id}</span>
+        <LangBadge lang={ev.language} />
+        <Tag_V05>{ev.type.replace(/_/g, " ")}</Tag_V05>
+        {ev.cluster && <Tag_V05 tone="warn">cluster: {ev.cluster.replace(/_/g, " ")}</Tag_V05>}
+      </div>
+
+      <div style={{
+        fontFamily: fonts.serif, fontSize: 22, color: colors_V05.ink, fontWeight: 400,
+        letterSpacing: -0.25, lineHeight: 1.25, marginBottom: 6,
+      }}>
+        {ev.label}
+      </div>
+      <MonoLabel size={9.5} letterSpacing={0.8}>{ev.date}</MonoLabel>
+
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 13, color: colors_V05.inkSoft,
+        lineHeight: 1.6, margin: "18px 0 22px", paddingLeft: 14, borderLeft: `1px solid ${colors_V05.ruleSoft}`,
+        fontStyle: "italic",
+      }}>
+        {ev.detail}
+      </div>
+
+      <Rule_V05 tone="soft" style={{ margin: "18px 0" }} />
+
+      {/* Audit fields */}
+      <AuditField
+        label="What it only shows"
+        accent={colors_V05.good}
+        body={ev.whatItOnlyShows}
+      />
+      <AuditField
+        label="What remains missing"
+        accent={colors_V05.warnDeep}
+        body={ev.whatRemainsMissing}
+      />
+
+      {/* Storyline edges */}
+      <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div>
+          <MonoLabel color={colors_V05.good} size={9} letterSpacing={0.9} style={{ marginBottom: 7 }}>
+            Supports
+          </MonoLabel>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {ev.supports.length === 0 ? (
+              <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute }}>—</span>
+            ) : (
+              ev.supports.map(sid => (
+                <span key={sid} style={{
+                  fontFamily: fonts.mono, fontSize: 9.5, color: StorylineColor(sid),
+                  padding: "2px 6px", border: `1px solid ${StorylineColor(sid)}`,
+                  background: colors_V05.paper, borderRadius: 1, letterSpacing: 0.4, fontWeight: 500,
+                }}>{StorylineGlyph(sid)} · {StorylineShortLabel(sid)}</span>
+              ))
+            )}
+          </div>
+        </div>
+        <div>
+          <MonoLabel color={colors_V05.primary} size={9} letterSpacing={0.9} style={{ marginBottom: 7 }}>
+            Refutes / strains
+          </MonoLabel>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {ev.refutes.length === 0 ? (
+              <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors_V05.inkMute }}>—</span>
+            ) : (
+              ev.refutes.map(sid => (
+                <span key={sid} style={{
+                  fontFamily: fonts.mono, fontSize: 9.5, color: StorylineColor(sid),
+                  padding: "2px 6px", border: `1px dashed ${StorylineColor(sid)}`,
+                  background: colors_V05.paper, borderRadius: 1, letterSpacing: 0.4, fontWeight: 500,
+                }}>{StorylineGlyph(sid)} · {StorylineShortLabel(sid)}</span>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {ev.structurallyExcludedFor && (
+        <div style={{
+          marginTop: 18, padding: "10px 14px", background: "#F4ECD8",
+          border: `1px solid #D4B870`, borderLeft: `3px solid ${colors_V05.warn}`,
+          borderRadius: 2,
+        }}>
+          <MonoLabel color={colors_V05.warnDeep} size={9} letterSpacing={1} style={{ marginBottom: 4 }}>
+            Contributes to structural exclusion
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.55,
+          }}>
+            {ev.structurallyExcludedFor}
+          </div>
+        </div>
+      )}
+
+      <Rule_V05 tone="soft" style={{ margin: "20px 0 14px" }} />
+      <div style={{ display: "flex", gap: 16, fontFamily: fonts.mono, fontSize: 10,
+        color: colors_V05.inkMute, letterSpacing: 0.5 }}>
+        <span>Credibility · {ev.credibility.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+}
+
+function AuditField({ label, accent, body }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <MonoLabel color={accent} size={9} letterSpacing={0.9} style={{ marginBottom: 6 }}>
+        {label}
+      </MonoLabel>
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.6,
+      }}>
+        {body}
+      </div>
+    </div>
+  );
+}
+
+function AnchorsList() {
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: "26px 30px 28px", borderRadius: 2,
+    }}>
+      <div style={{ marginBottom: 18 }}>
+        <ProofBadge proof="anchor" />
+      </div>
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 13, color: colors_V05.inkSoft, lineHeight: 1.6,
+        marginBottom: 22, fontStyle: "italic", maxWidth: 720,
+      }}>
+        These are the anchors. They are not disputed in any of the fourteen languages we surveyed. They define what every storyline must accommodate.
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+        {ANCHORS_V05.map(a => (
+          <div key={a.id} style={{
+            border: `1px solid ${a.flagged ? "#D4B870" : colors_V05.ruleSoft}`,
+            background: a.flagged ? "#F4ECD8" : colors_V05.paper,
+            padding: "14px 16px", borderRadius: 2,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span style={{
+                fontFamily: fonts.mono, fontSize: 11, color: a.flagged ? colors_V05.warnDeep : colors_V05.good,
+                fontWeight: 600, letterSpacing: 0.4,
+              }}>{a.id}</span>
+              <span style={{
+                fontFamily: fonts.mono, fontSize: 9, color: colors_V05.inkMute,
+                letterSpacing: 0.5,
+              }}>{a.time}</span>
+            </div>
+            <div style={{
+              fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.ink, lineHeight: 1.55,
+            }}>
+              {a.fact}
+            </div>
+            {a.flagged && (
+              <div style={{ marginTop: 8 }}>
+                <span style={{
+                  fontFamily: fonts.mono, fontSize: 9, color: colors_V05.warnDeep,
+                  letterSpacing: 0.7, textTransform: "uppercase",
+                }}>
+                  ◆ Load-bearing for storyline differentiation
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+// ----------------------------------------------------------------------------
+// LENS 3 — CONTRADICTIONS (matrix + detail panel)
+// ----------------------------------------------------------------------------
+
+function ContradictionsLens() {
+  const matrixStorylines = STORYLINES_V05.filter(s => !s.excluded);  // α β′ ε ζ μ
+  const [selectedId, setSelectedId] = useState("DE_judicial_vs_political");
+  const selected = CONTRADICTIONS.find(c => c.id === selectedId);
+
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Contradictions matrix"
+        title="Eight cross-cutting tensions"
+        body="Each row is a contradiction the case must accommodate. Each column is a live storyline. Each cell answers: does this storyline absorb the contradiction cleanly, strain against it, break under it, center it, or remain silent?"
+      />
+
+      {/* Legend */}
+      <div style={{
+        display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 22, padding: "10px 16px",
+        border: `1px solid ${colors_V05.ruleSoft}`, background: colors_V05.paperDeep, borderRadius: 2,
+      }}>
+        <LegendItem kind="absorbs" label="Absorbs cleanly" />
+        <LegendItem kind="strains"  label="Strains" />
+        <LegendItem kind="breaks"   label="Breaks the storyline" />
+        <LegendItem kind="centers"  label="Centers (storyline's home)" />
+        <LegendItem kind="neutral"  label="Neutral / does not engage" />
+      </div>
+
+      <div style={{
+        display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 24, alignItems: "flex-start",
+      }}>
+        {/* Matrix */}
+        <div style={{
+          background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`, borderRadius: 2,
+          overflow: "hidden",
+        }}>
+          {/* Column header — storyline glyphs */}
+          <div style={{
+            display: "grid", gridTemplateColumns: `minmax(0, 1.4fr) repeat(${matrixStorylines.length}, 56px)`,
+            background: colors_V05.paperDeep, borderBottom: `1px solid ${colors_V05.rule}`,
+          }}>
+            <div style={{ padding: "12px 16px" }}>
+              <MonoLabel size={9} letterSpacing={1}>Contradiction</MonoLabel>
+            </div>
+            {matrixStorylines.map(s => (
+              <div key={s.id} style={{
+                padding: "12px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                borderLeft: `1px solid ${colors_V05.ruleSoft}`,
+              }}>
+                <span style={{
+                  fontFamily: fonts.serif, fontStyle: "italic", fontSize: 16,
+                  color: StorylineColor(s.id), fontWeight: 500, lineHeight: 1,
+                }}>{s.glyph}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Rows */}
+          {CONTRADICTIONS.map((c, idx) => {
+            const active = c.id === selectedId;
+            return (
+              <div key={c.id} onClick={() => setSelectedId(c.id)}
+                style={{
+                  display: "grid", gridTemplateColumns: `minmax(0, 1.4fr) repeat(${matrixStorylines.length}, 56px)`,
+                  cursor: "pointer", background: active ? colors_V05.paperDeep : "transparent",
+                  borderBottom: idx < CONTRADICTIONS.length - 1 ? `1px solid ${colors_V05.ruleSoft}` : "none",
+                  transition: "background 0.12s",
+                }}>
+                <div style={{ padding: "14px 16px", borderLeft: active ? `3px solid ${colors_V05.primary}` : "3px solid transparent" }}>
+                  <div style={{
+                    fontFamily: fonts.serif, fontSize: 13.5, color: colors_V05.ink,
+                    letterSpacing: -0.1, lineHeight: 1.35, marginBottom: 4, fontWeight: 400,
+                  }}>
+                    {c.title}
+                  </div>
+                  <MonoLabel size={8.5} letterSpacing={0.7} color={colors_V05.inkMute}>
+                    {c.type}
+                  </MonoLabel>
+                </div>
+                {matrixStorylines.map(s => {
+                  const stance = s.contradictionStance[c.id] || "neutral";
+                  return (
+                    <div key={s.id} style={{
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      borderLeft: `1px solid ${colors_V05.ruleSoft}`,
+                    }}>
+                      <AbsorptionMark kind={stance} size={20} />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right — selected contradiction detail */}
+        {selected && <ContradictionDetailPanel c={selected} />}
+      </div>
+    </div>
+  );
+}
+
+function LegendItem({ kind, label }) {
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <AbsorptionMark kind={kind} size={16} />
+      <span style={{
+        fontFamily: fonts.mono, fontSize: 9.5, color: colors_V05.inkSoft,
+        letterSpacing: 0.6, textTransform: "uppercase",
+      }}>{label}</span>
+    </div>
+  );
+}
+
+function ContradictionDetailPanel({ c }) {
+  const homeStory = STORYLINES_V05.find(s => s.id === c.bestAbsorbedBy);
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: "24px 28px 26px", borderRadius: 2, position: "sticky", top: 80,
+    }}>
+      <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.primary} style={{ marginBottom: 8 }}>
+        {c.type}
+      </MonoLabel>
+      <div style={{
+        fontFamily: fonts.serif, fontStyle: "italic", fontSize: 21, color: colors_V05.ink,
+        letterSpacing: -0.3, lineHeight: 1.25, marginBottom: 18,
+      }}>
+        {c.title}
+      </div>
+
+      {/* Two poles */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
+        {c.poles.map((p, i) => (
+          <div key={i} style={{
+            border: `1px solid ${colors_V05.ruleSoft}`, background: colors_V05.paperDeep,
+            padding: "12px 14px", borderRadius: 2,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <MonoLabel size={9} letterSpacing={0.9} color={colors_V05.inkSoft}>
+                {p.side}
+              </MonoLabel>
+              {p.evidence.length > 0 && (
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {p.evidence.map(eid => (
+                    <span key={eid} style={{
+                      fontFamily: fonts.mono, fontSize: 9, color: colors_V05.secondary,
+                      padding: "1px 5px", border: `1px solid ${colors_V05.secondarySoft}`,
+                      background: colors_V05.paper, borderRadius: 1, letterSpacing: 0.4,
+                    }}>{eid}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={{
+              fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.ink, lineHeight: 1.5,
+            }}>
+              {p.position}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        padding: "12px 14px", background: colors_V05.paper,
+        border: `1px solid ${colors_V05.ruleSoft}`, borderLeft: `3px solid ${colors_V05.primary}`,
+        borderRadius: 2, marginBottom: 14,
+      }}>
+        <MonoLabel size={9} letterSpacing={1} style={{ marginBottom: 6 }}>
+          Why these poles cannot both stand without explanation
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.55,
+        }}>
+          {c.why}
+        </div>
+      </div>
+
+      {homeStory && (
+        <div style={{
+          padding: "12px 14px", background: colors_V05.paperDeep,
+          border: `1px solid ${StorylineColor(homeStory.id)}`,
+          borderRadius: 2, marginBottom: 14,
+        }}>
+          <MonoLabel size={9} letterSpacing={1} color={StorylineColor(homeStory.id)} style={{ marginBottom: 6 }}>
+            Best absorbed by
+          </MonoLabel>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+            <span style={{
+              fontFamily: fonts.serif, fontStyle: "italic", fontSize: 18,
+              color: StorylineColor(homeStory.id), fontWeight: 500,
+            }}>{homeStory.glyph}</span>
+            <span style={{
+              fontFamily: fonts.serif, fontSize: 14, color: colors_V05.ink, fontStyle: "italic",
+              lineHeight: 1.3,
+            }}>{homeStory.shortLabel}</span>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <MonoLabel size={9} letterSpacing={0.9} color={colors_V05.inkMute} style={{ marginBottom: 6 }}>
+          Per-storyline notes
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.55, fontStyle: "italic",
+        }}>
+          {c.notes}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ----------------------------------------------------------------------------
+// LENS 4 — REGISTER (5 patterns + inference firewall warning)
+// ----------------------------------------------------------------------------
+
+function RegisterLens() {
+  const [view, setView] = useState("patterns");
+  const subTabs = [
+    { id: "patterns",   label: "Cross-cutting patterns", sub: "5 recurring register signatures" },
+    { id: "ecosystems", label: "Ecosystem map",          sub: `${ECOSYSTEM_STATS.totalFactions} factions · ${ECOSYSTEM_STATS.totalEcosystems} languages` },
+  ];
+
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Register lens"
+        title="How institutions are speaking, not what they are saying"
+        body="Register is positional evidence — patterns in how sources behave, not what they assert. It strengthens or strains storylines structurally. Register cannot ground a causal claim by itself."
+      />
+
+      {/* Inference firewall — v0.5 spec §1.2 */}
+      <div style={{
+        padding: "16px 20px", background: "#F4ECD8", border: `1px solid #D4B870`,
+        borderLeft: `3px solid ${colors_V05.warn}`, borderRadius: 2, marginBottom: 22,
+        display: "flex", gap: 14, alignItems: "flex-start",
+      }}>
+        <span style={{
+          fontFamily: fonts.mono, fontSize: 18, color: colors_V05.warnDeep, lineHeight: 1, marginTop: 1,
+        }}>⚠</span>
+        <div>
+          <MonoLabel color={colors_V05.warnDeep} size={9.5} letterSpacing={1} style={{ marginBottom: 5 }}>
+            Inference firewall · spec §1.2
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.6,
+          }}>
+            Register patterns DO NOT, by themselves, establish authorship, intent, or motive. They establish that an institution's behavior diverges from its baseline — which is information. Causal-layer claims must be grounded in causal-layer evidence (Anchors, Evidence Ledger). Use register as a check on storyline coherence, never as primary support.
+          </div>
+        </div>
+      </div>
+
+      {/* Sub-tab nav */}
+      <div style={{
+        display: "flex", gap: 0, marginBottom: 26,
+        borderBottom: `1px solid ${colors_V05.ruleSoft}`,
+      }}>
+        {subTabs.map(t => {
+          const active = t.id === view;
+          return (
+            <button key={t.id} onClick={() => setView(t.id)}
+              style={{
+                background: "transparent", border: "none", cursor: "pointer",
+                padding: "10px 18px 12px",
+                borderBottom: active ? `2px solid ${colors_V05.warn}` : "2px solid transparent",
+                marginBottom: -1, textAlign: "left", transition: "all 0.15s",
+              }}>
+              <div style={{
+                fontFamily: fonts.serif, fontStyle: "italic", fontSize: 15,
+                color: active ? colors_V05.ink : colors_V05.inkSoft, fontWeight: 400,
+                letterSpacing: -0.15, lineHeight: 1.2, marginBottom: 2,
+              }}>{t.label}</div>
+              <MonoLabel size={9} letterSpacing={0.6} color={active ? colors_V05.warnDeep : colors_V05.inkMute}>
+                {t.sub}
+              </MonoLabel>
+            </button>
+          );
+        })}
+      </div>
+
+      {view === "patterns"   && <RegisterPatternsView />}
+      {view === "ecosystems" && <EcosystemMapView />}
+    </div>
+  );
+}
+
+function RegisterPatternsView() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {REGISTER_PATTERNS.map(rp => (
+        <RegisterPatternCard key={rp.id} rp={rp} />
+      ))}
+    </div>
+  );
+}
+
+function RegisterPatternCard({ rp }) {
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: "22px 26px 24px", borderRadius: 2,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.primary}>
+              {rp.id}
+            </MonoLabel>
+            <MonoLabel size={9} letterSpacing={0.7} color={colors_V05.inkMute}>
+              {rp.locus}
+            </MonoLabel>
+          </div>
+          <div style={{
+            fontFamily: fonts.serif, fontStyle: "italic", fontSize: 19, color: colors_V05.ink,
+            letterSpacing: -0.25, lineHeight: 1.25,
+          }}>
+            {rp.title}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "flex-end", maxWidth: 260 }}>
+          {rp.relevantTo.map(sid => (
+            <span key={sid} style={{
+              fontFamily: fonts.mono, fontSize: 9, color: StorylineColor(sid),
+              padding: "2px 6px", border: `1px solid ${StorylineColor(sid)}`,
+              background: colors_V05.paper, borderRadius: 1, letterSpacing: 0.4, fontWeight: 500,
+            }}>{StorylineGlyph(sid)} · {STORYLINES_V05.find(s => s.id === sid)?.shortLabel.split(" · ")[0]}</span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 13, color: colors_V05.inkSoft,
+        lineHeight: 1.6, marginBottom: 16,
+      }}>
+        {rp.description}
+      </div>
+
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12,
+        paddingTop: 14, borderTop: `1px solid ${colors_V05.ruleSoft}`,
+      }}>
+        <div style={{
+          padding: "12px 14px", background: "#E8EDE0",
+          border: `1px solid ${colors_V05.goodSoft}`, borderRadius: 2,
+        }}>
+          <MonoLabel color={colors_V05.good} size={9} letterSpacing={1} style={{ marginBottom: 6 }}>
+            What it only shows
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.55,
+          }}>
+            {rp.onlyShows}
+          </div>
+        </div>
+        <div style={{
+          padding: "12px 14px", background: "#F4ECD8",
+          border: `1px solid #D4B870`, borderRadius: 2,
+        }}>
+          <MonoLabel color={colors_V05.warnDeep} size={9} letterSpacing={1} style={{ marginBottom: 6 }}>
+            What it does not show
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.55,
+          }}>
+            {rp.doesNotShow}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <MonoLabel size={9} letterSpacing={0.9} color={colors_V05.inkMute} style={{ marginBottom: 6 }}>
+          Sources observed
+        </MonoLabel>
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {rp.sources.map((src, i) => (
+            <span key={i} style={{
+              fontFamily: fonts.mono, fontSize: 9.5, color: colors_V05.inkSoft,
+              padding: "2px 6px", background: colors_V05.paperDeep, border: `1px solid ${colors_V05.ruleSoft}`,
+              borderRadius: 1, letterSpacing: 0.4,
+            }}>{src}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// AUDIT MODE — three sub-tabs: Timeline · Provenance · Briefing
+// ============================================================================
+
+function AuditMode() {
+  const [tab, setTab] = useState("timeline");
+
+  const tabs = [
+    { id: "timeline",   label: "Timeline",   sub: "Events + evidence publication" },
+    { id: "provenance", label: "Provenance", sub: "Source clusters · correlation risk" },
+    { id: "briefing",   label: "Briefing",   sub: "Export-ready memos" },
+  ];
+
+  return (
+    <div style={{ padding: "32px 32px 0" }}>
+      <div style={{
+        display: "flex", gap: 0, borderBottom: `1px solid ${colors_V05.rule}`, marginBottom: 32,
+      }}>
+        {tabs.map(t => {
+          const active = t.id === tab;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{
+                background: "transparent", border: "none", cursor: "pointer",
+                padding: "16px 22px 14px",
+                borderBottom: active ? `2px solid ${colors_V05.primary}` : "2px solid transparent",
+                marginBottom: -1, textAlign: "left", transition: "all 0.15s",
+              }}>
+              <div style={{
+                fontFamily: fonts.serif, fontStyle: "italic", fontSize: 18,
+                color: active ? colors_V05.ink : colors_V05.inkSoft, fontWeight: 400,
+                letterSpacing: -0.2, lineHeight: 1.2, marginBottom: 4,
+              }}>{t.label}</div>
+              <MonoLabel size={9} letterSpacing={0.7} color={active ? colors_V05.primary : colors_V05.inkMute}>
+                {t.sub}
+              </MonoLabel>
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === "timeline"   && <TimelineTab />}
+      {tab === "provenance" && <ProvenanceTab />}
+      {tab === "briefing"   && <BriefingTab />}
+
+      <VersionChangelog />
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// AUDIT TAB 1 — TIMELINE
+// ----------------------------------------------------------------------------
+
+function TimelineTab() {
+  // Build a chronological merged timeline of anchors + evidence
+  const items = useMemo(() => {
+    const norm = (d) => {
+      // For anchors, time field can be a date or a phrase. We treat phrased
+      // anchors (e.g. "Physical anomaly") as undated meta — they're surfaced
+      // separately, not on the timeline ribbon.
+      if (!d) return null;
+      const m = d.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+      if (!m) return null;
+      const y = parseInt(m[1], 10);
+      const mo = m[2] ? parseInt(m[2], 10) : 6;
+      const da = m[3] ? parseInt(m[3], 10) : 15;
+      return new Date(Date.UTC(y, mo - 1, da)).getTime();
+    };
+    const a = ANCHORS_V05
+      .map(x => ({ kind: "anchor", id: x.id, date: x.time, ts: norm(x.time), label: x.fact, flagged: x.flagged }))
+      .filter(x => x.ts !== null);
+    const e = EVIDENCE
+      .map(x => ({ kind: "evidence", id: x.id, date: x.date, ts: norm(x.date), label: x.label, type: x.type, lang: x.language }))
+      .filter(x => x.ts !== null);
+    return [...a, ...e].sort((p, q) => p.ts - q.ts);
+  }, []);
+
+  // Group by year-quarter
+  const grouped = useMemo(() => {
+    const out = {};
+    items.forEach(it => {
+      const d = new Date(it.ts);
+      const y = d.getUTCFullYear();
+      const q = Math.floor(d.getUTCMonth() / 3) + 1;
+      const key = `${y}-Q${q}`;
+      if (!out[key]) out[key] = [];
+      out[key].push(it);
+    });
+    return out;
+  }, [items]);
+
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Timeline"
+        title="When facts entered the record"
+        body="Two streams interleaved: anchored facts from the event itself, and evidence as it was published. The gap between an event and the evidence about it is itself part of the case."
+      />
+
+      <div style={{
+        background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+        padding: "26px 30px 28px", borderRadius: 2,
+      }}>
+        {Object.entries(grouped).map(([key, group], i) => (
+          <div key={key} style={{
+            display: "grid", gridTemplateColumns: "100px 1fr", gap: 22,
+            paddingBottom: i < Object.keys(grouped).length - 1 ? 22 : 0,
+            marginBottom: i < Object.keys(grouped).length - 1 ? 22 : 0,
+            borderBottom: i < Object.keys(grouped).length - 1 ? `1px dashed ${colors_V05.ruleSoft}` : "none",
+          }}>
+            <div>
+              <MonoLabel size={11} letterSpacing={1.2} color={colors_V05.primary}>
+                {key}
+              </MonoLabel>
+              <MonoLabel size={9} letterSpacing={0.6} color={colors_V05.inkMute} style={{ marginTop: 4 }}>
+                {group.length} {group.length === 1 ? "item" : "items"}
+              </MonoLabel>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {group.map(it => (
+                <div key={`${it.kind}-${it.id}`} style={{
+                  display: "grid", gridTemplateColumns: "auto 80px 1fr", gap: 12, alignItems: "baseline",
+                  paddingBottom: 6, borderBottom: `1px dotted ${colors_V05.ruleSoft}`,
+                }}>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 10,
+                    color: it.kind === "anchor" ? colors_V05.good : colors_V05.secondary,
+                    fontWeight: 600, letterSpacing: 0.5,
+                    padding: "1px 5px",
+                    background: it.kind === "anchor" ? "#E8EDE0" : "#E4ECF4",
+                    border: `1px solid ${it.kind === "anchor" ? colors_V05.goodSoft : colors_V05.secondarySoft}`,
+                    borderRadius: 1,
+                    minWidth: 36, textAlign: "center",
+                  }}>{it.id}</span>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 9.5, color: colors_V05.inkMute,
+                    letterSpacing: 0.4,
+                  }}>{it.date}</span>
+                  <span style={{
+                    fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.ink, lineHeight: 1.45,
+                  }}>{it.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: 18, padding: "12px 16px", border: `1px dashed ${colors_V05.ruleSoft}`,
+        background: colors_V05.paperDeep, borderRadius: 2,
+        fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkMute, lineHeight: 1.55,
+      }}>
+        Note: F3 (17-hour gap) and F12 (intact fourth strand) are physical anomalies, not dated events — they are anchored facts about the operation's structure rather than items on the publication timeline. See Examine → Claim Map → S1 for their role.
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// AUDIT TAB 2 — PROVENANCE
+// ----------------------------------------------------------------------------
+
+function ProvenanceTab() {
+  const clusters = useMemo(() => {
+    const groups = {
+      western_intel_leaks: {
+        name: "Western intelligence leaks",
+        risk: "high",
+        note: "Discord-leak-derived narratives (E3/E4/E5) plus WSJ-Spiegel-Bellingcat reporting (E11). Likely correlated through overlapping Western intelligence sourcing. Cluster-dampened in distribution.",
+        members: EVIDENCE.filter(e => e.cluster === "western_intel_leaks"),
+      },
+      german_judicial: {
+        name: "German judicial trail",
+        risk: "low",
+        note: "BGH ruling and prosecutorial actions are independently sourced from court records. Judicial procedure is itself a check on cluster correlation.",
+        members: EVIDENCE.filter(e => e.cluster === "german_judicial"),
+      },
+      coverage_meta: {
+        name: "Coverage / institutional non-resolution",
+        risk: "low",
+        note: "Each item documents a separate institutional non-action. Independent across jurisdictions. Pattern emerges only on aggregation (μ).",
+        members: EVIDENCE.filter(e => e.cluster === "coverage_meta"),
+      },
+      russian_state: {
+        name: "Russian state outlets",
+        risk: "high",
+        note: "Adversarial sourcing. Content credibility bounded; event credibility (the statement was made) preserved.",
+        members: EVIDENCE.filter(e => e.cluster === "russian_state"),
+      },
+      single_source: {
+        name: "Single-source narratives",
+        risk: "high",
+        note: "Hersh's account stands or falls on one anonymous source. Specific mechanism is structurally refuted; broader Western-coordination question is preserved in β′.",
+        members: EVIDENCE.filter(e => e.cluster === "single_source"),
+      },
+    };
+    return Object.entries(groups);
+  }, []);
+
+  const unclustered = EVIDENCE.filter(e => !e.cluster);
+
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Provenance"
+        title="Source clusters and correlation risk"
+        body="Two evidence items from the same ecosystem are not two votes — they are one signal. The provenance audit identifies clusters whose contributions must be dampened in aggregation, and flags adversarial sourcing where event-credibility and content-credibility diverge."
+      />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {clusters.map(([key, c]) => (
+          <ProvenanceClusterCard key={key} c={c} />
+        ))}
+
+        {/* Independent evidence */}
+        <div style={{
+          background: colors_V05.paper, border: `1px solid ${colors_V05.ruleSoft}`,
+          padding: "18px 22px 20px", borderRadius: 2,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <MonoLabel size={10} letterSpacing={1.2} color={colors_V05.good}>
+              Independently sourced · {unclustered.length} records
+            </MonoLabel>
+            <Tag_V05 tone="good">low correlation risk</Tag_V05>
+          </div>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.55, marginBottom: 12,
+          }}>
+            These items do not share a common originating source layer. Convergence among them is signal, not echo.
+          </div>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {unclustered.map(e => <EvidencePill key={e.id} eid={e.id} />)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProvenanceClusterCard({ c }) {
+  const riskTone = c.risk === "high" ? { fg: colors_V05.warnDeep, bg: "#F4ECD8", bd: "#D4B870", label: "Cluster-dampened in distribution" }
+                                     : { fg: colors_V05.good,     bg: "#E8EDE0", bd: colors_V05.goodSoft, label: "Independent within cluster" };
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${riskTone.bd}`,
+      borderLeft: `3px solid ${riskTone.fg}`,
+      padding: "18px 22px 20px", borderRadius: 2,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <MonoLabel size={10} letterSpacing={1.2} color={riskTone.fg}>
+          {c.name} · {c.members.length} {c.members.length === 1 ? "record" : "records"}
+        </MonoLabel>
+        <span style={{
+          fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.8, textTransform: "uppercase",
+          color: riskTone.fg, background: riskTone.bg, border: `1px solid ${riskTone.bd}`,
+          padding: "3px 8px", borderRadius: 1, fontWeight: 500,
+        }}>{riskTone.label}</span>
+      </div>
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.55, marginBottom: 12,
+      }}>{c.note}</div>
+      <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+        {c.members.map(e => <EvidencePill key={e.id} eid={e.id} />)}
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// AUDIT TAB 3 — BRIEFING (1 full Analyst memo + 3 placeholders)
+// ----------------------------------------------------------------------------
+
+function BriefingTab() {
+  return (
+    <div>
+      <SectionHeading
+        dense
+        eyebrow="Briefing"
+        title="Export-ready memos"
+        body="Trace synthesizes the case file into format-specific briefings. The Analyst memo below is rendered in full; three other formats are available in the workspace tier."
+      />
+
+      <AnalystMemo />
+
+      <div style={{ marginTop: 32 }}>
+        <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.inkMute} style={{ marginBottom: 14 }}>
+          Other formats — workspace tier
+        </MonoLabel>
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14,
+        }}>
+          <PlaceholderBriefing
+            label="Reader brief"
+            tagline="5-minute version for a non-specialist audience"
+            sketch={[
+              "Current Understanding (one paragraph)",
+              "α / β′ / ε / ζ / μ in one sentence each",
+              "What we don't know — three pinned items",
+              "How to read this exhibit (50 words)",
+            ]}
+          />
+          <PlaceholderBriefing
+            label="Legal brief"
+            tagline="Issue / claim / evidence / contradictions / burden"
+            sketch={[
+              "Issue framing — attribution under disputed jurisdiction",
+              "Per-claim evidence inventory",
+              "Per-claim contradictions and resolutions",
+              "Burden-of-proof analysis",
+              "Outstanding evidentiary gaps",
+            ]}
+          />
+          <PlaceholderBriefing
+            label="Source audit appendix"
+            tagline="Provenance, correlation, register confidence per record"
+            sketch={[
+              "All 37 evidence records with full audit fields",
+              "Cluster correlation analysis",
+              "Register-confidence per record",
+              "Independence graph",
+              "Methodology notes",
+            ]}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderBriefing({ label, tagline, sketch }) {
+  return (
+    <div style={{
+      background: colors_V05.paperDeep, border: `1px dashed ${colors_V05.rule}`,
+      padding: "20px 22px 22px", borderRadius: 2,
+    }}>
+      <div style={{
+        fontFamily: fonts.serif, fontStyle: "italic", fontSize: 17, color: colors_V05.ink,
+        letterSpacing: -0.2, lineHeight: 1.2, marginBottom: 6,
+      }}>
+        {label}
+      </div>
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.5,
+        marginBottom: 14,
+      }}>
+        {tagline}
+      </div>
+      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+        {sketch.map((s, i) => (
+          <li key={i} style={{
+            fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkMute,
+            lineHeight: 1.5, paddingLeft: 12, position: "relative", marginBottom: 4,
+          }}>
+            <span style={{ position: "absolute", left: 0, top: 8, width: 5, height: 1, background: colors_V05.muted }} />
+            {s}
+          </li>
+        ))}
+      </ul>
+      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px dashed ${colors_V05.rule}` }}>
+        <Tag_V05 tone="mute">Available in workspace tier</Tag_V05>
+      </div>
+    </div>
+  );
+}
+
+function AnalystMemo() {
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.ink}`,
+      padding: "36px 44px 40px", borderRadius: 2,
+    }}>
+      {/* Letterhead */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+        paddingBottom: 16, borderBottom: `1px solid ${colors_V05.ink}`, marginBottom: 28,
+      }}>
+        <div>
+          <MonoLabel size={9.5} letterSpacing={1.4} color={colors_V05.primary} style={{ marginBottom: 8 }}>
+            Analyst memo · Trace claim file {CASE_META.id} · {CASE_META.version}
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.serif, fontStyle: "italic", fontSize: 26, color: colors_V05.ink,
+            letterSpacing: -0.4, lineHeight: 1.2,
+          }}>
+            Nord Stream attribution · structured reading
+          </div>
+        </div>
+        <MonoLabel size={9.5} letterSpacing={0.8} color={colors_V05.inkMute}>
+          {CASE_META.lastUpdated}
+        </MonoLabel>
+      </div>
+
+      {/* BLUF */}
+      <MemoSection
+        eyebrow="Bottom line up front"
+        body={[
+          "Three years on, the case has converged on structure but has not closed on identity. The leading reconstruction (α, 70% attribution coverage) is a Ukrainian military-command operation conducted via the Zaluzhnyi track after presidential approval was withdrawn, with Polish post-facto protection and US prior awareness that did not foreclose. This is the only live storyline that simultaneously absorbs the Andromeda forensic chain, the December 2025 BGH ruling, the Polish refusal to execute the German EAW, the Italian Cassazione transfers, and the documented June 2022 CIA warning to Germany.",
+          "α is not a verdict. Three storylines remain live: β′ (wider Western coordination, 5%), ε (declared blind spot for unenumerated configurations, 19%), and ζ (UK question, under-examined, 6%). A separate process subclaim (μ) holds the question of why five jurisdictions and one international body have chosen non-advancement.",
+        ]}
+      />
+
+      {/* Strongest argument */}
+      <MemoSection
+        eyebrow="Why α leads"
+        body={[
+          "α uniquely reconciles three otherwise awkward facts. First: the Andromeda forensic trail (HMX residue, DNA, fingerprints, forged identity papers, 70-80m operational depth) points to a Ukrainian-linked execution layer at small operational scale — not a US Navy or state-navy professional operation. Second: the CIA's June 2022 warning to Germany via the Dutch MIVD chain implies prior knowledge, not surprise — and was followed by no foreclosure. Third: Poland's refusal to execute the German EAW, the Italian Cassazione's three-step transfer, and the BGH's December 2025 ruling that the operation was 'with high probability an intelligence-agency action ordered by a foreign government' cohere only if Ukrainian state-linked authorship is the operative frame.",
+          "α's least-documented link is the command-authorization layer. Spiegel 2026 (Zaluzhnyi approved) and Il Fatto 2025 (Zelensky approved-then-withdrew under US pressure, Zaluzhnyi continued) are testimonial, not documentary. Hanning's Die Welt testimony naming Polish authorization and 'both presidents' is T1-level ex-officer credibility but its evidentiary base is not public. The Zaluzhnyi-bypass framing α prefers reconciles the WSJ-Spiegel narrative split via temporal sequencing — but the reconciliation is plausible, not anchored.",
+        ]}
+      />
+
+      {/* Storyline comparison */}
+      <MemoSection
+        eyebrow="Live storylines, briefly"
+        body={[]}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {STORYLINES_V05.filter(s => !s.excluded).map(s => (
+            <MemoStorylineRow key={s.id} s={s} />
+          ))}
+        </div>
+      </MemoSection>
+
+      {/* Contradictions to track */}
+      <MemoSection
+        eyebrow="Three contradictions to track"
+        body={[]}
+      >
+        <ol style={{ margin: 0, paddingLeft: 22, color: colors_V05.inkSoft }}>
+          {[
+            { c: CONTRADICTIONS.find(x => x.id === "DE_judicial_vs_political"),
+              note: "The German judiciary advances; the German executive suppresses. The split is itself part of the case. μ centers it; α absorbs as 'judicial layer signals what political layer cannot'." },
+            { c: CONTRADICTIONS.find(x => x.id === "wsj_vs_spiegel"),
+              note: "WSJ 2024 (Zaluzhnyi knew) and Spiegel 2026 (Zelensky uninformed) appear contradictory. Il Fatto's temporal-split reading reconciles them — α absorbs cleanly, β′ strains." },
+            { c: CONTRADICTIONS.find(x => x.id === "andromeda_vs_state_navy"),
+              note: "Andromeda forensics evidence a real state-grade-equipped team. Operational signature evidences a resource-constrained execution. The combination matches state-enabled but not state-executed — α's principal structural prediction." },
+          ].map((row, i) => (
+            <li key={i} style={{
+              fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.6, marginBottom: 12,
+            }}>
+              <strong style={{ color: colors_V05.ink, fontWeight: 600 }}>{row.c.title}</strong>
+              <div style={{ marginTop: 4 }}>{row.note}</div>
+            </li>
+          ))}
+        </ol>
+      </MemoSection>
+
+      {/* Watchlist */}
+      <MemoSection
+        eyebrow="Watchlist · what would shift the reading"
+        body={[]}
+      >
+        <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
+          {LOAD_BEARING_UNKNOWNS.changeLeading.items.map((item, i) => (
+            <li key={i} style={{
+              fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.55, marginBottom: 10,
+              paddingLeft: 16, position: "relative", color: colors_V05.inkSoft,
+            }}>
+              <span style={{
+                position: "absolute", left: 0, top: 9, width: 8, height: 1, background: colors_V05.primary,
+              }} />
+              <span style={{
+                fontFamily: fonts.serif, fontStyle: "italic", fontSize: 13.5, color: colors_V05.ink,
+              }}>{item.q}</span>{" "}
+              — would shift {item.wouldShift}.
+            </li>
+          ))}
+        </ul>
+      </MemoSection>
+
+      {/* Coda */}
+      <div style={{
+        marginTop: 28, paddingTop: 18, borderTop: `1px solid ${colors_V05.rule}`,
+        display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, flexWrap: "wrap",
+      }}>
+        <MonoLabel size={9} letterSpacing={0.9} color={colors_V05.inkMute}>
+          Trace · Not a verdict · A structured reading the surviving evidence makes most coherent
+        </MonoLabel>
+        <MonoLabel size={9} letterSpacing={0.9} color={colors_V05.inkMute}>
+          37 evidence · 13 anchors · 14 languages · 5 jurisdictions
+        </MonoLabel>
+      </div>
+    </div>
+  );
+}
+
+function MemoSection({ eyebrow, body, children }) {
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <MonoLabel size={9.5} letterSpacing={1.2} color={colors_V05.primary} style={{ marginBottom: 12 }}>
+        {eyebrow}
+      </MonoLabel>
+      {body.map((para, i) => (
+        <p key={i} style={{
+          fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.7, color: colors_V05.ink,
+          margin: i === body.length - 1 ? 0 : "0 0 12px 0",
+        }}>
+          {para}
+        </p>
+      ))}
+      {children}
+    </div>
+  );
+}
+
+function MemoStorylineRow({ s }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "auto auto 1fr auto", gap: 14, alignItems: "baseline",
+      paddingBottom: 8, borderBottom: `1px dotted ${colors_V05.ruleSoft}`,
+    }}>
+      <span style={{
+        fontFamily: fonts.serif, fontStyle: "italic", fontSize: 18,
+        color: StorylineColor(s.id), fontWeight: 500, lineHeight: 1, minWidth: 22,
+      }}>{s.glyph}</span>
+      <CoverageDisplay value={s.coverage} color={StorylineColor(s.id)} />
+      <div>
+        <div style={{
+          fontFamily: fonts.serif, fontSize: 14, color: colors_V05.ink, fontStyle: "italic",
+          letterSpacing: -0.15, lineHeight: 1.3, marginBottom: 3,
+        }}>{s.label}</div>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.45,
+        }}>
+          {s.strongestArgument.headline}
+        </div>
+      </div>
+      {s.isSubclaim && <Tag_V05 tone="warn">Subclaim</Tag_V05>}
+    </div>
+  );
+}
+
+
+// ============================================================================
+// VERSION CHANGELOG (rendered at bottom of AUDIT)
+// ============================================================================
+
+function VersionChangelog() {
+  return (
+    <div style={{ marginTop: 56 }}>
+      <SectionHeading
+        dense
+        eyebrow="Versioning"
+        title="What has changed across versions"
+        body="Trace surfaces version history because revising the candidate set is part of being right. Hidden updates would degrade trust; visible updates compound it."
+      />
+      <div style={{
+        background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+        borderRadius: 2, padding: "26px 30px 28px",
+      }}>
+        {CHANGELOG.map((c, i) => (
+          <div key={c.version} style={{
+            display: "grid", gridTemplateColumns: "120px 1fr", gap: 24,
+            paddingBottom: i < CHANGELOG.length - 1 ? 22 : 0,
+            marginBottom: i < CHANGELOG.length - 1 ? 22 : 0,
+            borderBottom: i < CHANGELOG.length - 1 ? `1px dashed ${colors_V05.ruleSoft}` : "none",
+          }}>
+            <div>
+              <div style={{
+                fontFamily: fonts.serif, fontStyle: "italic", fontSize: 22,
+                color: i === CHANGELOG.length - 1 ? colors_V05.primary : colors_V05.ink, fontWeight: 400,
+                letterSpacing: -0.3, lineHeight: 1, marginBottom: 4,
+              }}>
+                {c.version}
+              </div>
+              <MonoLabel size={9} letterSpacing={0.7} color={colors_V05.inkMute}>
+                {c.date}
+              </MonoLabel>
+            </div>
+            <div>
+              <div style={{
+                fontFamily: fonts.serif, fontSize: 16, color: colors_V05.ink,
+                letterSpacing: -0.2, lineHeight: 1.3, marginBottom: 10,
+              }}>{c.title}</div>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                {c.notes.map((n, j) => (
+                  <li key={j} style={{
+                    fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft,
+                    lineHeight: 1.55, paddingLeft: 14, position: "relative", marginBottom: 5,
+                  }}>
+                    <span style={{
+                      position: "absolute", left: 0, top: 8, width: 6, height: 1,
+                      background: i === CHANGELOG.length - 1 ? colors_V05.primary : colors_V05.muted,
+                    }} />
+                    {n}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// MAIN APP
+// ============================================================================
+
+function TraceCaseFileV05() {
+  const [mode, setMode] = useState("READ");
+
+  // Inject Google Fonts once at mount
+  useEffect(() => {
+    const id = "trace-fonts-v05";
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap";
+    document.head.appendChild(link);
+  }, []);
+
+  return (
+    <ModeShell mode={mode} setMode={setMode}>
+      {mode === "READ"    && <ReadMode />}
+      {mode === "EXAMINE" && <ExamineMode />}
+      {mode === "AUDIT"   && <AuditMode />}
+    </ModeShell>
+  );
+}
+
+
+// ============================================================================
+// ECOSYSTEMS — per-language positional data
+//   14 language ecosystems × 1–4 factions each = 30 faction-level points
+//
+// Each faction carries:
+//   · Frame coordinates (x: US-attribution → Russia-attribution;
+//                        y: accepts-mainstream → rejects-mainstream)
+//   · Victim category + intensity + moral frame + epistemic posture
+//   · Register profile (certainty + affect + diagnostic markers)
+//   · Baseline (predicted technique) · Observed · Deviation level (fit)
+//   · Why-it-matters meta-implication
+//
+// Inference firewall (spec §1.2): register / baseline-deviation analysis is
+// positional evidence. It maps how an ecosystem speaks, not what is true.
+// ============================================================================
+
+const ECOSYSTEMS = [
+  {
+    id: "en", flag: "🇬🇧🇺🇸", name: "English", longName: "English-language press",
+    factions: [
+      {
+        id: "en-main", label: "Mainstream (WSJ/NYT/WaPo)", kind: "main",
+        frame: { x: 70, y: 26, victim: "C3", victimIntensity: 0.4, moral: "B2", posture: "D1" },
+        drift: { fromX: 82, fromY: 18, dx: -12, dy: 8 },
+        register: {
+          certainty: "neutral", affect: "distance",
+          markers: ["according to people familiar", "what authorities described as", "a plan hatched over drinks"],
+        },
+        baseline: "Anglo investigative outlets default to extensive hedging, passive constructions, and sourced-to-officials framing on contested attribution stories.",
+        observed: "Standard normalization register. Even when scoop-level Ukrainian-attribution evidence is delivered, the editorial register stays uniformly cool and procedural.",
+        deviation: { level: "low", direction: "baseline-typical; no deviation from Anglo investigative norm", fit: "strong" },
+        whyMatters: "Low deviation IS the diagnostic. The register signals an editorial position that consequences-questions ('why no sanctions on a treaty ally?') should not be triggered. Normalization here equals non-pursuit.",
+      },
+      {
+        id: "en-hersh", label: "Hersh (single-source)", kind: "single",
+        frame: { x: 8, y: 86, victim: "C1", victimIntensity: 0.85, moral: "B3", posture: "D3" },
+        register: {
+          certainty: "affirmative", affect: "indignation",
+          markers: ["The U.S. Navy's Diving and Salvage Center", "blockbuster", "deep state"],
+        },
+        baseline: "Hersh's career baseline on US covert operations is high-drama investigative + open moral indignation.",
+        observed: "Standard Hersh dramatization register. Cinematic opening, single-anonymous-source structure, full moral framing.",
+        deviation: { level: "low", direction: "no deviation against Hersh's own baseline; high contrast against Anglo-mainstream baseline", fit: "strong vs self / weak vs ecosystem" },
+        whyMatters: "Hersh consciously refuses the mainstream normalization register. The contrast itself is positional — he occupies the role 'the one who will dramatize when mainstream won't.' Distinct from being right.",
+      },
+      {
+        id: "en-factcheck", label: "Fact-checkers (Snopes etc.)", kind: "alt",
+        frame: { x: 72, y: 22, victim: "C3", victimIntensity: 0.35, moral: "B2", posture: "D1" },
+        register: {
+          certainty: "ironic", affect: "mockery",
+          markers: ["blockbuster revelation", "fantastical claims", "no evidence has emerged"],
+        },
+        baseline: "Mainstream fact-check outlets default to detached neutrality on contested claims.",
+        observed: "Pointed irony toward Hersh's specifically; light dismissal posture beyond bare-facts review.",
+        deviation: { level: "medium", direction: "from neutral fact-review toward register-mocking the source", fit: "moderate" },
+        whyMatters: "Register dismissal of a single source is a position move, not a fact-check operation. It signals which sources are inside vs outside the legitimacy boundary the fact-check operates within.",
+      },
+    ],
+  },
+
+  {
+    id: "zh", flag: "🇨🇳", name: "Chinese", longName: "Chinese state press",
+    factions: [
+      {
+        id: "zh-party", label: "Party-state (Xinhua / People's Daily / 观察者网)", kind: "main",
+        frame: { x: 14, y: 80, victim: "C1", victimIntensity: 0.85, moral: "B1", posture: "D3" },
+        drift: { fromX: 24, fromY: 62, dx: -10, dy: 18 },
+        register: {
+          certainty: "ironic", affect: "suspicion",
+          markers: ["谁从中获益?", "集体沉默", "西方学者也指出", "某些国家"],
+        },
+        baseline: "Chinese party-state media default to neutral-reportorial register on geopolitical attribution, with occasional indirect editorial alignment via selective amplification.",
+        observed: "Sustained meta-observation register: the framing places adversary statements (Sikorski's 'thank you', UNSC abstentions, Sachs's testimony) into juxtaposition without explicit editorial attribution.",
+        deviation: { level: "medium", direction: "from baseline neutral-amplification toward systematic suggestive juxtaposition; the omitted editorial is itself positional", fit: "moderate" },
+        whyMatters: "The register encodes a Confucian 'silence as stance' rhetorical resource — 'we don't say who, but observe who is silent.' Outsourcing attribution to the reader while structuring what they read.",
+      },
+    ],
+  },
+
+  {
+    id: "ru", flag: "🇷🇺", name: "Russian", longName: "Russian-language press",
+    factions: [
+      {
+        id: "ru-state", label: "State (RT / TASS / SVR)", kind: "main",
+        frame: { x: 9, y: 85, victim: "C1", victimIntensity: 1.0, moral: "B1", posture: "D3" },
+        drift: { fromX: 14, fromY: 74, dx: -5, dy: 11 },
+        register: {
+          certainty: "affirmative", affect: "indignation",
+          markers: ["располагаем достоверной информацией", "fantastical", "bizarro", "utterly false"],
+        },
+        baseline: "Russian state media on adversarial Western attribution stories defaults to indignant-victim register with intelligence-authority syntax.",
+        observed: "Naryshkin formal accusation deploys court-document syntax — register-of-authority designed to manufacture credibility against the bounded content credibility of an adversarial source.",
+        deviation: { level: "low", direction: "no deviation from baseline state-media indignation register", fit: "strong" },
+        whyMatters: "Low deviation marks this as boilerplate — the register tells us what register the Russian state media chose, not what it knows. Adversarial-source baseline applies; content-credibility bounded by structural position.",
+      },
+      {
+        id: "ru-exile", label: "Exile (Meduza)", kind: "alt",
+        frame: { x: 58, y: 42, victim: "C4", victimIntensity: 0.55, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "neutral", affect: "distance",
+          markers: ["officially never confirmed", "according to Western reporting", "no Russian-language source independently corroborates"],
+        },
+        baseline: "Exile Russian-language outlets curate distance from both Kremlin narrative and Western mainstream — the 'only credible Russian voice' positioning.",
+        observed: "Maintained academic-distance register on Zaluzhnyi line. Reports Western findings without amplification; refuses Kremlin counter-narrative.",
+        deviation: { level: "low", direction: "consistent with exile-media positioning baseline", fit: "strong" },
+        whyMatters: "Register-distance from BOTH ecosystems is itself a structural position. Meduza's existence as a credible Russian-language alternative depends on this dual refusal — register protects identity, not just neutrality.",
+      },
+    ],
+  },
+
+  {
+    id: "de", flag: "🇩🇪", name: "German", longName: "German-language ecosystem (most register-split)",
+    factions: [
+      {
+        id: "de-judicial", label: "Judiciary (BGH / Generalbundesanwaltschaft)", kind: "judicial",
+        frame: { x: 58, y: 18, victim: "C2", victimIntensity: 0.55, moral: "B1", posture: "D1" },
+        register: {
+          certainty: "evasive", affect: "procedural_coldness",
+          markers: ["mit hoher Wahrscheinlichkeit", "ausländische Geheimdienste", "fremde Regierung", "nicht zu benennen"],
+        },
+        baseline: "German high courts on state-secrecy-adjacent rulings default to procedural retreat — refusal to name, refusal to advance, technical-evidentiary minimum.",
+        observed: "STRUCTURALLY assertive (foreign-government-intelligence finding crosses category threshold); POLITICALLY evasive (refuses to name the foreign government). Dual-aspect register.",
+        deviation: { level: "high", direction: "from procedural-retreat baseline toward category-crossing assertion while keeping naming threshold", fit: "weak" },
+        whyMatters: "The register itself encodes the case's structure: BGH crossed its evidentiary threshold; it did not cross its political-naming threshold. The gap between 'foreign government' (asserted) and the specific government (withheld) is positional information of the highest density.",
+      },
+      {
+        id: "de-government", label: "Government (Kanzleramt / Schmidt)", kind: "government",
+        frame: { x: 72, y: 24, victim: "C3", victimIntensity: 0.35, moral: "B1", posture: "D1" },
+        register: {
+          certainty: "evasive", affect: "procedural_coldness",
+          markers: ["Wohl der Bundesrepublik", "Third Party Rule", "aus staatswohl Gründen"],
+        },
+        baseline: "German Chancellor's Office defaults to diplomatic-procedural register on intelligence matters; refusal-to-answer is by formula, not silence.",
+        observed: "Maximal procedural coldness. Bundestag inquiry blocked via Third Party Rule. AfD parliamentary question refused 'for reasons of state welfare' without further response.",
+        deviation: { level: "low", direction: "baseline-typical procedural register; the act of invocation, not the language, is the signal", fit: "strong" },
+        whyMatters: "Low register deviation but high act-frequency. The Kanzleramt is doing exactly what it normally does — but doing it more, on this case. The repetition is the position.",
+      },
+      {
+        id: "de-mainstream", label: "Mainstream investigative (Die Zeit / SZ / ARD)", kind: "main",
+        frame: { x: 40, y: 46, victim: "C2", victimIntensity: 0.95, moral: "B3", posture: "D2" },
+        drift: { fromX: 76, fromY: 22, dx: -36, dy: 24 },
+        register: {
+          certainty: "neutral", affect: "anxiety",
+          markers: ["bemerkenswert", "auffällig", "die Frage drängt sich auf", "Deutschland war mitschweigend"],
+        },
+        baseline: "German mainstream investigative outlets default to thorough-documentary register with hedged moral framing.",
+        observed: "Documentary thoroughness preserved; victim-frame migrated from C3 (Ukraine-frontline) to C2 (Europe-as-collateral). Implicit-anxiety markers ('bemerkenswert') flag political anomaly.",
+        deviation: { level: "high", direction: "from default neutral-Europe baseline toward sustained 'Germany was complicit in silence' framing", fit: "weak" },
+        whyMatters: "The drift is structural: the question moved from 'who did it' (settled at Ukraine) to 'who was hurt' (Europe, with Germany as silent participant). The register migrated to host the victim-frame shift.",
+      },
+      {
+        id: "de-alt", label: "Alt-media (Multipolar / NachDenkSeiten / Hintergrund)", kind: "alt",
+        frame: { x: 20, y: 63, victim: "C2", victimIntensity: 0.95, moral: "B1", posture: "D3" },
+        drift: { fromX: 38, fromY: 54, dx: -18, dy: 9 },
+        register: {
+          certainty: "adversarial", affect: "indignation",
+          markers: ["simuliert", "verwesender Körper des einstigen Rechtsstaats", "Vasallen", "Deindustrialisierung"],
+        },
+        baseline: "German independent-left alt-media baseline is open mockery + system-critique register on US-EU alliance dynamics.",
+        observed: "Maximal indignation register. Mainstream investigation framed as performative ('simuliert'); state described in decay metaphors ('decomposing body of the former Rechtsstaat').",
+        deviation: { level: "low", direction: "consistent with anti-establishment alt-media baseline", fit: "strong" },
+        whyMatters: "Low deviation = baseline-typical fervor. The register is structurally familiar; the question is whether the baseline-typical alt-media reading happens to be ecosystem-correct here. Register alone cannot answer that.",
+      },
+    ],
+  },
+
+  {
+    id: "pl", flag: "🇵🇱", name: "Polish", longName: "Polish-language press (only ecosystem in 'pride' register)",
+    factions: [
+      {
+        id: "pl-judicial-political", label: "Judicial-political (Łubowski / Tusk)", kind: "judicial",
+        frame: { x: 82, y: 18, victim: "C3", victimIntensity: 0.85, moral: "B2", posture: "D1" },
+        register: {
+          certainty: "affirmative", affect: "pride",
+          markers: ["wojna sprawiedliwa", "krwawa i ludobójcza napaść", "sprawa zamknięta", "i słusznie"],
+        },
+        baseline: "Polish judicial register on cross-border criminal matters defaults to formal-legal procedural language without moral framing in the ratio decidendi.",
+        observed: "Łubowski's ruling text places moral judgment ('blood-stained, genocidal aggression') BEFORE legal analysis. Tusk's 'sprawa zamknięta' tweet treats non-extradition as victory, not jurisdictional outcome.",
+        deviation: { level: "high", direction: "from procedural-formal judicial baseline toward moralized legitimation register", fit: "weak" },
+        whyMatters: "The deviation is the most diagnostically loaded in the entire case. A judicial register that pre-empts legal analysis with moral framing tells us the legal system has aligned with a national narrative — not that the narrative is correct, but that institutional posture is taken, not held in reserve.",
+      },
+      {
+        id: "pl-mainstream", label: "Mainstream press (Rzeczpospolita / wp.pl)", kind: "main",
+        frame: { x: 80, y: 20, victim: "C3", victimIntensity: 0.65, moral: "B2", posture: "D1" },
+        register: {
+          certainty: "affirmative", affect: "endorsement",
+          markers: ["Wysadzenie Nord Stream sprawiedliwe", "ordery dla", "bohaterowie"],
+        },
+        baseline: "Polish mainstream press baseline includes nationally-aligned register on Russia-related security matters, but typically maintains attributional hedging on contested cross-border legal questions.",
+        observed: "Editorial choice to print 'Blowing up Nord Stream was just' as a headline (not 'court considers it just'). Reporting on Sikorski's signaling for medals to suspects without rebuttal-soliciting follow-up.",
+        deviation: { level: "medium", direction: "from contested-attribution hedging baseline toward unhedged endorsement headlines", fit: "moderate" },
+        whyMatters: "Polish mainstream is the only EU member-state mainstream where 'sabotage of treaty-ally infrastructure' is reframed as 'justice'. The register choice shows alignment between editorial layer and judicial-executive layer — three institutional layers in one register direction is the rare case.",
+      },
+    ],
+  },
+
+  {
+    id: "ar", flag: "🇪🇬🇱🇧", name: "Arabic", longName: "Arabic-language press",
+    factions: [
+      {
+        id: "ar-state", label: "State formal (Al-Ahram)", kind: "main",
+        frame: { x: 42, y: 42, victim: "C4", victimIntensity: 0.5, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "neutral", affect: "distance",
+          markers: ["accusations have emerged", "denials have been issued", "investigations remain ongoing"],
+        },
+        baseline: "Arab state-aligned formal media on Western intra-alliance disputes defaults to non-aligned diplomatic register.",
+        observed: "Maintained baseline. But selection bias visible — Hersh and Naryshkin amplified more than EU judicial findings.",
+        deviation: { level: "low", direction: "no register deviation; selection layer carries the position", fit: "strong" },
+        whyMatters: "Register-low-deviation but selection-high-bias. The visible neutrality is a register frame; the position lives in editorial selection, not language.",
+      },
+      {
+        id: "ar-anti-imperial", label: "Anti-imperial (RT Arabic / Rai al-Youm)", kind: "alt",
+        frame: { x: 12, y: 78, victim: "C1", victimIntensity: 0.9, moral: "B3", posture: "D3" },
+        drift: { fromX: 28, fromY: 58, dx: -16, dy: 20 },
+        register: {
+          certainty: "affirmative", affect: "indignation",
+          markers: ["الأنجلو-ساكسون", "إمبريالية", "آخر مغامرات الناتو"],
+        },
+        baseline: "Arabic anti-imperial outlets default to high-affect anti-Western register on alliance covert-operation stories.",
+        observed: "Russian state register translated into Arabic + indigenous anti-colonial vocabulary ('Anglo-Saxons' as historically-loaded designation).",
+        deviation: { level: "low", direction: "baseline-typical anti-imperial register; cross-language vocabulary import", fit: "strong" },
+        whyMatters: "Low deviation but illustrative of cross-language alliance: Russian state register and Arab anti-imperial register converge in affect because their structural positions toward US power align, despite different cultural origins.",
+      },
+    ],
+  },
+
+  {
+    id: "fr", flag: "🇫🇷", name: "French", longName: "French-language press",
+    factions: [
+      {
+        id: "fr-mainstream", label: "Mainstream (Le Monde / France 24)", kind: "main",
+        frame: { x: 52, y: 40, victim: "C2", victimIntensity: 0.8, moral: "B3", posture: "D2" },
+        drift: { fromX: 72, fromY: 24, dx: -20, dy: 16 },
+        register: {
+          certainty: "neutral", affect: "anxiety",
+          markers: ["se confirme", "questionnement", "souveraineté européenne"],
+        },
+        baseline: "French mainstream defaults to republican-neutral reportage with implicit critique via adjective-insertion.",
+        observed: "France Info detective-style investigation; Le Monde adopting 'European sovereignty' frame. Adjective-insertion ('une figure populaire qui a été limogée') sneaks position into description.",
+        deviation: { level: "medium", direction: "from cool-reportage baseline toward implicit-critical register via adjective placement", fit: "moderate" },
+        whyMatters: "French register signals position through grammatical placement, not lexical choice. The political reading lives in adverbs and modifiers — a register technique distinctive to French editorial culture.",
+      },
+      {
+        id: "fr-independent", label: "Independent (Elucid / Le Grand Continent)", kind: "alt",
+        frame: { x: 24, y: 65, victim: "C2", victimIntensity: 0.85, moral: "B3", posture: "D3" },
+        register: {
+          certainty: "adversarial", affect: "indignation",
+          markers: ["nonchalance", "complicité tacite", "sacrifice de la souveraineté", "vassalisation"],
+        },
+        baseline: "French independent-left baseline includes open institutional critique, but typically diplomatic-academic register on foreign-policy matters.",
+        observed: "Elucid uses 'nonchalance' (= 'indifference verging on complicity') for European institutional response — a near-accusation in French editorial register.",
+        deviation: { level: "high", direction: "from diplomatic-academic baseline toward direct accusation register", fit: "weak" },
+        whyMatters: "French institutional accusation requires specific register escalation. 'Nonchalance' is the verb-cue for moving from analysis to accusation. Its appearance signals the writer has crossed a register threshold.",
+      },
+    ],
+  },
+
+  {
+    id: "it", flag: "🇮🇹", name: "Italian", longName: "Italian-language press",
+    factions: [
+      {
+        id: "it-critical", label: "Critical (Il Fatto Quotidiano)", kind: "alt",
+        frame: { x: 20, y: 70, victim: "C2", victimIntensity: 0.85, moral: "B3", posture: "D3" },
+        register: {
+          certainty: "affirmative", affect: "indignation",
+          markers: ["disobbedienza", "bocciata da lui stesso", "ucraini hanno fatto bene"],
+        },
+        baseline: "Il Fatto baseline is critical-dramatic register on government-establishment matters.",
+        observed: "Above-baseline intensity. Calenda's 'ucraini hanno fatto bene a distruggerlo' (Ukrainians did right to destroy it) printed without rebuttal — register-level endorsement via non-rebuttal.",
+        deviation: { level: "medium", direction: "from baseline critical-dramatic toward unhedged-endorsement register", fit: "moderate" },
+        whyMatters: "The register choice to print and not rebut a center-right politician's endorsement of the operation is editorial position. Italian critical media is rarely silent in this way; the silence is the position.",
+      },
+      {
+        id: "it-mainstream", label: "Mainstream (Corriere / Repubblica)", kind: "main",
+        frame: { x: 42, y: 48, victim: "C2", victimIntensity: 0.7, moral: "B3", posture: "D2" },
+        drift: { fromX: 70, fromY: 30, dx: -28, dy: 18 },
+        register: {
+          certainty: "neutral", affect: "procedural_coldness",
+          markers: ["Cassazione ha disposto", "questioni di immunità funzionale", "in attesa di pronuncia"],
+        },
+        baseline: "Italian mainstream defaults to procedural-judicial register on EU sensitive matters — 'judicialism as shelter'.",
+        observed: "Sustained procedural focus on Cassazione reversals (annul → remand → reapprove → confirm). Political layer kept in reserve.",
+        deviation: { level: "medium", direction: "from typical-procedural baseline toward extended procedural oscillation register", fit: "moderate" },
+        whyMatters: "Italian procedural-shelter register is a known structural pattern; what's notable is the duration and density of procedural oscillation here. Three reversals in six weeks is procedurally noisy in a way that signals upstream pressure even when the register stays cool.",
+      },
+      {
+        id: "it-skeptic", label: "Skeptic (Nuova Bussola / Politica Internazionale)", kind: "alt",
+        frame: { x: 28, y: 58, victim: "C4", victimIntensity: 0.6, moral: "B3", posture: "D3" },
+        register: {
+          certainty: "ironic", affect: "suspicion",
+          markers: ["da solo? difficilmente", "Anglo-americani non potevano non sapere", "depth-state classico"],
+        },
+        baseline: "Italian conservative-skeptical media baseline is 'deep-state suspicion' register — long tradition predating this case.",
+        observed: "Standard NBQ register applied to this specific factual content. 'Could Zaluzhnyi alone direct this? Doubtful' — rhetorical questioning structure.",
+        deviation: { level: "low", direction: "baseline-typical conservative deep-state register", fit: "strong" },
+        whyMatters: "Low deviation; the register itself is the position. NBQ would write the same way regardless of which Western covert operation; this is structural skepticism, not reactive analysis. Diagnostic value moderate — the register predicts itself.",
+      },
+    ],
+  },
+
+  {
+    id: "es", flag: "🇪🇸🇦🇷", name: "Spanish", longName: "Spanish-language press",
+    factions: [
+      {
+        id: "es-mainstream", label: "Mainstream (El País / El Mundo)", kind: "main",
+        frame: { x: 50, y: 38, victim: "C2", victimIntensity: 0.7, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "neutral", affect: "distance",
+          markers: ["se investiga", "según fuentes alemanas", "sin atribución pública"],
+        },
+        baseline: "Spanish European-mainstream baseline mirrors Le Monde register: fact-reportage with mild European-sovereignty inflection.",
+        observed: "Baseline-typical. Sachs amplified with charter-formal language; mainstream reporting kept measured.",
+        deviation: { level: "low", direction: "no deviation from European-mainstream baseline", fit: "strong" },
+        whyMatters: "Low-deviation cluster with French and Italian mainstream forms a recognizable EU-mainstream register pattern. The pattern is collective, not individual.",
+      },
+      {
+        id: "es-latam-left", label: "Latam left (El Salto / Infobae)", kind: "alt",
+        frame: { x: 20, y: 70, victim: "C1", victimIntensity: 0.8, moral: "B3", posture: "D3" },
+        drift: { fromX: 36, fromY: 52, dx: -16, dy: 18 },
+        register: {
+          certainty: "affirmative", affect: "indignation",
+          markers: ["imperialismo anglo-sajón", "doble vara", "OTAN como agresor"],
+        },
+        baseline: "Latin American left-independent media baseline is anti-NATO + anti-imperial register on US-Western-alliance matters.",
+        observed: "Standard anti-imperial register. Infobae's Bayesian-exploratory register ('poco verosímil' on Russian self-attribution) is a regional variant.",
+        deviation: { level: "low", direction: "consistent with Latam-left anti-imperial baseline", fit: "strong" },
+        whyMatters: "Cross-cultural register convergence with Russian state and Arabic anti-imperial — same affect from different cultural roots. Convergence is structural-political alignment, not coordination.",
+      },
+    ],
+  },
+
+  {
+    id: "ja", flag: "🇯🇵", name: "Japanese", longName: "Japanese press (the diagnostic null)",
+    factions: [
+      {
+        id: "ja-observer", label: "Mainstream observer (Nikkei / Newsweek Japan)", kind: "main",
+        frame: { x: 56, y: 22, victim: "C4", victimIntensity: 0.5, moral: "B3", posture: "D1" },
+        register: {
+          certainty: "neutral", affect: "distance",
+          markers: ["欧州で議論が起きている", "とされる", "報じられている"],
+        },
+        baseline: "Japanese press on global events DOES take positions — Ukraine war, Trump tariffs, semiconductors all generate engaged register. Nord Stream is the exception.",
+        observed: "Pure observer register: keigo politeness markers, third-party-event grammar, zero dramatization, zero positional vocabulary.",
+        deviation: { level: "high", direction: "from default engaged-register on geopolitical matters toward total disengagement register on this specific topic", fit: "weak" },
+        whyMatters: "Selective non-participation on a single topic is itself positional. The Japanese press chose to make this case 'not their event' — a register of structural avoidance not visible elsewhere in their geopolitical coverage.",
+      },
+    ],
+  },
+
+  {
+    id: "uk", flag: "🇺🇦", name: "Ukrainian", longName: "Ukrainian-language press (two-layer narrative)",
+    factions: [
+      {
+        id: "uk-official", label: "Official (Podolyak / Zelensky office)", kind: "government",
+        frame: { x: 92, y: 23, victim: "C3", victimIntensity: 0.85, moral: "B1", posture: "D1" },
+        register: {
+          certainty: "adversarial", affect: "mockery",
+          markers: ["смішно", "провокація", "russian fakery"],
+        },
+        baseline: "Ukrainian official communications on adversarial allegations baseline is firm-but-procedural denial register.",
+        observed: "Above-baseline mockery register. 'Смішно' (laughable), 'провокація' (provocation) carry contempt, not denial.",
+        deviation: { level: "medium", direction: "from procedural-denial baseline toward contemptuous-denial register", fit: "moderate" },
+        whyMatters: "Denial intensity correlates with stake. A merely-uninvolved party tends to register-low denials; the contemptuous escalation is the kind a party with something to manage produces. Note: the inference firewall (§1.2) prohibits reading this as causal admission. It documents stake-perception, not knowledge.",
+      },
+      {
+        id: "uk-media", label: "Domestic media (Focus.ua / UNIAN / TSN)", kind: "alt",
+        frame: { x: 30, y: 35, victim: "C3", victimIntensity: 0.95, moral: "B2", posture: "D1" },
+        register: {
+          certainty: "affirmative", affect: "pride",
+          markers: ["елітний підрозділ", "наша операція", "патріоти"],
+        },
+        baseline: "Ukrainian-language domestic media on military operations defaults to pro-state achievement register.",
+        observed: "Pride-register on operations the official line denies. 'Елітний підрозділ України підірвав' (Ukraine's elite unit blew up) — declarative, achievement-coded.",
+        deviation: { level: "high", direction: "from baseline pro-state register toward register CONTRADICTING the official denial layer", fit: "weak" },
+        whyMatters: "The register split between official (denial) and domestic-media (pride) is structural, not factional. Two registers serving two audiences (international diplomatic; domestic constituency) within one ecosystem. This is the case's clearest example of audience-aware register design.",
+      },
+    ],
+  },
+
+  {
+    id: "sv", flag: "🇸🇪", name: "Swedish", longName: "Swedish-language press",
+    factions: [
+      {
+        id: "sv-prosecutorial", label: "Prosecutorial (Åklagarmyndigheten / Ljungqvist)", kind: "judicial",
+        frame: { x: 52, y: 17, victim: "C4", victimIntensity: 0.8, moral: "B3", posture: "D1" },
+        register: {
+          certainty: "evasive", affect: "procedural_coldness",
+          markers: ["kan antas saknas", "slagfält för påverkansoperationer", "förundersökningen läggs ned"],
+        },
+        baseline: "Swedish prosecutorial register on jurisdictional questions defaults to binary 'saknas / föreligger' (lacking / present) — evidence is or is not present.",
+        observed: "'Kan antas saknas' (can be presumed lacking) — the insertion of 'antas' is marked. Swedish legal grammar can do binary judgment; the modal qualifier 'antas' (presumed) introduces uncertainty into a typically-decided category.",
+        deviation: { level: "high", direction: "from binary-jurisdictional baseline to intentionally-fuzzy presumption-based construction", fit: "weak" },
+        whyMatters: "Swedish lawyers can read the deviation. The 'antas' insertion signals: 'we do not say jurisdiction is missing; we say it can be presumed missing' — preserving room for later reinterpretation and avoiding a substantive jurisdictional finding.",
+      },
+      {
+        id: "sv-broadcaster", label: "Public broadcaster critic (SVT)", kind: "alt",
+        frame: { x: 42, y: 56, victim: "C2", victimIntensity: 0.85, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "ironic", affect: "indignation",
+          markers: ["enklaste vägen ut", "Sverige tog enklaste vägen", "rättssamhälle utan ryggrad"],
+        },
+        baseline: "SVT public-broadcaster register defaults to balanced reportage with hedged opinion in editorial pages.",
+        observed: "Editorial page headline 'Sverige tog enklaste vägen ut' (Sweden took the easiest way out). 'Enklaste vägen ut' carries laziness + responsibility-evasion semantic load in Swedish.",
+        deviation: { level: "high", direction: "from baseline balanced editorial toward sharp directly-named criticism of own state", fit: "weak" },
+        whyMatters: "A Swedish public broadcaster using 'enklaste vägen ut' for the national prosecutor is a register escalation. Swedish editorial culture rarely puts this phrase in a headline about a state actor. The escalation is the signal.",
+      },
+    ],
+  },
+
+  {
+    id: "da", flag: "🇩🇰", name: "Danish", longName: "Danish-language press",
+    factions: [
+      {
+        id: "da-academic", label: "Academic dissent (Buhl / Splidsboel DIIS)", kind: "alt",
+        frame: { x: 50, y: 56, victim: "C2", victimIntensity: 0.85, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "ironic", affect: "indignation",
+          markers: ["Selv Rusland har ikke bestridt", "mytedannelser, desinformation, konspirationsteorier", "Danmark havde jurisdiktion"],
+        },
+        baseline: "Danish legal-academic register defaults to formal-cool analysis with hedged disagreement.",
+        observed: "Buhl: 'Even Russia has not disputed Danish jurisdiction' — rhetorical reversal using adversary's silence. Splidsboel: 'mytedannelser, desinformation, konspirationsteorier' — three-word warning escalation.",
+        deviation: { level: "high", direction: "from formal-academic baseline toward open warning register against own government", fit: "weak" },
+        whyMatters: "Danish academic warning register has a specific tradition (prophetic-academic). Its activation is institutionally rare; activation here is a marker that domain-experts feel the public reasoning is dangerous.",
+      },
+      {
+        id: "da-broadcaster", label: "Public broadcaster (DR / TV2 Bornholm)", kind: "main",
+        frame: { x: 56, y: 38, victim: "C4", victimIntensity: 0.65, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "neutral", affect: "anxiety",
+          markers: ["bornholmernes hverdag", "uforklarede observationer", "Zhuravlevs danske familieforbindelser"],
+        },
+        baseline: "Danish public-broadcaster baseline is community-empathy register on national-security-adjacent matters.",
+        observed: "Local-island vantage prioritized. TV2 Bornholm's 'Zhuravlev's wife works at Danish company' — placed without explanatory frame, leaving the reader to interpret.",
+        deviation: { level: "medium", direction: "from community-anxiety baseline toward suspense-investigative register", fit: "moderate" },
+        whyMatters: "The 'placed without explanation' technique is positional: the Danish public broadcaster will not say what it suspects, but will arrange facts so the reader sees them. Register restraint with editorial direction.",
+      },
+    ],
+  },
+
+  {
+    id: "no", flag: "🇳🇴", name: "Norwegian", longName: "Norwegian-language press",
+    factions: [
+      {
+        id: "no-broadcaster", label: "Public broadcaster (NRK Skyggekrigen)", kind: "main",
+        frame: { x: 54, y: 30, victim: "C4", victimIntensity: 0.75, moral: "B3", posture: "D2" },
+        register: {
+          certainty: "neutral", affect: "endorsement",
+          markers: ["radarspor", "satellittbilder", "radioaktivitet", "metodologisk transparens"],
+        },
+        baseline: "NRK investigative baseline is professional-thorough register with method-transparency.",
+        observed: "Above-baseline method-display. Skyggekrigen series spends extensive screen time on HOW the team knows, not just what they know. Methodology becomes implicit argument against single-source competitors (Hersh).",
+        deviation: { level: "medium", direction: "from method-transparent baseline toward methodological-pride register as positional contrast", fit: "moderate" },
+        whyMatters: "The register implicitly stakes a methodological claim: 'we know because we showed our work; competitors that didn't are differently-credible.' Register-as-epistemology positioning.",
+      },
+      {
+        id: "no-independent-left", label: "Independent left (steigan.no)", kind: "alt",
+        frame: { x: 22, y: 64, victim: "C2", victimIntensity: 0.8, moral: "B1", posture: "D3" },
+        register: {
+          certainty: "adversarial", affect: "indignation",
+          markers: ["regjeringas talerør", "imperialistisk lydighet", "atlantisk vassalitet"],
+        },
+        baseline: "Norwegian independent-left baseline is open anti-establishment register.",
+        observed: "Indictment of NRK as 'government's mouthpiece' — direct register accusation against own public broadcaster.",
+        deviation: { level: "low", direction: "consistent with steigan.no anti-establishment baseline", fit: "strong" },
+        whyMatters: "Low deviation = register predicts itself. Diagnostic value moderate; the position is a category-position, not a case-specific judgment. Useful for exhibiting the spread, less useful as evidence on the case.",
+      },
+    ],
+  },
+];
+
+
+// Aggregate stats for the lens
+const ECOSYSTEM_STATS = {
+  totalFactions: ECOSYSTEMS.reduce((s, e) => s + e.factions.length, 0),
+  totalEcosystems: ECOSYSTEMS.length,
+  highDeviation: ECOSYSTEMS.flatMap(e => e.factions).filter(f => f.deviation.level === "high").length,
+  lowDeviation: ECOSYSTEMS.flatMap(e => e.factions).filter(f => f.deviation.level === "low").length,
+};
+
+// Color per ecosystem (uses existing palette)
+function ecosystemColor(eid) {
+  switch (eid) {
+    case "en":   return colors_V05.secondary;
+    case "zh":   return "#A03A2C";
+    case "ru":   return colors_V05.warnDeep;
+    case "de":   return colors_V05.ink;
+    case "pl":   return colors_V05.primary;
+    case "ar":   return "#7A6A54";
+    case "fr":   return "#1C3A5E";
+    case "it":   return "#5A6E48";
+    case "es":   return "#C87769";
+    case "ja":   return colors_V05.muted;
+    case "uk":   return "#B8902E";
+    case "sv":   return "#6B8AAE";
+    case "da":   return "#8A9C76";
+    case "no":   return colors_V05.meta;
+    default:     return colors_V05.inkMute;
+  }
+}
+
+// Faction kind → marker shape
+function factionShape(kind) {
+  switch (kind) {
+    case "main":       return "circle";
+    case "judicial":   return "diamond";
+    case "government": return "square";
+    case "alt":        return "circle-open";
+    case "single":     return "triangle";
+    default:           return "circle";
+  }
+}
+
+function deviationLabel(level) {
+  return { low: "Strong fit", medium: "Moderate fit", high: "Weak fit" }[level] || level;
+}
+
+function deviationColor(level) {
+  return level === "low" ? colors_V05.good : level === "medium" ? colors_V05.warn : colors_V05.primary;
+}
+
+
+// ============================================================================
+// ECOSYSTEM MAP — 2D frame plane with faction-level detail panel
+// ============================================================================
+
+function EcosystemMapView() {
+  const allFactions = useMemo(() => ECOSYSTEMS.flatMap(e =>
+    e.factions.map(f => ({ ...f, ecosystem: e }))
+  ), []);
+
+  const [selectedId, setSelectedId] = useState("de-judicial");
+  const [hoveredId, setHoveredId] = useState(null);
+  const [showDriftTrails, setShowDriftTrails] = useState(true);
+
+  const activeFaction = useMemo(() => {
+    const id = hoveredId || selectedId;
+    return allFactions.find(f => f.id === id);
+  }, [allFactions, hoveredId, selectedId]);
+
+  return (
+    <div>
+      {/* Stats strip */}
+      <div style={{
+        display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap",
+      }}>
+        <Chip num={ECOSYSTEM_STATS.totalEcosystems} label="language ecosystems" />
+        <Chip num={ECOSYSTEM_STATS.totalFactions} label="factions surveyed" />
+        <Chip num={ECOSYSTEM_STATS.highDeviation} label="weak fit (signal-rich)" tone="primary" />
+        <Chip num={ECOSYSTEM_STATS.lowDeviation} label="strong fit (baseline-typical)" tone="warn" />
+      </div>
+
+      <div style={{
+        display: "grid", gridTemplateColumns: "minmax(0, 1.55fr) minmax(0, 1fr)",
+        gap: 24, alignItems: "flex-start",
+      }}>
+        {/* Left: plane */}
+        <div>
+          <FramePlane
+            allFactions={allFactions}
+            selectedId={selectedId}
+            hoveredId={hoveredId}
+            onSelect={setSelectedId}
+            onHover={setHoveredId}
+            showDriftTrails={showDriftTrails}
+          />
+          <FramePlaneLegend
+            showDriftTrails={showDriftTrails}
+            setShowDriftTrails={setShowDriftTrails}
+          />
+        </div>
+
+        {/* Right: faction detail */}
+        {activeFaction && (
+          <FactionDetailPanel f={activeFaction} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// ----------------------------------------------------------------------------
+// FRAME PLANE — SVG 2D plot, 14 ecosystem clusters, drift trails optional
+// ----------------------------------------------------------------------------
+
+function FramePlane({ allFactions, selectedId, hoveredId, onSelect, onHover, showDriftTrails }) {
+  // Frame coords range x ∈ [0,100], y ∈ [0,100]
+  // SVG viewBox: 80px padding for axis labels
+  const W = 720, H = 560;
+  const PAD = 64;
+  const PW = W - PAD * 2, PH = H - PAD * 2;
+
+  const px = (x) => PAD + (x / 100) * PW;
+  const py = (y) => PAD + (y / 100) * PH;
+
+  // Group factions by ecosystem for connecting lines
+  const groups = useMemo(() => {
+    const out = {};
+    allFactions.forEach(f => {
+      if (!out[f.ecosystem.id]) out[f.ecosystem.id] = [];
+      out[f.ecosystem.id].push(f);
+    });
+    return out;
+  }, [allFactions]);
+
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: 0, borderRadius: 2, overflow: "hidden",
+    }}>
+      <div style={{
+        padding: "16px 22px 12px",
+        borderBottom: `1px solid ${colors_V05.ruleSoft}`,
+        background: colors_V05.paperDeep,
+      }}>
+        <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.warnDeep} style={{ marginBottom: 4 }}>
+          Frame plane · positional spread across language ecosystems
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkSoft, lineHeight: 1.5,
+        }}>
+          Each marker = one faction. Same color = same language ecosystem. Lines connect factions within an ecosystem to show internal register split. Hover to inspect.
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} style={{
+        display: "block", width: "100%", height: "auto",
+        background: colors_V05.paper,
+      }}>
+        {/* Quadrant background tints */}
+        <rect x={px(0)} y={py(0)} width={PW/2} height={PH/2}
+              fill={colors_V05.paperDeep} opacity={0.4} />
+        <rect x={px(50)} y={py(50)} width={PW/2} height={PH/2}
+              fill={colors_V05.paperDeep} opacity={0.4} />
+
+        {/* Axis labels (corners) */}
+        <text x={px(2)} y={py(3)} fill={colors_V05.inkMute}
+              style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.6 }}>
+          ACCEPTS US-AS-OPERATIVE-FRAME
+        </text>
+        <text x={px(98)} y={py(3)} fill={colors_V05.inkMute} textAnchor="end"
+              style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.6 }}>
+          ACCEPTS RUSSIA-AS-VICTIM-FRAME
+        </text>
+        <text x={px(2)} y={py(98)} fill={colors_V05.inkMute}
+              style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.6 }}>
+          REJECTS MAINSTREAM (toward US-blame)
+        </text>
+        <text x={px(98)} y={py(98)} fill={colors_V05.inkMute} textAnchor="end"
+              style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.6 }}>
+          REJECTS MAINSTREAM (toward Russia-blame)
+        </text>
+
+        {/* Crosshair */}
+        <line x1={px(50)} y1={py(0)} x2={px(50)} y2={py(100)}
+              stroke={colors_V05.rule} strokeDasharray="3 4" strokeWidth={1} />
+        <line x1={px(0)} y1={py(50)} x2={px(100)} y2={py(50)}
+              stroke={colors_V05.rule} strokeDasharray="3 4" strokeWidth={1} />
+
+        {/* Axis arrows */}
+        <line x1={px(0)} y1={py(50)} x2={px(100)} y2={py(50)}
+              stroke={colors_V05.inkMute} strokeWidth={0.5} />
+        <line x1={px(50)} y1={py(0)} x2={px(50)} y2={py(100)}
+              stroke={colors_V05.inkMute} strokeWidth={0.5} />
+
+        {/* Center axis labels */}
+        <text x={px(50)} y={py(50) - 6} fill={colors_V05.inkMute} textAnchor="middle"
+              style={{ fontFamily: fonts.mono, fontSize: 8.5, letterSpacing: 0.5, fontStyle: "italic" }}>
+          attribution axis →
+        </text>
+        <text x={px(50) + 8} y={py(50) + 14} fill={colors_V05.inkMute}
+              style={{ fontFamily: fonts.mono, fontSize: 8.5, letterSpacing: 0.5, fontStyle: "italic" }}>
+          ↓ epistemic posture
+        </text>
+
+        {/* Connecting lines within ecosystem */}
+        {Object.entries(groups).map(([eid, factions]) => {
+          if (factions.length < 2) return null;
+          const c = ecosystemColor(eid);
+          // Convex hull approximation: just connect to centroid
+          const cx = factions.reduce((s, f) => s + f.frame.x, 0) / factions.length;
+          const cy = factions.reduce((s, f) => s + f.frame.y, 0) / factions.length;
+          return (
+            <g key={`line-${eid}`}>
+              {factions.map(f => (
+                <line key={f.id}
+                      x1={px(cx)} y1={py(cy)}
+                      x2={px(f.frame.x)} y2={py(f.frame.y)}
+                      stroke={c} strokeWidth={0.6} opacity={0.22}
+                      strokeDasharray="2 3" />
+              ))}
+            </g>
+          );
+        })}
+
+        {/* Drift trails (optional) */}
+        {showDriftTrails && allFactions.filter(f => f.drift).map(f => {
+          const c = ecosystemColor(f.ecosystem.id);
+          return (
+            <g key={`drift-${f.id}`}>
+              <line x1={px(f.drift.fromX)} y1={py(f.drift.fromY)}
+                    x2={px(f.frame.x)} y2={py(f.frame.y)}
+                    stroke={c} strokeWidth={1.2} opacity={0.45} />
+              <circle cx={px(f.drift.fromX)} cy={py(f.drift.fromY)}
+                      r={2.5} fill={c} opacity={0.5} />
+            </g>
+          );
+        })}
+
+        {/* Faction markers — shape-based on plane, ecosystem color */}
+        {allFactions.map(f => {
+          const isSelected = f.id === selectedId;
+          const isHovered  = f.id === hoveredId;
+          const isActive   = isSelected || isHovered;
+          const c = ecosystemColor(f.ecosystem.id);
+          const cx = px(f.frame.x), cy = py(f.frame.y);
+          const shape = factionShape(f.kind);
+          const baseR = f.kind === "main" ? 9 : 6.5;
+          const r = isActive ? baseR + 3 : baseR;
+
+          return (
+            <g key={f.id}
+               style={{ cursor: "pointer" }}
+               onMouseEnter={() => onHover(f.id)}
+               onMouseLeave={() => onHover(null)}
+               onClick={() => onSelect(f.id)}>
+              {/* Active halo */}
+              {isActive && (
+                <circle cx={cx} cy={cy} r={r + 5} fill="none"
+                        stroke={c} strokeWidth={1} opacity={0.4} />
+              )}
+              <FactionMarker shape={shape} cx={cx} cy={cy} r={r}
+                             color={c} active={isActive} kind={f.kind} />
+              {/* Active state: flag + faction label above marker */}
+              {isActive && (
+                <text x={cx} y={cy - r - 8} fill={colors_V05.ink} textAnchor="middle"
+                      style={{
+                        fontFamily: fonts.mono, fontSize: 10, fontWeight: 600,
+                        letterSpacing: 0.4, pointerEvents: "none",
+                      }}>
+                  {primaryFlag(f.ecosystem.flag)} {f.label.split(" (")[0]}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function FactionMarker({ shape, cx, cy, r, color, active, kind }) {
+  const fill = kind === "alt" ? colors_V05.paper : color;
+  const stroke = color;
+  const strokeWidth = active ? 2.2 : 1.5;
+  switch (shape) {
+    case "circle":
+      return <circle cx={cx} cy={cy} r={r} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+    case "circle-open":
+      return <circle cx={cx} cy={cy} r={r} fill={colors_V05.paper} stroke={stroke} strokeWidth={strokeWidth} />;
+    case "diamond":
+      return (
+        <polygon points={`${cx},${cy-r} ${cx+r},${cy} ${cx},${cy+r} ${cx-r},${cy}`}
+                 fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+      );
+    case "square":
+      return <rect x={cx-r*0.85} y={cy-r*0.85} width={r*1.7} height={r*1.7}
+                   fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+    case "triangle":
+      return (
+        <polygon points={`${cx},${cy-r} ${cx+r*0.92},${cy+r*0.7} ${cx-r*0.92},${cy+r*0.7}`}
+                 fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+      );
+    default:
+      return <circle cx={cx} cy={cy} r={r} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+  }
+}
+
+function FramePlaneLegend({ showDriftTrails, setShowDriftTrails }) {
+  const shapes = [
+    { kind: "main",       label: "Mainstream / dominant outlet" },
+    { kind: "judicial",   label: "Judicial / legal layer" },
+    { kind: "government", label: "Government / executive" },
+    { kind: "alt",        label: "Alt / independent" },
+    { kind: "single",     label: "Single-source narrative" },
+  ];
+  return (
+    <div style={{
+      marginTop: 14, padding: "12px 16px", border: `1px solid ${colors_V05.ruleSoft}`,
+      background: colors_V05.paper, borderRadius: 2,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 8 }}>
+        <MonoLabel size={9} letterSpacing={0.9}>
+          Reading the plane
+        </MonoLabel>
+        <button onClick={() => setShowDriftTrails(!showDriftTrails)}
+          style={{
+            fontFamily: fonts.mono, fontSize: 9.5, letterSpacing: 0.7,
+            textTransform: "uppercase", padding: "5px 11px", borderRadius: 2,
+            cursor: "pointer", border: `1px solid ${colors_V05.rule}`,
+            background: showDriftTrails ? colors_V05.ink : "transparent",
+            color: showDriftTrails ? colors_V05.paper : colors_V05.inkSoft, fontWeight: 500,
+            transition: "all 0.12s",
+          }}>
+          {showDriftTrails ? "✓" : "○"} drift trails (Q4 2022 → 2026)
+        </button>
+      </div>
+      <div style={{
+        fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkSoft, lineHeight: 1.55,
+        marginBottom: 10,
+      }}>
+        Color = language ecosystem. Shape = faction kind. Same-ecosystem factions are connected by faint dotted lines to a centroid; the spread shows internal register split (the German cluster is the most spread). Hover any marker to surface its national flag + faction name; click to pin.
+      </div>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", paddingTop: 8, borderTop: `1px dashed ${colors_V05.ruleSoft}` }}>
+        {shapes.map(s => (
+          <div key={s.kind} style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+          }}>
+            <svg width={20} height={20} viewBox="0 0 20 20">
+              <FactionMarker shape={factionShape(s.kind)} cx={10} cy={10} r={6}
+                             color={colors_V05.inkSoft} active={false} kind={s.kind} />
+            </svg>
+            <MonoLabel size={9} letterSpacing={0.5} color={colors_V05.inkSoft}>
+              {s.label}
+            </MonoLabel>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Strip a multi-flag ecosystem string (e.g. "🇬🇧🇺🇸") to its first flag.
+// One regional-indicator pair = 4 UTF-16 code units in JS.
+function primaryFlag(flagStr) {
+  return flagStr.length > 4 ? flagStr.substring(0, 4) : flagStr;
+}
+
+
+// ----------------------------------------------------------------------------
+// FACTION DETAIL PANEL — frame coords + register profile + baseline-deviation
+// ----------------------------------------------------------------------------
+
+function FactionDetailPanel({ f }) {
+  const c = ecosystemColor(f.ecosystem.id);
+  return (
+    <div style={{
+      background: colors_V05.paper, border: `1px solid ${colors_V05.rule}`,
+      padding: "26px 28px 28px", borderRadius: 2, position: "sticky", top: 80,
+    }}>
+      {/* Identity card header — large flag + ecosystem + faction */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 18, marginBottom: 18,
+        paddingBottom: 16, borderBottom: `1px solid ${colors_V05.ruleSoft}`,
+      }}>
+        <div style={{
+          fontSize: 44, lineHeight: 1, padding: "6px 12px",
+          background: colors_V05.paperDeep, border: `1px solid ${colors_V05.ruleSoft}`,
+          borderLeft: `3px solid ${c}`, borderRadius: 2,
+          flexShrink: 0,
+        }}>
+          {f.ecosystem.flag}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <MonoLabel size={10} letterSpacing={1.1} color={c} style={{ marginBottom: 6 }}>
+            {f.ecosystem.name} · {factionKindLabel(f.kind)}
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.serif, fontStyle: "italic", fontSize: 19, color: colors_V05.ink,
+            letterSpacing: -0.25, lineHeight: 1.2, marginBottom: 4,
+          }}>
+            {f.label}
+          </div>
+          <MonoLabel size={9} letterSpacing={0.7} color={colors_V05.inkMute}>
+            {f.ecosystem.longName}
+          </MonoLabel>
+        </div>
+      </div>
+
+      {/* Frame coordinates capsule */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16,
+      }}>
+        <FrameCoordPill label="Attribution" value={attributionLabel(f.frame.x)} accent={c} />
+        <FrameCoordPill label="Posture"     value={postureLabel(f.frame.y)}      accent={c} />
+        <FrameCoordPill label="Victim frame" value={victimLabel(f.frame.victim)}  accent={c} />
+        <FrameCoordPill label="Moral frame"  value={moralLabel(f.frame.moral)}    accent={c} />
+      </div>
+
+      {f.drift && (
+        <div style={{
+          padding: "10px 14px", background: colors_V05.paperDeep,
+          border: `1px solid ${colors_V05.ruleSoft}`, borderLeft: `3px solid ${colors_V05.warn}`,
+          borderRadius: 2, marginBottom: 18,
+        }}>
+          <MonoLabel size={9} letterSpacing={1} color={colors_V05.warnDeep} style={{ marginBottom: 5 }}>
+            Drift Q4 2022 → 2026
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 12, color: colors_V05.inkSoft, lineHeight: 1.5,
+          }}>
+            Started at attribution<sub>{f.drift.fromX}</sub> / posture<sub>{f.drift.fromY}</sub>; moved <strong>{Math.abs(f.drift.dx)} {f.drift.dx < 0 ? "left" : "right"}</strong> on attribution and <strong>{Math.abs(f.drift.dy)} {f.drift.dy < 0 ? "up" : "down"}</strong> on posture.
+          </div>
+        </div>
+      )}
+
+      {/* Register profile */}
+      <Rule_V05 tone="soft" style={{ marginBottom: 14 }} />
+      <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.warnDeep} style={{ marginBottom: 10 }}>
+        Register profile
+      </MonoLabel>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        <RegisterPill kind="certainty" value={f.register.certainty} />
+        <RegisterPill kind="affect"    value={f.register.affect} />
+      </div>
+      {f.register.markers && f.register.markers.length > 0 && (
+        <div style={{ marginBottom: 18 }}>
+          <MonoLabel size={9} letterSpacing={0.8} color={colors_V05.inkMute} style={{ marginBottom: 6 }}>
+            Diagnostic markers
+          </MonoLabel>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {f.register.markers.map((m, i) => (
+              <div key={i} style={{
+                fontFamily: fonts.mono, fontSize: 10.5, color: colors_V05.inkSoft,
+                padding: "4px 8px", background: colors_V05.paperDeep,
+                border: `1px solid ${colors_V05.ruleSoft}`, borderRadius: 1,
+                lineHeight: 1.4, fontStyle: "italic",
+              }}>
+                "{m}"
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Predicted vs Observed (the user's "manipulation technique fit") */}
+      <Rule_V05 tone="soft" style={{ marginBottom: 14 }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <MonoLabel size={9.5} letterSpacing={1} color={colors_V05.warnDeep}>
+          Predicted vs observed technique
+        </MonoLabel>
+        <FitBadge level={f.deviation.level} />
+      </div>
+
+      <PredictedObservedBlock
+        predictedLabel="Predicted (baseline)"
+        predictedBody={f.baseline}
+        observedLabel="Observed (this case)"
+        observedBody={f.observed}
+        deviationDirection={f.deviation.direction}
+        accent={deviationColor(f.deviation.level)}
+      />
+
+      {/* Why it matters */}
+      <div style={{
+        marginTop: 14, padding: "12px 14px", background: colors_V05.paperDeep,
+        border: `1px solid ${colors_V05.ruleSoft}`, borderLeft: `3px solid ${c}`,
+        borderRadius: 2,
+      }}>
+        <MonoLabel size={9} letterSpacing={1} color={c} style={{ marginBottom: 6 }}>
+          What this fit reveals
+        </MonoLabel>
+        <div style={{
+          fontFamily: fonts.sans, fontSize: 12.5, color: colors_V05.inkSoft, lineHeight: 1.6,
+        }}>
+          {f.whyMatters}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FrameCoordPill({ label, value, accent }) {
+  return (
+    <div style={{
+      padding: "8px 10px", background: colors_V05.paperDeep,
+      border: `1px solid ${colors_V05.ruleSoft}`, borderRadius: 2,
+    }}>
+      <MonoLabel size={8.5} letterSpacing={0.8} color={colors_V05.inkMute} style={{ marginBottom: 3 }}>
+        {label}
+      </MonoLabel>
+      <div style={{
+        fontFamily: fonts.serif, fontSize: 13, color: colors_V05.ink,
+        fontStyle: "italic", lineHeight: 1.25, fontWeight: 400,
+      }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function RegisterPill({ kind, value }) {
+  const certaintyTones = {
+    affirmative: { fg: colors_V05.primary,   bg: "#F4E4E0" },
+    neutral:     { fg: colors_V05.inkSoft,   bg: colors_V05.paperDeep },
+    evasive:     { fg: colors_V05.warnDeep,  bg: "#F4ECD8" },
+    adversarial: { fg: colors_V05.primary,   bg: "#F4E4E0" },
+    ironic:      { fg: colors_V05.secondary, bg: "#E4ECF4" },
+  };
+  const affectTones = {
+    pride:               { fg: colors_V05.primary,   bg: "#F4E4E0" },
+    endorsement:         { fg: colors_V05.good,      bg: "#E8EDE0" },
+    mourning:            { fg: colors_V05.secondary, bg: "#E4ECF4" },
+    indignation:         { fg: colors_V05.primary,   bg: "#F4E4E0" },
+    procedural_coldness: { fg: colors_V05.inkSoft,   bg: colors_V05.paperDeep },
+    distance:            { fg: colors_V05.muted,     bg: colors_V05.paperDeep },
+    anxiety:             { fg: colors_V05.warnDeep,  bg: "#F4ECD8" },
+    mockery:             { fg: colors_V05.primary,   bg: "#F4E4E0" },
+    suspicion:           { fg: colors_V05.warnDeep,  bg: "#F4ECD8" },
+  };
+  const t = (kind === "certainty" ? certaintyTones : affectTones)[value]
+    || { fg: colors_V05.inkSoft, bg: colors_V05.paperDeep };
+
+  return (
+    <div style={{
+      padding: "6px 10px", background: t.bg, border: `1px solid ${t.fg}`,
+      borderRadius: 2, display: "inline-flex", flexDirection: "column",
+    }}>
+      <MonoLabel size={8.5} letterSpacing={0.7} color={t.fg} style={{ marginBottom: 2 }}>
+        {kind}
+      </MonoLabel>
+      <span style={{
+        fontFamily: fonts.serif, fontStyle: "italic", fontSize: 13,
+        color: colors_V05.ink, letterSpacing: -0.1, lineHeight: 1.1,
+      }}>
+        {value.replace(/_/g, " ")}
+      </span>
+    </div>
+  );
+}
+
+function FitBadge({ level }) {
+  const tone = {
+    low:    { fg: colors_V05.good,    bg: "#E8EDE0", label: "Strong fit",   sub: "predicted = observed" },
+    medium: { fg: colors_V05.warnDeep,bg: "#F4ECD8", label: "Moderate fit", sub: "register diverges" },
+    high:   { fg: colors_V05.primary, bg: "#F4E4E0", label: "Weak fit",     sub: "register breaks baseline" },
+  }[level] || { fg: colors_V05.inkSoft, bg: colors_V05.paperDeep, label: level, sub: "" };
+
+  return (
+    <span style={{
+      display: "inline-flex", flexDirection: "column",
+      padding: "4px 9px", border: `1px solid ${tone.fg}`, background: tone.bg,
+      borderRadius: 2, alignItems: "flex-end",
+    }}>
+      <span style={{
+        fontFamily: fonts.mono, fontSize: 9.5, letterSpacing: 0.9,
+        color: tone.fg, fontWeight: 600, textTransform: "uppercase",
+      }}>
+        {tone.label}
+      </span>
+      <span style={{
+        fontFamily: fonts.mono, fontSize: 8, letterSpacing: 0.4,
+        color: tone.fg, opacity: 0.85, textTransform: "uppercase",
+      }}>
+        {tone.sub}
+      </span>
+    </span>
+  );
+}
+
+function PredictedObservedBlock({ predictedLabel, predictedBody, observedLabel, observedBody, deviationDirection, accent }) {
+  return (
+    <div>
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10,
+      }}>
+        <div style={{
+          padding: "10px 12px", background: colors_V05.paperDeep,
+          border: `1px solid ${colors_V05.ruleSoft}`, borderTop: `2px solid ${colors_V05.muted}`,
+          borderRadius: 2,
+        }}>
+          <MonoLabel size={8.5} letterSpacing={0.8} color={colors_V05.inkMute} style={{ marginBottom: 5 }}>
+            {predictedLabel}
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkSoft, lineHeight: 1.5,
+          }}>
+            {predictedBody}
+          </div>
+        </div>
+        <div style={{
+          padding: "10px 12px", background: colors_V05.paper,
+          border: `1px solid ${accent}`, borderTop: `2px solid ${accent}`,
+          borderRadius: 2,
+        }}>
+          <MonoLabel size={8.5} letterSpacing={0.8} color={accent} style={{ marginBottom: 5 }}>
+            {observedLabel}
+          </MonoLabel>
+          <div style={{
+            fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.ink, lineHeight: 1.5,
+          }}>
+            {observedBody}
+          </div>
+        </div>
+      </div>
+      <div style={{
+        padding: "8px 12px", background: colors_V05.paper,
+        border: `1px dashed ${colors_V05.ruleSoft}`, borderRadius: 2,
+        display: "flex", gap: 8, alignItems: "baseline",
+      }}>
+        <MonoLabel size={8.5} letterSpacing={0.7} color={accent}>
+          Direction:
+        </MonoLabel>
+        <span style={{
+          fontFamily: fonts.sans, fontSize: 11.5, color: colors_V05.inkSoft,
+          lineHeight: 1.5, fontStyle: "italic",
+        }}>
+          {deviationDirection}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+
+// ----------------------------------------------------------------------------
+// Frame coordinate decoders
+// ----------------------------------------------------------------------------
+
+function attributionLabel(x) {
+  if (x < 20) return "US/UK as principal";
+  if (x < 40) return "Western coordination";
+  if (x < 60) return "Unresolved / multi-actor";
+  if (x < 80) return "Ukraine as actor";
+  return "Russia as victim (or self-author)";
+}
+
+function postureLabel(y) {
+  if (y < 25) return "Accepts mainstream framing";
+  if (y < 50) return "Questions mainstream";
+  if (y < 75) return "Skeptical of mainstream";
+  return "Rejects mainstream";
+}
+
+function victimLabel(v) {
+  return {
+    C1: "Russia (sovereign injury)",
+    C2: "Europe (collateral)",
+    C3: "Ukraine (frontline / partner)",
+    C4: "Ecological / universal",
+  }[v] || v;
+}
+
+function moralLabel(m) {
+  return {
+    B1: "Terror act",
+    B2: "Justified sabotage",
+    B3: "Unaccountable / impunity",
+  }[m] || m;
+}
+
+function factionKindLabel(kind) {
+  return {
+    main:       "Mainstream outlet",
+    judicial:   "Judicial layer",
+    government: "Government / executive",
+    alt:        "Alt / independent",
+    single:     "Single-source narrative",
+  }[kind] || kind;
+}
+
+// ============================================================================
+// TOP-LEVEL EXPORT — routes between v0.3 (public reading) and v0.4 (pro
+// analysis). Mode toggle lives inside each experience's Masthead; no
+// separate tab strip at top.
 // ============================================================================
 
 export default function TraceCaseFile() {
-  const [mode, setMode] = useState("v03");
+  const [mode, setMode] = useState("v04");
   return (
     <div>
-      <ModeTabStrip mode={mode} setMode={setMode}/>
-      {mode === "v03" && <TraceV03Experience/>}
-      {mode === "v04" && <TraceV04Locked mode={mode} setMode={setMode}/>}
+      {mode === "v03" && <TraceV03Experience mode={mode} setMode={setMode}/>}
+      {mode === "v04" && <TraceV04Experience mode={mode} setMode={setMode}/>}
     </div>
   );
 }
