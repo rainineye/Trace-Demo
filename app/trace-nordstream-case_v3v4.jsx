@@ -846,7 +846,8 @@ function V03_DistributionOverlay({ distribution, hoverCand, setHoverCand, idx, p
   const turningPoint = TURNING_POINTS[tp.tag];
 
   // Drag state
-  const [pos, setPos] = useState({ top: 20, right: 20, left: null });
+  // Default position: bottom-left of the graph, floating above the timeline.
+  const [pos, setPos] = useState({ top: null, left: 20, bottom: 80, right: null });
   const [dragging, setDragging] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, startTop: 0, startLeft: 0 });
@@ -861,7 +862,7 @@ function V03_DistributionOverlay({ distribution, hoverCand, setHoverCand, idx, p
       startLeft: rect.left - parentRect.left,
       startTop: rect.top - parentRect.top,
     };
-    setPos({ top: rect.top - parentRect.top, left: rect.left - parentRect.left, right: null });
+    setPos({ top: rect.top - parentRect.top, left: rect.left - parentRect.left, right: null, bottom: null });
     setDragging(true);
   };
 
@@ -885,9 +886,11 @@ function V03_DistributionOverlay({ distribution, hoverCand, setHoverCand, idx, p
     };
   }, [dragging]);
 
-  const positionStyle = pos.right != null
-    ? { top: pos.top, right: pos.right }
-    : { top: pos.top, left: pos.left };
+  // Positioning: default bottom-left; drag overrides to absolute top/left.
+  const userDragged = pos.top !== null;
+  const positionStyle = userDragged
+    ? (pos.right != null ? { top: pos.top, right: pos.right } : { top: pos.top, left: pos.left })
+    : { left: pos.left, bottom: pos.bottom };
 
   return (
     <div
@@ -1347,8 +1350,8 @@ function V03_Masthead({ mode, setMode, activeEventCount, activeSilenceCount, tot
               border: `1px solid ${V03_colors.rule}`, borderRadius: 2,
               background: V03_colors.paper, padding: 1 }}>
               {[
-                { key: "v03", label: "v0.3 · Brief" },
-                { key: "v04", label: "v0.4 · Full ver." },
+                { key: "v03", label: "v0.3 · LLM Default" },
+                { key: "v04", label: "v0.4 · Traced" },
               ].map(opt => (
                 <button key={opt.key} onClick={()=>setMode(opt.key)}
                   style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
@@ -5604,16 +5607,26 @@ function FullscreenGraph({
                 {row.glyph}
               </text>
             )}
+            {/* Flag icon to the right of bucket — same affordance V0.3 uses
+                for candidate rows. Helps the eye scan the storyline list
+                without reading every label. Uses the bucket's `flag` field
+                to pick the right CandIcon. */}
+            {row.isBucket && row.flag && (
+              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 5.5})`}
+                 opacity={row.ruledOut || row.routedTo ? 0.5 : 1}>
+                <CandIcon cand={row.flag} w={14} h={10} />
+              </g>
+            )}
             {!row.isBucket && (
               <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 5})`}>
                 <CandIcon cand={row.id} w={12} h={8} />
               </g>
             )}
 
-            {/* Compact single-line layout: glyph in ring, label to the right,
+            {/* Compact single-line layout: glyph in ring, flag icon, label, then
                 % right-aligned to a fixed column. Tag (audit/process) sits
                 inline as a small italic note after the label. */}
-            <text x={RIGHT_X + indentOffset + radius + 14}
+            <text x={RIGHT_X + indentOffset + radius + 14 + (row.isBucket ? 20 : 18)}
                   y={y + 4}
                   fontFamily="'Instrument Sans', sans-serif"
                   fontSize={row.isBucket ? 12.5 : 11}
@@ -6007,21 +6020,24 @@ function OverlapTooltip({ text, align = "left" }) {
 function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playing, onPlayToggle, mode, focusStoryline, setFocusStoryline }) {
   const isV04 = mode === "v04";
 
-  const [pos, setPos] = useState({ top: 20, right: 20, left: null });
+  // Default position: bottom-left of the graph, floating above the timeline.
+  // Left-aligned with the timeline track + ample spacing above. User can
+  // drag-relocate; drag overrides the default placement.
+  const [pos, setPos] = useState({ top: null, left: 20, bottom: 80, right: null });
   const [dragging, setDragging] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, startTop: 0, startLeft: 0 });
 
   const onHeaderMouseDown = (e) => {
     e.preventDefault();
-    // Overlay is position:sticky inside the graph container.
+    // Overlay is position:absolute inside the graph container.
     // Drag coords are relative to the containing (scrollable) parent.
     const rect = e.currentTarget.getBoundingClientRect();
     const parent = e.currentTarget.offsetParent || document.documentElement;
     const parentRect = parent.getBoundingClientRect();
     dragStart.current = { x: e.clientX, y: e.clientY,
       startLeft: rect.left - parentRect.left, startTop: rect.top - parentRect.top };
-    setPos({ top: rect.top - parentRect.top, left: rect.left - parentRect.left, right: null });
+    setPos({ top: rect.top - parentRect.top, left: rect.left - parentRect.left, right: null, bottom: null });
     setDragging(true);
   };
   useEffect(() => {
@@ -6094,12 +6110,13 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
     { id: "delta",   glyph: "δ", coverage: 0.00, color: colors.muted, excluded: true },
   ];
 
-  // Positioning: sticky inside graph container. User drag overrides with absolute.
-  const userDragged = pos.top !== 20 || pos.left !== null;
+  // Positioning: absolute inside graph container.
+  // Default: bottom-left, above the timeline. User drag overrides.
+  const userDragged = pos.top !== null;
   const stickyStyle = userDragged
     ? { position: "absolute", top: pos.top,
         ...(pos.right != null ? { right: pos.right } : { left: pos.left }) }
-    : { position: "sticky", top: 20, marginLeft: "auto", marginRight: 20, marginTop: 20 };
+    : { position: "absolute", left: pos.left, bottom: pos.bottom };
 
   return (
     <div onMouseDown={onHeaderMouseDown}
@@ -6429,18 +6446,33 @@ function EvidenceDrawer({ ev, onClose, onJumpTo, mode }) {
     return id;
   };
 
+  // Click-outside handling — wrap the drawer in a transparent backdrop that
+  // captures clicks anywhere outside the drawer body and closes it. Also
+  // close on Escape key. Stops the click event inside drawer body from
+  // propagating up to the backdrop.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div style={{ position:"absolute", top: 0, right: 0, bottom: 0,
+    <>
+      {/* Transparent backdrop — captures click-outside.
+          Sits behind the drawer body but above the graph.
+          Click anywhere on it = close. */}
+      <div onClick={onClose}
+        style={{ position:"absolute", inset: 0, zIndex: 19,
+          background: "transparent", cursor:"default" }}/>
+
+    <div onClick={(e)=>e.stopPropagation()}
+      style={{ position:"absolute", top: 0, right: 0, bottom: 0,
       width: 500, maxWidth: "50vw", background: colors.paper,
       borderLeft: `1px solid ${colors.rule}`,
       boxShadow: "-20px 0 48px rgba(26,26,26,0.05)",
       padding: "48px 38px 56px", overflowY:"auto", zIndex: 20,
       animation: "slideInRight 0.35s cubic-bezier(.2,.7,.2,1)" }}>
-      <button onClick={onClose}
-        style={{ position:"absolute", top: 48, right: 36, background:"transparent", border:"none",
-                 fontFamily:"'JetBrains Mono', monospace", fontSize: 10, color: colors.inkMute,
-                 letterSpacing: 0.8, cursor:"pointer", textTransform:"uppercase",
-                 padding: "4px 6px" }}>close ×</button>
+      {/* CLOSE button removed — click outside the panel or press Esc to close */}
 
       {/* ─── Header: ID · date · language flag ─────────────────────────── */}
       <div style={{ display:"flex", alignItems:"baseline", gap: 10 }}>
@@ -6852,6 +6884,7 @@ function EvidenceDrawer({ ev, onClose, onJumpTo, mode }) {
         </div>
       )}
     </div>
+    </>
   );
 }
 
@@ -6883,8 +6916,8 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
             border: `1px solid ${colors.rule}`, borderRadius: 2,
             background: colors.paper, padding: 1 }}>
             {[
-              { key: "v03", label: "v0.3 · Brief" },
-              { key: "v04", label: "v0.4 · Full ver." },
+              { key: "v03", label: "v0.3 · LLM Default" },
+              { key: "v04", label: "v0.4 · Traced" },
             ].map(opt => (
               <button key={opt.key} onClick={()=>setMode(opt.key)}
                 style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
@@ -7360,9 +7393,13 @@ function StorylineCard({ story, isOpen, onToggle, onFocus, focusStoryline }) {
       opacity: someoneElseFocused ? 0.45 : 1,
       transition:"opacity 0.3s, border-color 0.2s",
     }}>
-      {/* Header */}
+      {/* Header — clickable; tighter padding when collapsed since the leverage
+          row sits below it as part of the collapsed view */}
       <div onClick={onToggle}
-        style={{ padding: isAlpha ? "22px 30px 22px" : "20px 26px 20px",
+        style={{
+          padding: isOpen
+            ? (isAlpha ? "22px 30px 22px" : "20px 26px 20px")
+            : (isAlpha ? "22px 30px 14px" : "20px 26px 12px"),
           cursor:"pointer", display:"grid",
           gridTemplateColumns: "auto 1fr auto", gap: 24, alignItems:"center" }}>
         {/* Coverage % — the number the reader cares about, leading the row */}
@@ -7377,7 +7414,7 @@ function StorylineCard({ story, isOpen, onToggle, onFocus, focusStoryline }) {
           <div style={{ fontFamily:"'JetBrains Mono', monospace",
             fontSize: isAlpha ? 14 : 12, color: accentColor, fontWeight: 600,
             letterSpacing: 0.5, lineHeight: 1 }}>
-            {story.id === "alpha" ? "α" : story.id === "beta" ? "β" : story.id === "delta" ? "δ" : story.id === "epsilon" ? "ε" : "μ"}
+            {story.id === "alpha" ? "α" : story.id === "beta" ? "β" : story.id === "delta" ? "δ" : story.id === "epsilon" ? "ε" : story.id === "zeta" ? "ζ" : "μ"}
           </div>
         </div>
 
@@ -7400,6 +7437,47 @@ function StorylineCard({ story, isOpen, onToggle, onFocus, focusStoryline }) {
           {isThisFocused ? "clear focus" : "focus on graph"}
         </button>
       </div>
+
+      {/* COLLAPSED-STATE LEVERAGE POINT — only shown when card is closed.
+          Surfaces "what would shift this reading" without making the reader
+          expand the card. Indented to align with the storyline label, not
+          the coverage number. */}
+      {!isOpen && story.unexplained && (
+        <div onClick={onToggle}
+          style={{
+            cursor: "pointer",
+            padding: isAlpha
+              ? "0 30px 18px calc(100px + 30px + 24px)"
+              : "0 26px 16px calc(82px + 26px + 24px)",
+          }}>
+          <div style={{
+            display:"flex", alignItems:"flex-start", gap: 10,
+            paddingTop: 12,
+            borderTop: `1px solid ${colors.ruleSoft}`,
+          }}>
+            <div style={{
+              width: 5, height: 5,
+              background: colors.warn,
+              transform: "rotate(45deg)",
+              flexShrink: 0,
+              marginTop: 6,
+            }}/>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily:"'JetBrains Mono', monospace",
+                fontSize: 9, color: colors.warnDeep, letterSpacing: 0.9,
+                textTransform:"uppercase", fontWeight: 600, marginBottom: 4 }}>
+                Leverage point
+              </div>
+              <div style={{
+                fontFamily:"'Instrument Sans', sans-serif",
+                fontSize: 12.5, color: colors.inkSoft, lineHeight: 1.5,
+              }}>
+                {story.unexplained}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Expanded body */}
       {isOpen && (
@@ -7961,13 +8039,17 @@ function SubClaimBreakdown() {
   const data = SUBCLAIMS_V04;
   const palette = SUBCLAIM_BRANCH_PALETTE;
 
+  // Subclaim weights are PERCENTAGES WITHIN α — they sum to 100% inside α.
+  // α itself is 70% of the total case (canonical STORYLINES coverage).
+  // Load-bearing (A+B+C) = 70% of α; decorative (D+E+F) = 30% of α.
+  // The label below names these as "share within α" to remove the
+  // ambiguity readers had between case-share and α-share.
   const loadBearing = data.subclaims.filter(s => s.role === "load");
   const decorative  = data.subclaims.filter(s => s.role === "decor");
   const loadWeight  = loadBearing.reduce((s, x) => s + x.weight, 0);
   const decorWeight = decorative.reduce((s, x) => s + x.weight, 0);
 
-  // Short labels for the branching graph — the full names are shown in the
-  // detailed sub-claim rows below. The graph is a compact at-a-glance view.
+  // Short labels — replace verbose names so the row scans at-a-glance.
   const SHORT_NAMES = {
     A: "Executor",
     B: "Authorization",
@@ -7989,66 +8071,78 @@ function SubClaimBreakdown() {
   });
 
   return (
-    <div style={{ padding: "56px 56px 64px", background: colors.paper }}>
-      {/* TWO-COLUMN LAYOUT — graph left, prose right. Flex + wrap so narrow
-          viewports stack cleanly. */}
+    <div style={{ padding: "48px 56px 56px", background: colors.paper }}>
+      <Rule />
+
+      {/* Compact header — no big italic prose paragraph; the storyline label
+          and leverage point already appeared on the α card directly above. */}
+      <div style={{ marginTop: 32, marginBottom: 28, display:"grid",
+        gridTemplateColumns:"1fr 2fr", gap: 56, alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase",
+            marginBottom: 14 }}>
+            Inside α · how it decomposes
+          </div>
+          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 30, fontWeight: 400,
+            lineHeight: 1.12, letterSpacing: -0.4, color: colors.ink }}>
+            What does the lead storyline rest on?
+          </div>
+        </div>
+        <div style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 15,
+          color: colors.inkMute, lineHeight: 1.55 }}>
+          α covers 70% of the case. Below: how that 70% is distributed across six structural sub-claims. Three load-bearing claims (A, B, C) carry most of α's weight — if any of them flips, α changes shape. Three decorative claims (D, E, F) refine the picture but α survives without them. The percentages on each row are <em>within α</em>, not of the total case.
+        </div>
+      </div>
+
+      {/* ───────── TWO-COLUMN LAYOUT ─────────
+          LEFT: compact branch graph (visual at-a-glance)
+          RIGHT: 6 detailed subclaim rows with branch alternatives
+          Side-by-side reduces vertical scrolling vs the previous
+          stacked layout. */}
       <div style={{
-        display: "flex",
-        flexWrap: "wrap",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 380px) minmax(0, 1fr)",
         gap: 56,
-        alignItems: "flex-start",
-        marginBottom: 56,
-        maxWidth: 1200,
+        alignItems: "start",
       }}>
 
-        {/* ─────── LEFT COLUMN — branching graph ─────── */}
-        <div style={{ flex: "1 1 420px", maxWidth: 500, minWidth: 0 }}>
-          <div style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9.5, letterSpacing: 1, textTransform: "uppercase",
-            color: colors.inkMute, marginBottom: 18,
-          }}>
-            How this storyline decomposes
-          </div>
-
+        {/* ─────── LEFT — branch graph + scaffold ─────── */}
+        <div style={{ position: "sticky", top: 24, alignSelf: "start" }}>
           <div style={{
             position: "relative", width: "100%",
-            aspectRatio: "480 / 360",
+            aspectRatio: "380 / 360",
           }}>
             {/* SVG: trunk + branch lines */}
-            <svg viewBox="0 0 480 360"
+            <svg viewBox="0 0 380 360"
                  preserveAspectRatio="xMidYMid meet"
                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
-              {/* Trunk — short horizontal from root to split point */}
-              <line x1="82" y1="180" x2="130" y2="180"
+              <line x1="62" y1="180" x2="100" y2="180"
                     stroke={colors.ink} strokeWidth="2"/>
-              {/* Six branch paths — Bezier from trunk tip to endpoint */}
               {branches.map(b => (
                 <g key={b.letter}>
-                  <path d={`M 130 180 C 200 180 220 ${b.y} 290 ${b.y}`}
+                  <path d={`M 100 180 C 160 180 180 ${b.y} 230 ${b.y}`}
                         stroke={b.isLoad ? colors.ink : colors.inkMute}
                         strokeWidth={1 + b.weight * 9}
                         strokeLinecap="round"
                         fill="none"
-                        opacity={b.isLoad ? 1 : 0.75}/>
-                  <circle cx="290" cy={b.y} r="2.8"
+                        opacity={b.isLoad ? 1 : 0.7}/>
+                  <circle cx="230" cy={b.y} r="2.6"
                           fill={b.isLoad ? colors.ink : colors.inkMute}
-                          opacity={b.isLoad ? 1 : 0.75}/>
+                          opacity={b.isLoad ? 1 : 0.7}/>
                 </g>
               ))}
             </svg>
 
-            {/* Root label — α and 50% at the trunk's left end */}
+            {/* Root label — α and 70% (canonical) at the trunk's left end */}
             <div style={{
-              position: "absolute",
-              left: "1%",
-              top: "50%",
+              position: "absolute", left: "1%", top: "50%",
               transform: "translateY(-50%)",
               display: "flex", flexDirection: "column", alignItems: "flex-start",
             }}>
               <div style={{
                 fontFamily: "'Fraunces', serif", fontStyle: "italic",
-                fontSize: 36, fontWeight: 400, color: colors.primary,
+                fontSize: 32, fontWeight: 400, color: colors.primary,
                 lineHeight: 0.95, letterSpacing: -0.5,
               }}>α</div>
               <div style={{
@@ -8056,17 +8150,23 @@ function SubClaimBreakdown() {
                 fontSize: 11, fontWeight: 600, color: colors.ink,
                 letterSpacing: 0.4, marginTop: 6,
                 fontVariantNumeric: "tabular-nums",
-              }}>50%</div>
+              }}>70%</div>
+              <div style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 8.5, color: colors.inkMute,
+                letterSpacing: 0.6, marginTop: 2,
+                textTransform: "uppercase",
+              }}>of case</div>
             </div>
 
-            {/* Group labels — top-right and bottom-right corners */}
+            {/* Group labels at top + bottom right */}
             <div style={{
               position: "absolute", right: 0, top: 0,
               fontFamily: "'JetBrains Mono', monospace", fontSize: 8.5,
               letterSpacing: 1, textTransform: "uppercase",
               color: colors.inkMute, fontWeight: 500,
             }}>
-              Load-bearing · {Math.round(loadWeight * 100)}%
+              Load-bearing · {Math.round(loadWeight * 100)}% of α
             </div>
             <div style={{
               position: "absolute", right: 0, bottom: 0,
@@ -8074,38 +8174,37 @@ function SubClaimBreakdown() {
               letterSpacing: 1, textTransform: "uppercase",
               color: colors.inkMute, fontWeight: 500,
             }}>
-              Decorative · {Math.round(decorWeight * 100)}%
+              Decorative · {Math.round(decorWeight * 100)}% of α
             </div>
 
-            {/* Branch labels — HTML overlaid on SVG endpoints so text can
-                wrap/truncate cleanly without SVG clipping */}
+            {/* Branch endpoint labels */}
             {branches.map(b => (
               <div key={b.letter} style={{
                 position: "absolute",
-                left: `${(298 / 480) * 100}%`,
+                left: `${(238 / 380) * 100}%`,
                 top: `${(b.y / 360) * 100}%`,
                 right: 0,
                 transform: "translateY(-50%)",
-                display: "flex", alignItems: "baseline", gap: 10,
+                display: "flex", alignItems: "baseline", gap: 8,
                 paddingLeft: 6,
               }}>
                 <span style={{
                   fontFamily: "'Fraunces', serif", fontStyle: "italic",
-                  fontSize: 18, fontWeight: 400,
+                  fontSize: 16, fontWeight: 400,
                   color: b.isLoad ? colors.ink : colors.inkSoft,
-                  lineHeight: 1, width: 12,
+                  lineHeight: 1, width: 11,
                   letterSpacing: -0.2,
                 }}>{b.letter}</span>
                 <span style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
-                  letterSpacing: 0.8, textTransform: "uppercase",
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5,
+                  letterSpacing: 0.7, textTransform: "uppercase",
                   color: b.isLoad ? colors.ink : colors.inkMute,
                   flex: 1, minWidth: 0,
                   overflow: "hidden", textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                 }}>{SHORT_NAMES[b.letter]}</span>
                 <span style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontSize: 13,
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 12,
                   fontWeight: 600,
                   color: b.isLoad ? colors.ink : colors.inkSoft,
                   fontVariantNumeric: "tabular-nums",
@@ -8114,56 +8213,24 @@ function SubClaimBreakdown() {
               </div>
             ))}
           </div>
+
+          {/* Reading hint under the graph */}
+          <div style={{
+            marginTop: 18, padding: "12px 14px",
+            background: colors.paperDeep, borderRadius: 2,
+            fontFamily: "'Instrument Sans', sans-serif", fontSize: 11.5,
+            color: colors.inkSoft, lineHeight: 1.55,
+          }}>
+            Stroke thickness encodes weight within α. Bold = load-bearing; faded = decorative. The percentages each branch carries are <strong style={{color: colors.ink}}>shares of α</strong> — the inside of α's 70% — not shares of the whole case.
+          </div>
         </div>
 
-        {/* ─────── RIGHT COLUMN — prose explanation ─────── */}
-        <div style={{ flex: "2 1 420px", minWidth: 0, maxWidth: 760 }}>
-          <div style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10, color: colors.inkMute, letterSpacing: 1,
-            textTransform: "uppercase", marginBottom: 18,
-            display: "flex", alignItems: "baseline", gap: 8,
-          }}>
-            <span>Lead storyline</span>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span style={{
-              fontFamily: "'Fraunces', serif", fontStyle: "italic",
-              textTransform: "none", letterSpacing: -0.2, fontSize: 13,
-              color: colors.primary, fontWeight: 400,
-            }}>
-              α
-            </span>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span>50% coverage of the case</span>
-          </div>
-          <div style={{
-            fontFamily: "'Fraunces', serif", fontStyle: "italic",
-            fontSize: 34, fontWeight: 400, lineHeight: 1.14,
-            letterSpacing: -0.5, color: colors.ink, marginBottom: 22,
-          }}>
-            Ukrainian military bypass, Polish complicity, US awareness.
-          </div>
-          <div style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontSize: 14.5, lineHeight: 1.65, color: colors.inkSoft,
-            marginBottom: 18,
-          }}>
-            On present evidence: Ukrainian military leadership — Zaluzhnyi at the top, Chervinsky on the ground — authorized and executed the strike after Zelensky's earlier approval was withdrawn under US pressure. Poland provided tacit facilitation, short of formal participation. The CIA had been informed, initially did not oppose, and did not stop it when late warnings went unheeded. Five jurisdictions and the UN chose non-resolution — a pattern that reads as political, not forensic.
-          </div>
-          <div style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontSize: 13.5, lineHeight: 1.6, color: colors.inkMute,
-            fontStyle: "italic",
-          }}>
-            Six sub-claims — three load-bearing, three decorative — show where this reading could still shift and which alternatives the evidence has not ruled out.
-          </div>
+        {/* ─────── RIGHT — 6 detailed subclaim rows ─────── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+          {data.subclaims.map((sc) => (
+            <SubClaimRow key={sc.letter} sc={sc} palette={palette} />
+          ))}
         </div>
-      </div>
-
-      <div style={{ maxWidth: 1040, display: "flex", flexDirection: "column", gap: 34 }}>
-        {data.subclaims.map((sc) => (
-          <SubClaimRow key={sc.letter} sc={sc} palette={palette} />
-        ))}
       </div>
     </div>
   );
@@ -8210,14 +8277,14 @@ function SubClaimRow({ sc, palette }) {
       {/* Leading branch — head block matching overlay's italic Fraunces
           summary, with the probability as the biggest visual element. */}
       <div style={{
-        display: "flex", alignItems: "baseline", gap: 20,
-        marginBottom: 12,
+        display: "flex", alignItems: "baseline", gap: 16,
+        marginBottom: 10,
       }}>
         <div style={{
           flex: 1,
           fontFamily: "'Fraunces', serif", fontStyle: "italic",
-          fontSize: 22, fontWeight: 400, lineHeight: 1.3,
-          color: colors.ink, letterSpacing: -0.25,
+          fontSize: 17, fontWeight: 400, lineHeight: 1.3,
+          color: colors.ink, letterSpacing: -0.2,
           textWrap: "balance",
         }}>
           {leading.text}
@@ -8225,13 +8292,13 @@ function SubClaimRow({ sc, palette }) {
         <div style={{
           width: SUBCLAIM_NUMBER_COL,
           fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 22, fontWeight: 700,
+          fontSize: 18, fontWeight: 700,
           color: colors.primary, letterSpacing: 0.3,
           textAlign: "right", fontVariantNumeric: "tabular-nums",
           flexShrink: 0, lineHeight: 1,
         }}>
           {Math.round(leading.likelihood * 100)}<span style={{
-            fontSize: 13, fontWeight: 600, opacity: 0.65, marginLeft: 1,
+            fontSize: 11, fontWeight: 600, opacity: 0.65, marginLeft: 1,
           }}>%</span>
         </div>
       </div>
@@ -8312,7 +8379,7 @@ function SubClaimRow({ sc, palette }) {
                 }} />
                 <span style={{
                   fontFamily: "'Instrument Sans', sans-serif",
-                  fontSize: 13.5, lineHeight: 1.45,
+                  fontSize: 12.5, lineHeight: 1.45,
                   color: isHovered ? colors.ink : colors.inkSoft,
                   fontWeight: 400,
                   textWrap: "balance",
@@ -8322,14 +8389,14 @@ function SubClaimRow({ sc, palette }) {
                 </span>
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 13, fontWeight: 600,
+                  fontSize: 12, fontWeight: 600,
                   color: isHovered ? colors.ink : colors.inkSoft,
                   letterSpacing: 0.3,
                   textAlign: "right", fontVariantNumeric: "tabular-nums",
                   transition: "color 0.15s",
                 }}>
                   {Math.round(br.likelihood * 100)}<span style={{
-                    fontSize: 10, opacity: 0.65, marginLeft: 1,
+                    fontSize: 9.5, opacity: 0.65, marginLeft: 1,
                   }}>%</span>
                 </span>
               </div>
@@ -8939,7 +9006,10 @@ function SurvivingCausalChain() {
 // ============================================================================
 
 function StorylineReconstructions({ focusStoryline, setFocusStoryline }) {
-  const [openId, setOpenId] = useState("alpha"); // α opens by default
+  // All storylines default to collapsed — reader must expand to drill in.
+  // Each card surfaces its leverage point on the collapsed header so the
+  // "what would shift this reading" signal is legible without expansion.
+  const [openId, setOpenId] = useState(null);
 
   // Filter out process subclaim — μ lives on a parallel axis, not in the
   // attribution storyline list. Sort by coverage descending.
@@ -10653,7 +10723,12 @@ function TraceV04Experience({ mode, setMode }) {
         onToggleFullscreen={()=>setIsFullscreen(v=>!v)}
       />
 
-      {/* Graph region */}
+      {/* Graph region.
+          Non-fullscreen: cap at 1400px and center. On 16" laptops and wider,
+          the SVG previously stretched edge-to-edge (~1900+px), making the
+          evidence-to-storyline lines reach across awkwardly. The cap keeps
+          the graph readable at any viewport width while still using the
+          full screen in fullscreen mode. */}
       <div ref={viewportRef}
         style={{
           position: isFullscreen ? "fixed" : "relative",
@@ -10662,6 +10737,8 @@ function TraceV04Experience({ mode, setMode }) {
           right: isFullscreen ? 0 : "auto",
           bottom: isFullscreen ? 0 : "auto",
           width: isFullscreen ? "100vw" : "100%",
+          maxWidth: isFullscreen ? "none" : 1400,
+          margin: isFullscreen ? 0 : "0 auto",
           height: isFullscreen ? "100vh" : "min(78vh, 860px)",
           minHeight: isFullscreen ? "100vh" : 580,
           background: colors.paper,
@@ -10853,24 +10930,27 @@ function TraceV04Experience({ mode, setMode }) {
         </div>
       )}
 
-      {/* v0.4 mode: full long-form exhibit — Storylines lead; supporting analysis follows.
-          Order rationale (post-reorg):
-          · α deep dive (SubClaimBreakdown + SurvivingCausalChain) keeps current placement
-          · Cross-impact table follows, just before the 5-storyline cards, so E31's leverage
-            registers BEFORE the reader sees the cards
-          · Storyline cards now lead with leverage points (highlighted)
-          · Anchors as horizontal rail + storyline-coverage connector
-          · Raw scores only (softmax left-half cut — already shown on graph)
-          · Suppression + Judicial cards as μ's concrete content, then limits
-          · DeltaPanel folded into LimitsSectionV04 footer as expandable */}
+      {/* v0.4 mode: full long-form exhibit.
+          Order rationale (post-reorg, now reader-flow first):
+          · StorylineReconstructions LEADS — sits directly below the evidence
+            graph. α is the highest-coverage card, but defaults COLLAPSED so
+            the reader sees the full attribution space at once. The leverage
+            point appears on the folded card itself, so the reader can read
+            "what could shift this" without expanding.
+          · α deep-dive (SubClaimBreakdown + SurvivingCausalChain) follows —
+            once the reader chooses to go deeper into α, these unpack it.
+          · Cross-impact table shows where evidence-level leverage lives.
+          · PositionFromRegister: 14-language tone analysis.
+          · AnchorsRail: 13 facts, common trunk.
+          · AggregationReadout, SuppressionAndJudicial, LimitsSectionV04. */}
       {mode === "v04" && !isFullscreen && (
         <>
-          <SubClaimBreakdown />
-          <SurvivingCausalChain />
-          <CrossImpactTable />
           <StorylineReconstructions
             focusStoryline={focusStoryline}
             setFocusStoryline={setFocusStoryline}/>
+          <SubClaimBreakdown />
+          <SurvivingCausalChain />
+          <CrossImpactTable />
           <PositionFromRegister />
           <AnchorsRail />
           <AggregationReadout />
