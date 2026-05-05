@@ -847,7 +847,7 @@ function V03_DistributionOverlay({ distribution, hoverCand, setHoverCand, idx, p
 
   // Drag state
   // Default position: bottom-left of the graph, floating above the timeline.
-  const [pos, setPos] = useState({ top: null, left: 20, bottom: 80, right: null });
+  const [pos, setPos] = useState({ top: null, left: 20, bottom: 82, right: null });
   const [dragging, setDragging] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, startTop: 0, startLeft: 0 });
@@ -923,48 +923,8 @@ function V03_DistributionOverlay({ distribution, hoverCand, setHoverCand, idx, p
           }}>
             Current Understanding
           </div>
-          {/* Play / pause — square CTA right next to the title */}
-          {onPlayToggle && (
-            <button
-              onMouseDown={(e)=>{ e.stopPropagation(); }}
-              onClick={(e)=>{ e.stopPropagation(); onPlayToggle(); }}
-              style={{
-                width: 20, height: 20, borderRadius: 3,
-                border: playing ? `1px solid ${V03_colors.ink}` : `1px solid ${V03_colors.rule}`,
-                background: playing ? V03_colors.ink : "transparent",
-                cursor:"pointer",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                transition:"all 0.15s",
-                padding: 0,
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e)=>{
-                if (!playing) {
-                  e.currentTarget.style.background = V03_colors.paperDeep;
-                  e.currentTarget.style.borderColor = V03_colors.inkSoft;
-                }
-              }}
-              onMouseLeave={(e)=>{
-                if (!playing) {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.borderColor = V03_colors.rule;
-                }
-              }}
-              aria-label={playing ? "Pause timeline" : "Play timeline"}
-              title={playing ? "Pause timeline" : "Play timeline"}
-            >
-              {playing ? (
-                <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
-                  <rect x="1" y="1" width="2" height="7" fill={V03_colors.paper}/>
-                  <rect x="5" y="1" width="2" height="7" fill={V03_colors.paper}/>
-                </svg>
-              ) : (
-                <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
-                  <path d="M1.5 1 L7 4.5 L1.5 8 Z" fill={V03_colors.inkSoft}/>
-                </svg>
-              )}
-            </button>
-          )}
+          {/* Play/pause/stop controls now live in the timeline overlay
+              (where temporal control belongs). */}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
           <div style={{
@@ -1321,29 +1281,40 @@ function V03_Masthead({ mode, setMode, activeEventCount, activeSilenceCount, tot
     <div style={{
       borderBottom: `1px solid ${V03_colors.rule}`,
       background: V03_colors.paper,
-      padding: "18px 32px 22px",
+      padding: "16px 32px 18px",
     }}>
-      {/* Top row: Trace + meta on left, mode toggle + fullscreen on right */}
+      {/* Top row: brand + case metadata on the left, mode toggle + fullscreen
+          on the right. Metadata reads as one breadcrumb-style line:
+            CASE FILE 001 · v0.3 · X EVIDENCE */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         gap: 24, flexWrap:"wrap",
       }}>
-        <div style={{ display:"flex", alignItems:"center", gap: 18, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"baseline", gap: 12, flexWrap:"wrap" }}>
           <div style={{
-            fontFamily:"'Fraunces', serif", fontWeight: 600, fontSize: 22,
+            fontFamily:"'Fraunces', serif", fontWeight: 600, fontSize: 20,
             letterSpacing: -0.3, color: V03_colors.ink,
             lineHeight: 1,
           }}>Trace</div>
+          <div style={{ width: 1, height: 11, background: V03_colors.rule, alignSelf:"center" }}/>
           <div style={{
             fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
             color: V03_colors.inkMute, letterSpacing: 1, textTransform:"uppercase",
             lineHeight: 1,
           }}>
-            Case file 001 · v0.3
+            Case file 001
+            <span style={{ color: V03_colors.ruleSoft, margin: "0 7px" }}>·</span>
+            <span style={{ color: V03_colors.inkSoft }}>v0.3</span>
+            {typeof activeEventCount === "number" && (
+              <>
+                <span style={{ color: V03_colors.ruleSoft, margin: "0 7px" }}>·</span>
+                {activeEventCount} evidence
+              </>
+            )}
           </div>
         </div>
 
-        <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
+        <div style={{ display:"flex", alignItems:"center", gap: 10, flexShrink: 0 }}>
           {/* v0.3 / v0.4 mode toggle — mirrors the one in v0.4 Masthead */}
           {setMode && (
             <div style={{ display:"inline-flex", flexShrink: 0,
@@ -1366,74 +1337,100 @@ function V03_Masthead({ mode, setMode, activeEventCount, activeSilenceCount, tot
             </div>
           )}
 
-          <button onClick={onToggleFullscreen}
-            style={{
-              background: isFullscreen ? V03_colors.ink : "transparent",
-              color: isFullscreen ? V03_colors.paper : V03_colors.inkSoft,
-              border: `1px solid ${isFullscreen ? V03_colors.ink : V03_colors.rule}`,
-              padding: "6px 11px", borderRadius: 2,
-              fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-              letterSpacing: 1, textTransform: "uppercase",
-              cursor: "pointer",
-              display:"flex", alignItems:"center", gap: 7,
-              transition: "all 0.2s",
-              flexShrink: 0,
-              whiteSpace:"nowrap",
-            }}
-            onMouseEnter={(e)=>{
-              if (!isFullscreen) {
-                e.currentTarget.style.color = V03_colors.ink;
-                e.currentTarget.style.borderColor = V03_colors.ink;
-              }
-            }}
-            onMouseLeave={(e)=>{
-              if (!isFullscreen) {
-                e.currentTarget.style.color = V03_colors.inkSoft;
-                e.currentTarget.style.borderColor = V03_colors.rule;
-              }
-            }}
-          >
-            <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
-              <path d={isFullscreen
-                ? "M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
-                : "M4 1 L1 1 L1 4 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"}
-                stroke="currentColor" strokeWidth="1.2"/>
-            </svg>
-            {isFullscreen ? "exit" : "fullscreen"}
-          </button>
+          {/* Fullscreen toggle — to the right of mode toggle. Triggers true
+              browser fullscreen (whole page, not just graph), so the user can
+              still scroll to read content beneath the graph. */}
+          {onToggleFullscreen && (
+            <button onClick={onToggleFullscreen}
+              title={isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen page"}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen page"}
+              style={{
+                display:"flex", alignItems:"center", justifyContent:"center",
+                width: 28, height: 28,
+                background: isFullscreen ? V03_colors.ink : "transparent",
+                color: isFullscreen ? V03_colors.paper : V03_colors.inkMute,
+                border: `1px solid ${isFullscreen ? V03_colors.ink : V03_colors.rule}`,
+                borderRadius: 2,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                padding: 0,
+              }}
+              onMouseEnter={(e)=>{
+                if (!isFullscreen) {
+                  e.currentTarget.style.color = V03_colors.ink;
+                  e.currentTarget.style.borderColor = V03_colors.ink;
+                }
+              }}
+              onMouseLeave={(e)=>{
+                if (!isFullscreen) {
+                  e.currentTarget.style.color = V03_colors.inkMute;
+                  e.currentTarget.style.borderColor = V03_colors.rule;
+                }
+              }}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d={isFullscreen
+                  ? "M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
+                  : "M4 1 L1 1 L1 4 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"}
+                  stroke="currentColor" strokeWidth="1.3"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Bottom row: claim title with editorial decoration */}
-      <div style={{ marginTop: 18, display:"flex", alignItems:"stretch", gap: 14 }}>
-        {/* accent bar — editorial pull-quote marker, stretches full height of eyebrow + title */}
+      {/* Bottom row: claim title with editorial decoration.
+          h1 is wrapped in a hover surface — placeholder for a future
+          claim-search / jump-to-claim flow. Click is a no-op for now. */}
+      <div style={{ marginTop: 14, display:"flex", alignItems:"stretch", gap: 14 }}>
         <div style={{
           width: 3,
           background: V03_colors.primary,
           flexShrink: 0,
         }}/>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
             color: V03_colors.primary, letterSpacing: 1.4,
             textTransform:"uppercase", fontWeight: 500,
-            marginBottom: 6,
+            marginBottom: 5,
           }}>
             Under investigation
           </div>
-          <h1 style={{
-            fontFamily:"'Fraunces', serif",
-            fontSize: "clamp(22px, 2.4vw, 30px)",
-            fontWeight: 400, fontStyle:"italic",
-            color: V03_colors.ink,
-            letterSpacing: -0.5,
-            lineHeight: 1.2,
-            margin: 0,
-            maxWidth: "calc(100vw - 130px)",
-            textWrap: "balance",
-          }}>
-            Who attacked the Nord Stream pipelines on 26 September 2022?
-          </h1>
+          <button
+            type="button"
+            title="Search or jump to another claim (coming soon)"
+            style={{
+              display:"flex", alignItems:"center", gap: 12,
+              border: "none", background: "transparent",
+              padding: "4px 10px 4px 6px",
+              margin: "-4px -10px -4px -6px",
+              borderRadius: 3,
+              textAlign:"left", cursor: "pointer",
+              transition:"background 0.15s",
+              fontFamily:"inherit", color:"inherit",
+              maxWidth: "calc(100vw - 130px)",
+            }}
+            onMouseEnter={(e)=>{ e.currentTarget.style.background = "rgba(160, 58, 44, 0.05)"; }}
+            onMouseLeave={(e)=>{ e.currentTarget.style.background = "transparent"; }}>
+            <h1 style={{
+              fontFamily:"'Fraunces', serif",
+              fontSize: 20,
+              fontWeight: 400, fontStyle:"italic",
+              color: V03_colors.ink,
+              letterSpacing: -0.4,
+              lineHeight: 1.2,
+              margin: 0,
+              textWrap: "balance", flex: 1, minWidth: 0,
+            }}>
+              Who attacked the Nord Stream pipelines on 26 September 2022?
+            </h1>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+              style={{ flexShrink: 0, opacity: 0.35, color: V03_colors.primary }}
+              aria-hidden="true">
+              <circle cx="5" cy="5" r="3.4" stroke="currentColor" strokeWidth="1.2"/>
+              <line x1="7.5" y1="7.5" x2="10.5" y2="10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -1444,7 +1441,8 @@ function V03_Masthead({ mode, setMode, activeEventCount, activeSilenceCount, tot
 // V03_TIMELINE OVERLAY (floats at bottom of graph area)
 // ============================================================================
 
-function V03_TimelineOverlay({ idx, setIdx }) {
+function V03_TimelineOverlay({ idx, setIdx, playing, onPlayToggle, onStop }) {
+  const idle = !playing;
   return (
     <div style={{
       position:"absolute", left: 20, right: 20, bottom: 8, zIndex: 9,
@@ -1453,17 +1451,100 @@ function V03_TimelineOverlay({ idx, setIdx }) {
       <div style={{
         pointerEvents:"auto",
         width: "100%",
-        padding: "8px 54px 10px",
+        padding: "10px 28px 10px 16px",
         background: "rgba(250, 248, 243, 0.55)",
         backdropFilter: "blur(18px) saturate(140%)",
         WebkitBackdropFilter: "blur(18px) saturate(140%)",
         border: `1px solid rgba(217, 212, 199, 0.8)`,
         borderRadius: 3,
         boxShadow: "0 12px 32px rgba(26, 26, 26, 0.06), 0 2px 6px rgba(26, 26, 26, 0.03)",
+        display:"flex", alignItems:"stretch", gap: 16,
       }}>
-        <V03_TimelineBar idx={idx} setIdx={setIdx} />
+        {/* Transport controls — left zone. Section sizes to buttons
+            (no minWidth lock) for symmetric spacing on either side
+            of the button group. */}
+        <div style={{
+          display:"flex", alignItems:"center", gap: 6,
+          flexShrink: 0,
+        }}>
+          {idle && onPlayToggle && (
+            <V03_TransportButton icon="play" label="PLAY"
+              onClick={onPlayToggle}
+              tooltip="Play timeline — watch the distribution evolve" />
+          )}
+          {!idle && onPlayToggle && (
+            <V03_TransportButton icon="pause" label="PAUSE"
+              onClick={onPlayToggle}
+              tooltip="Pause (resume from current point)" />
+          )}
+          {!idle && onStop && (
+            <V03_TransportButton icon="stop"
+              onClick={onStop}
+              tooltip="Stop — return to start" compact />
+          )}
+        </div>
+
+        <div style={{
+          width: 1,
+          background: "rgba(217, 212, 199, 0.7)",
+          flexShrink: 0,
+          alignSelf: "stretch",
+        }}/>
+
+        <div style={{ flex: 1, minWidth: 0,
+          display:"flex", flexDirection:"column", justifyContent:"center",
+          padding: "0 32px" }}>
+          <V03_TimelineBar idx={idx} setIdx={setIdx} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function V03_TransportButton({ icon, label, onClick, tooltip, compact }) {
+  return (
+    <button onMouseDown={(e)=>e.stopPropagation()}
+      onClick={(e)=>{ e.stopPropagation(); onClick(); }}
+      title={tooltip}
+      aria-label={tooltip}
+      style={{
+        display:"inline-flex", alignItems:"center", gap: compact ? 0 : 6,
+        height: 24,
+        padding: compact ? "0" : "0 9px 0 7px",
+        width: compact ? 24 : "auto",
+        justifyContent: compact ? "center" : "flex-start",
+        borderRadius: 2,
+        border: `1px solid ${V03_colors.ink}`,
+        background: V03_colors.ink, color: V03_colors.paper,
+        cursor:"pointer", flexShrink: 0,
+        transition:"opacity 0.15s",
+      }}
+      onMouseEnter={(e)=>{ e.currentTarget.style.opacity = "0.85"; }}
+      onMouseLeave={(e)=>{ e.currentTarget.style.opacity = "1"; }}>
+      {icon === "play" && (
+        <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+          <path d="M1.5 1 L8 5 L1.5 9 Z" fill={V03_colors.paper}/>
+        </svg>
+      )}
+      {icon === "pause" && (
+        <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+          <rect x="1.5" y="1" width="2" height="8" fill={V03_colors.paper}/>
+          <rect x="5.5" y="1" width="2" height="8" fill={V03_colors.paper}/>
+        </svg>
+      )}
+      {icon === "stop" && (
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+          <rect x="1" y="1" width="7" height="7" fill={V03_colors.paper}/>
+        </svg>
+      )}
+      {label && (
+        <span style={{
+          fontFamily:"'JetBrains Mono', monospace",
+          fontSize: 9, letterSpacing: 0.7,
+          textTransform:"uppercase", fontWeight: 500,
+        }}>{label}</span>
+      )}
+    </button>
   );
 }
 
@@ -2356,6 +2437,29 @@ function TraceV03Experience({ mode, setMode }) {
   const [panKeyHeld, setPanKeyHeld] = useState(false);
   const panStart = useRef({ x: 0, y: 0, originX: 0, originY: 0 });
 
+  // Page-level fullscreen via browser API.
+  const togglePageFullscreen = () => {
+    if (typeof document === "undefined") return;
+    if (!document.fullscreenElement) {
+      const el = document.documentElement;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+      if (req) req.call(el).catch(() => {});
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+      if (exit) exit.call(document).catch(() => {});
+    }
+  };
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onChange = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange);
+    };
+  }, []);
+
   const canPan = fullscreen && zoom > 1;
   const panReady = canPan && panKeyHeld;
 
@@ -2430,15 +2534,11 @@ function TraceV03Experience({ mode, setMode }) {
     if (selectedEv && !activeEvidence.find(e => e.id === selectedEv)) setSelectedEv(null);
   }, [activeEvidence, selectedEv]);
 
-  // Escape exits fullscreen
-  useEffect(() => {
-    if (!fullscreen) return;
-    const onKey = (e) => { if (e.key === "Escape") setFullscreen(false); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [fullscreen]);
+  // Browser handles Esc natively when in document fullscreen, so no manual
+  // keydown listener is needed here.
 
-  // Reset zoom when leaving fullscreen
+  // Reset zoom when leaving fullscreen (no-op now that fullscreen doesn't
+  // change graph size, but harmless to keep)
   useEffect(() => {
     if (!fullscreen) setZoom(1);
   }, [fullscreen]);
@@ -2511,29 +2611,24 @@ function TraceV03Experience({ mode, setMode }) {
           currentLabel={tp.label}
           currentDate={tp.date}
           isFullscreen={fullscreen}
-          onToggleFullscreen={()=>setFullscreen(true)}
+          onToggleFullscreen={togglePageFullscreen}
         />
       )}
 
-      {/* GRAPH STAGE */}
+      {/* GRAPH STAGE — always normal size; page-fullscreen is handled by
+          the browser Fullscreen API on document root, not by CSS here. */}
       <div style={{
-        position: fullscreen ? "fixed" : "relative",
-        inset: fullscreen ? 0 : "auto",
+        position: "relative",
         width: "100%",
-        height: fullscreen ? "100vh" : "calc(100vh - 132px)",
-        minHeight: fullscreen ? "100vh" : 560,
+        height: "calc(100vh - 132px)",
+        minHeight: 560,
         background: V03_colors.paper,
         overflow:"hidden",
-        zIndex: fullscreen ? 100 : 1,
+        zIndex: 1,
       }}>
         <div
-          onMouseDown={onPanMouseDown}
           style={{
             position:"absolute", inset: 0,
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: "center center",
-            transition: panning ? "none" : "transform 0.2s cubic-bezier(.2,.7,.2,1)",
-            cursor: panning ? "grabbing" : (panReady ? "grab" : "default"),
           }}>
           <V03_FullscreenGraph
             activeEvidence={activeEvidence}
@@ -2560,9 +2655,9 @@ function TraceV03Experience({ mode, setMode }) {
           onPlayToggle={onPlayToggle}
         />
 
-        {/* Legend — top-left, no chrome (shifted down in fullscreen to avoid zoom control) */}
+        {/* Legend — top-left, below the small fullscreen-toggle icon. */}
         <div style={{
-          position:"absolute", top: fullscreen ? 62 : 22, left: 24, zIndex: 6,
+          position:"absolute", top: fullscreen ? 56 : 50, left: 24, zIndex: 6,
           display:"flex", flexDirection:"column", gap: 8,
           fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5, color: V03_colors.inkMute,
           letterSpacing: 0.5, pointerEvents:"none",
@@ -2599,160 +2694,33 @@ function TraceV03Experience({ mode, setMode }) {
         </div>
 
         {/* Timeline overlay — bottom of graph area */}
-        <V03_TimelineOverlay idx={idx} setIdx={setIdxUser} />
+        <V03_TimelineOverlay idx={idx} setIdx={setIdxUser}
+          playing={playing}
+          onPlayToggle={()=>setPlaying(p => !p)}
+          onStop={()=>{ setPlaying(false); setIdxUser(0); }} />
 
-        {/* Zoom controls — only in fullscreen, top-left corner */}
-        {fullscreen && (
-          <div style={{
-            position:"absolute", top: 20, left: 20, zIndex: 15,
-            display:"flex", alignItems:"stretch",
-            background: "rgba(250, 248, 243, 0.72)",
-            backdropFilter:"blur(14px) saturate(140%)",
-            WebkitBackdropFilter:"blur(14px) saturate(140%)",
-            border: `1px solid rgba(217, 212, 199, 0.9)`,
-            borderRadius: 2,
-            overflow:"hidden",
-          }}>
-            <button
-              onClick={()=>setZoom(z => Math.max(0.7, +(z - 0.1).toFixed(2)))}
-              disabled={zoom <= 0.7}
-              title="Zoom out"
-              style={{
-                width: 30, height: 28,
-                border:"none", background:"transparent",
-                cursor: zoom <= 0.7 ? "default" : "pointer",
-                color: zoom <= 0.7 ? V03_colors.muted : V03_colors.inkSoft,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                padding: 0, transition:"color 0.15s",
-              }}
-              onMouseEnter={(e)=>{ if (zoom > 0.7) e.currentTarget.style.color = V03_colors.ink; }}
-              onMouseLeave={(e)=>{ if (zoom > 0.7) e.currentTarget.style.color = V03_colors.inkSoft; }}
-            >
-              <svg width="10" height="2" viewBox="0 0 10 2" fill="none">
-                <rect x="0" y="0" width="10" height="2" fill="currentColor"/>
-              </svg>
-            </button>
-            <button
-              onClick={()=>setZoom(1)}
-              title="Reset zoom"
-              style={{
-                padding: "0 10px", height: 28,
-                border:"none",
-                borderLeft: `1px solid ${V03_colors.rule}`,
-                borderRight: `1px solid ${V03_colors.rule}`,
-                background:"transparent",
-                cursor:"pointer",
-                fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-                color: V03_colors.inkSoft, letterSpacing: 0.4,
-                fontVariantNumeric:"tabular-nums",
-                transition:"color 0.15s",
-                minWidth: 46,
-              }}
-              onMouseEnter={(e)=>{ e.currentTarget.style.color = V03_colors.ink; }}
-              onMouseLeave={(e)=>{ e.currentTarget.style.color = V03_colors.inkSoft; }}
-            >
-              {Math.round(zoom * 100)}%
-            </button>
-            <button
-              onClick={()=>setZoom(z => Math.min(1.6, +(z + 0.1).toFixed(2)))}
-              disabled={zoom >= 1.6}
-              title="Zoom in"
-              style={{
-                width: 30, height: 28,
-                border:"none", background:"transparent",
-                cursor: zoom >= 1.6 ? "default" : "pointer",
-                color: zoom >= 1.6 ? V03_colors.muted : V03_colors.inkSoft,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                padding: 0, transition:"color 0.15s",
-              }}
-              onMouseEnter={(e)=>{ if (zoom < 1.6) e.currentTarget.style.color = V03_colors.ink; }}
-              onMouseLeave={(e)=>{ if (zoom < 1.6) e.currentTarget.style.color = V03_colors.inkSoft; }}
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <rect x="0" y="4" width="10" height="2" fill="currentColor"/>
-                <rect x="4" y="0" width="2" height="10" fill="currentColor"/>
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {/* Pan affordance hint — only when zoomed in, subtly invites the gesture */}
-        {fullscreen && zoom > 1 && (
-          <div style={{
-            position:"absolute", top: 22, left: 154, zIndex: 15,
-            display:"flex", alignItems:"center", gap: 6,
-            fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
-            color: panReady ? V03_colors.primary : V03_colors.inkMute,
-            letterSpacing: 0.5, textTransform:"uppercase",
-            pointerEvents:"none",
-            transition:"color 0.15s, opacity 0.2s",
-            opacity: panning ? 0.4 : 1,
-          }}>
-            <span style={{
-              display:"inline-flex", alignItems:"center",
-              padding: "2px 6px",
-              border: `1px solid ${panReady ? V03_colors.primary : V03_colors.rule}`,
-              borderRadius: 2,
-              fontSize: 8.5,
-              lineHeight: 1,
-              transition:"border-color 0.15s",
-            }}>⌘</span>
-            <span style={{ fontSize: 8.5 }}>or</span>
-            <span style={{
-              display:"inline-flex", alignItems:"center",
-              padding: "2px 8px",
-              border: `1px solid ${panReady ? V03_colors.primary : V03_colors.rule}`,
-              borderRadius: 2,
-              fontSize: 8.5,
-              lineHeight: 1,
-              transition:"border-color 0.15s",
-            }}>space</span>
-            <span style={{ marginLeft: 2 }}>{panReady ? "drag to pan" : "hold to pan"}</span>
-          </div>
-        )}
-
-        {/* Fullscreen exit — floating top right (only when in fullscreen), mirrors masthead button position */}
-        {fullscreen && (
-          <button onClick={()=>setFullscreen(false)}
-            style={{
-              position:"absolute", top: 20, right: 20, zIndex: 15,
-              background: "rgba(250, 248, 243, 0.72)",
-              backdropFilter:"blur(14px)",
-              WebkitBackdropFilter:"blur(14px)",
-              color: V03_colors.ink,
-              border: `1px solid ${V03_colors.rule}`,
-              padding: "8px 14px", borderRadius: 2,
-              fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-              letterSpacing: 1, textTransform: "uppercase",
-              cursor: "pointer",
-              display:"flex", alignItems:"center", gap: 8,
-              transition:"all 0.2s",
-            }}>
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-              <path d="M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
-                    stroke="currentColor" strokeWidth="1.2"/>
-            </svg>
-            exit · esc
-          </button>
-        )}
+        {/* Zoom / pan / in-graph fullscreen button removed — fullscreen is
+            now a page-level browser toggle in the Masthead, not a CSS-based
+            graph-only fullscreen. The graph stays its normal size in both
+            states; the user just gets more vertical viewport from the
+            browser when fullscreen is active. */}
 
         {/* Evidence drawer */}
         <V03_EvidenceDrawer ev={selectedEvObj} onClose={()=>setSelectedEv(null)} />
       </div>
 
-      {/* Everything below the graph is hidden in fullscreen */}
-      {!fullscreen && (
-        <>
-          {/* SANITY CHECK (Grok comparison) — now the first analysis section */}
-          <V03_ExternalComparison />
+      {/* Below-graph sections — always rendered (page-fullscreen is
+          scrollable, the user can read past the graph). */}
+      <>
+        {/* SANITY CHECK (Grok comparison) — now the first analysis section */}
+        <V03_ExternalComparison />
 
-          {/* ATTRIBUTION READOUT — explains distribution + promotion gates */}
-          <V03_AttributionReadout distribution={tp.distribution} raw_scores={tp.raw_scores} />
+        {/* ATTRIBUTION READOUT — explains distribution + promotion gates */}
+        <V03_AttributionReadout distribution={tp.distribution} raw_scores={tp.raw_scores} />
 
-          {/* V03_LIMITS */}
-          <V03_LimitsSection />
-        </>
-      )}
+        {/* V03_LIMITS */}
+        <V03_LimitsSection />
+      </>
     </div>
   );
 }
@@ -2946,31 +2914,66 @@ const CAND_READABLE_V04_SHORT = {
 // Right-column nodes — one per storyline (or process subclaim), mirrors the
 // panel's distribution. No candidate-level expansion: reconstructions are the
 // user-facing layer, candidates are implementation detail.
+// Storyline buckets — v0.5 protocol §2.6 family + variant structure.
+// α is now a FAMILY containing two variants (NATO-broad / CIA-narrow);
+// at the family level all five buckets are mutex; variants under α are
+// conditional sub-distributions (P(variant | α)). δ is L2-gated rather
+// than softmax-low — the 0% reflects structural causal exclusion, not
+// low evidence.
+//
+// Numbers updated from v0.4's flat softmax to v0.5's family/variant
+// renormalization:
+//   α (Ukrainian-military-led family) 70.52% → variants 57 / 43
+//   μ (Institutional avoidance)       14.70%   ← moved from parallel
+//                                                 subclaim into main
+//                                                 distribution: "no
+//                                                 institutionally
+//                                                 accountable actor" is
+//                                                 a valid answer to
+//                                                 "who did it"
+//   ε (Unenumerated coordinator)       6.30%
+//   β (US-led operation)               5.77%
+//   ζ (UK-led layer)                   2.72%
+//   δ (Russian self-sabotage)          0%       L2-gated
 const BUCKETS_V04 = [
-  { id:"alpha", glyph:"α", label:"Ukrainian military bypass",
-    flag:"C2b", coverageOverride:0.70,
+  { id:"alpha", glyph:"α", label:"Ukrainian military-led",
+    flag:"C2b", coverageOverride:0.7052,
     members:["C2b","C2a","C2c"], expandable:false,
-    overlap:null },
-  { id:"epsilon", glyph:"ε", label:"Unknown actor / outside set",
-    flag:"C_unknown", coverageOverride:0.19,
+    // Variant-level conditional sub-distribution under the α family.
+    // Each variant.conditional is P(variant | α) and they sum to 1.
+    variants: [
+      { id:"alpha_nato",
+        label:"with NATO-broad enabling",
+        flag:"C2b",
+        conditional:0.57,
+        note:"Ukrainian military execution + tacit multi-state Western enabling (CIA + UK + Polish protection chain)." },
+      { id:"alpha_cia",
+        label:"with CIA-narrow enabling",
+        flag:"C2b",
+        conditional:0.43,
+        note:"Ukrainian military execution + narrow CIA-only enabling (Hersh-style attribution, no broader NATO chain)." },
+    ],
+    overlap:"Family-level mutex with β, ε, ζ, μ. Variants below are conditional probabilities (sum to 100% within α)." },
+  { id:"mu", glyph:"μ", label:"Institutional avoidance",
+    flag:"C_insufficient", coverageOverride:0.147,
+    members:["C_insufficient"], expandable:false,
+    overlap:"A valid answer to 'who did it': no actor is institutionally accountable. Held up by the Third-Party Rule, UN abstentions, and the Polish EAW procedural failure. Will collapse if any anchored adjudicator (BGH) issues an attributing ruling." },
+  { id:"epsilon", glyph:"ε", label:"Unenumerated coordinator",
+    flag:"C_unknown", coverageOverride:0.063,
     members:["C6","C_unknown"], expandable:false,
     overlap:null },
-  { id:"zeta", glyph:"ζ", label:"UK-layer (under-examined)",
-    flag:"C5", coverageOverride:0.06,
-    members:["C5"], expandable:false,
-    overlap:null },
-  { id:"beta", glyph:"β", label:"US / Western coordination",
-    flag:"C7", coverageOverride:0.05,
+  { id:"beta", glyph:"β", label:"US-led operation",
+    flag:"C7", coverageOverride:0.0577,
     members:["C7"], expandable:false,
+    overlap:null },
+  { id:"zeta", glyph:"ζ", label:"UK-led layer",
+    flag:"C5", coverageOverride:0.0272,
+    members:["C5"], expandable:false,
     overlap:null },
   { id:"delta", glyph:"δ", label:"Russian self-sabotage",
     flag:"C4", coverageOverride:0.00,
-    members:["C4"], expandable:false, ruledOut:true,
-    overlap:"Ruled out by Andromeda forensic chain (F7) and Sachs's UN enumeration (E25) placing seven Western actors and explicitly excluding Russia." },
-  { id:"mu", glyph:"μ", label:"Institutional avoidance",
-    flag:"C_insufficient", coverageOverride:0.136,
-    members:["C_insufficient"], expandable:false, routedTo:"mu",
-    overlap:"On a parallel axis from the attribution claim. 13.6% of evidence corpus answers 'why has the question not been institutionally closed'." },
+    members:["C4"], expandable:false, ruledOut:true, l2Gated:true,
+    overlap:"Causally excluded under Pearl L2: Andromeda forensic chain (F7) places execution platform, Sachs's UN enumeration (E25) names seven Western actors and explicitly excludes Russia. δ is not a low-probability candidate — it is structurally outside the live distribution." },
 ];
 
 // Note on excluded candidates not in this list:
@@ -5014,6 +5017,8 @@ function FullscreenGraph({
   setExpandedBuckets,
   // secondary cluster drawer
   selectedCluster, setSelectedCluster,
+  // open cluster drawer (drilldown into cluster summary + members)
+  setClusterDrawerId,
 }) {
   const isV04 = mode === "v04";
 
@@ -5033,16 +5038,41 @@ function FullscreenGraph({
     };
   }, []);
 
-  const LEFT_X = width * 0.22;
-  const RIGHT_X = playing ? width * 0.62 : width * 0.75;
+  // Layout: in v0.3 the right-side candidate column lays out the % VERTICALLY
+  // under the label, so RIGHT_X = 0.75·width works comfortably. In v0.4 the
+  // right-side bucket row also lays out vertically now, with the % anchored
+  // beneath the label, so the column needs ~200px right of RIGHT_X for the
+  // longest label.
+  //
+  // Content shifted right (Apr 2026): the previous 0.30/0.66 left a ~240px
+  // dead band on the right side of the SVG. Bumping by +0.10·width
+  // (LEFT_X → 0.40, RIGHT_X → 0.76) right-justifies the graph: more
+  // breathing room between the Current Understanding panel and the
+  // evidence column on the left, less wasted space on the right. The
+  // edge span (RIGHT_X − LEFT_X) is preserved so connection lines look
+  // unchanged.
+  const LEFT_X = isV04 ? width * 0.40 : width * 0.22;
+  const RIGHT_X = isV04
+    ? (playing ? width * 0.65 : width * 0.76)
+    : (playing ? width * 0.62 : width * 0.75);
 
   // v0.3-style fixed proportional layout: TOP and BOT mark the evidence/candidate band.
   // Evidence and candidates are distributed proportionally inside [TOP, BOT], so density
   // adjusts to row count without the stage ever growing past the container.
   // BOT pulled in a bit further than v0.3 to leave room for the timeline overlay
   // panel that floats at the bottom — otherwise the last bucket row gets occluded.
-  const TOP = Math.round(height * 0.09);
-  const BOT = Math.round(height * (isV04 ? 0.78 : 0.86));
+  // Vertical band [TOP, BOT] for rows. After we removed the static SVG
+  // column headers, there's unused space at the top of the band; we also
+  // pull BOT in so the last evidence row ends at roughly the same y as
+  // the Current Understanding panel's bottom (panel.bottom = 80 from
+  // container bottom). This gives the last evidence row the same
+  // "breathing space before the timeline" the panel has — about a
+  // third of the gap that an earlier 0.85/120 pairing produced.
+  const TOP = Math.round(height * 0.04);
+  const BOT = Math.round(height * 0.90);
+  // Storyline rows use a tighter band so μ's caption (which renders 44px
+  // below the row's y) doesn't crash into the timeline at the bottom.
+  const candBOT = isV04 ? BOT - 50 : BOT;
 
   // === Candidate-side computation ===
   // In v0.3: flat candidates as before.
@@ -5060,8 +5090,16 @@ function FullscreenGraph({
       weight: distribution[c] || 0, indent: 0,
     }));
   } else {
-    const bucketsSorted = [...BUCKETS_V04].sort((a,b)=> bucketWeight(b, distribution) - bucketWeight(a, distribution));
-    bucketsSorted.forEach(b => {
+    // v0.5 protocol §2.6: families sort by their family-level coverage;
+    // L2-gated buckets (δ) move to a tail section; under each family,
+    // its variants render as indented child rows immediately after.
+    // Visual order: live families desc by weight → L2-gated tail.
+    const live = BUCKETS_V04.filter(b => !b.l2Gated && !b.routedTo);
+    const subclaim = BUCKETS_V04.filter(b => b.routedTo);
+    const gated = BUCKETS_V04.filter(b => b.l2Gated);
+    const liveSorted = [...live].sort((a,b)=> bucketWeight(b, distribution) - bucketWeight(a, distribution));
+
+    [...liveSorted, ...subclaim, ...gated].forEach(b => {
       const w = bucketWeight(b, distribution);
       candRows.push({
         id: b.id, isBucket: true, parentBucket: null,
@@ -5071,10 +5109,29 @@ function FullscreenGraph({
         expandable: false, overlap: b.overlap,
         routedTo: b.routedTo,
         ruledOut: b.ruledOut,
+        l2Gated: b.l2Gated,
+        hasVariants: !!(b.variants && b.variants.length),
       });
-      // Candidate-level sub-rows removed — storylines are the user-facing
-      // unit; candidate IDs (C2a/b/c, C7, etc.) live in `members` but are
-      // not rendered. If reintroduced later, restore the sub-row push here.
+      // Expand variants (always shown — Plan A nested two-tier).
+      // Variant weight = family_weight * conditional. We store BOTH the
+      // conditional (for "57% of α" labeling) and the absolute (for
+      // proportional ring sizing / edge weight resolution if needed).
+      if (b.variants && b.variants.length && !b.l2Gated) {
+        b.variants.forEach(v => {
+          candRows.push({
+            id: v.id, isBucket: true, parentBucket: b.id,
+            label: v.label,
+            color: candColorForStory(b.id) || candColor(v.flag),
+            glyph: null, flag: v.flag,
+            members: [], weight: w * v.conditional, indent: 1,
+            expandable: false,
+            isVariant: true,
+            conditional: v.conditional,
+            note: v.note,
+            familyWeight: w,
+          });
+        });
+      }
     });
   }
 
@@ -5145,12 +5202,46 @@ function FullscreenGraph({
 
   const nEvRows = evRows.length;
 
-  // Candidate Y coords — proportional distribution across [TOP, BOT]
+  // Candidate Y coords — proportional distribution across [TOP, BOT].
+  // For v0.4: leave a small extra gap before μ (subclaim) so it visually
+  // separates from the attribution storylines, but stay in the same column.
+  // The "different question" framing is conveyed by μ's own row caption,
+  // not by section headers or dividers.
+  // v0.5 row distribution: variants are compact sub-rows (0.65 slot
+  // weight) so they pack visually under their parent family. L2-gated
+  // bucket(s) get a 1.5-slot gap before them so they read as a separate
+  // "structurally excluded" tail rather than just another low-% row.
   const candY = {};
   if (nCandRows > 0) {
-    candRows.forEach((r, i) => {
-      candY[r.id] = TOP + (BOT - TOP) * (i / Math.max(1, nCandRows - 1));
-    });
+    if (isV04) {
+      // Compute per-row slot weight, then accumulate offsets.
+      const slotWeights = candRows.map(r => {
+        if (r.isVariant) return 0.85;        // sub-row, but with enough
+                                             // vertical room for the
+                                             // flag + label + "of α"
+                                             // tspan to clear the next
+                                             // variant cleanly
+        return 1.0;                          // family / standalone bucket
+      });
+      // Insert pre-gap before any L2-gated row (visual separator).
+      // We track this as additional offset, NOT as an extra slot.
+      const preGap = candRows.map(r => r.l2Gated ? 0.8 : 0);
+      // Total span in slot-units
+      const totalSlots = slotWeights.reduce((s, w) => s + w, 0)
+                       + preGap.reduce((s, w) => s + w, 0);
+      const totalH = candBOT - TOP;
+      const slotPx = totalH / Math.max(1, totalSlots - slotWeights[slotWeights.length - 1]);
+      let acc = 0;
+      candRows.forEach((r, i) => {
+        acc += preGap[i];
+        candY[r.id] = TOP + acc * slotPx;
+        acc += slotWeights[i];
+      });
+    } else {
+      candRows.forEach((r, i) => {
+        candY[r.id] = TOP + (BOT - TOP) * (i / Math.max(1, nCandRows - 1));
+      });
+    }
   }
 
   // Evidence Y coords — same proportional model
@@ -5214,22 +5305,18 @@ function FullscreenGraph({
     <svg viewBox={`0 0 ${width} ${height}`}
          preserveAspectRatio="xMidYMid meet"
          style={{ width:"100%", height:"100%", display:"block" }}>
-      {/* Evidence header */}
-      <text x={LEFT_X} y={TOP * 0.55}
-            fontFamily="'JetBrains Mono', monospace"
-            fontSize="11" letterSpacing="1.4" fill={colors.inkMute} textAnchor="start">
-        EVIDENCE · {isV04
-          ? `${evRows.filter(r=>r.kind==="ev").length} ITEMS${evRows.filter(r=>r.kind==="cluster").length > 0 ? ` + ${evRows.filter(r=>r.kind==="cluster").length} CLUSTERS` : ""}`
-          : `${evRows.length} ADMITTED`}
-        {focusStorylineObj && ` · STORYLINE: ${focusStorylineObj.shortLabel.toUpperCase()}`}
-      </text>
-
-      {/* Candidates header */}
-      {isV04 && (
-        <text x={RIGHT_X} y={TOP * 0.55}
+      {/* Column counts moved to the Masthead metadata bar — the static
+          "EVIDENCE · 13 ITEMS + 9 CLUSTERS" / "5 STORYLINES + μ SUBCLAIM"
+          headers were redundant with the case-file metadata. The graph's
+          column structure is self-evident from the rows themselves.
+          We keep one contextual indicator: when a storyline is focused
+          (user clicked a card), show its name above the evidence column
+          so the reader knows what the filter currently is. */}
+      {focusStorylineObj && (
+        <text x={LEFT_X} y={20}
               fontFamily="'JetBrains Mono', monospace"
               fontSize="11" letterSpacing="1.4" fill={colors.inkMute} textAnchor="start">
-          5 STORYLINES + μ SUBCLAIM
+          STORYLINE FILTER · {focusStorylineObj.shortLabel.toUpperCase()}
         </text>
       )}
 
@@ -5356,23 +5443,62 @@ function FullscreenGraph({
         if (row.kind === "cluster") {
           const cl = row.cluster;
           const isSelected = selectedCluster === cl.id;
+          // Reverse-trace highlight: when a storyline ring is hovered, any
+          // cluster whose member-evidence supports that storyline should
+          // light up too. Without this, hovering α (which is supported by
+          // SC_WIL "Western intel leaks") would highlight the individual
+          // evidence rows but leave the cluster summary node un-stressed,
+          // breaking the visual link from storyline → cluster.
+          const isFocusByCand = hoverCand && cl.members.some(mid => {
+            const ev = getEvidenceBy(mid);
+            if (!ev || !ev.edges) return false;
+            return ev.edges.some(e => {
+              if (e.to === hoverCand) return true;
+              const b = BUCKETS_V04.find(b => b.id === hoverCand);
+              return b && b.members.includes(e.to);
+            });
+          });
+          const isFocus = isSelected || isFocusByCand;
+          const anyFocus = focusEv || hoverCand || selectedCluster;
+          const dim = anyFocus && !isFocus;
           const colorToken = cl.color === "warn" ? colors.warn
                            : cl.color === "meta" ? colors.meta
                            : cl.color === "primary" ? colors.primary
                            : colors.inkMute;
           // Derive short display ID from cluster.id, e.g. SC_WIL → E*WIL
           const shortId = "E*" + (cl.id.replace(/^SC_/, ""));
+          const labelW = measureText(cl.label, 11.5, "Instrument Sans, sans-serif", 400);
+          // Hit area extends from the short-id text on the left, across the
+          // ring, label, and chevron. ~340px wide to match label scan width.
+          // Without this rect, only the tiny 10px-radius ring received clicks
+          // because text elements need pointerEvents:auto to be clickable —
+          // simpler is to put a transparent rect under everything.
+          const hitX = LEFT_X - 56;
+          const hitW = Math.max(360, 18 + labelW + 26);
           return (
             <g key={`cluster-${cl.id}`}
-               onMouseDown={(e)=>{ e.stopPropagation(); toggleCluster(cl.id); }}
+               onMouseDown={(e)=>{
+                 e.stopPropagation();
+                 // Open the cluster in a drawer (mirrors how single evidence
+                 // drills in). User can then toggle inline expansion or open
+                 // any individual member from inside the drawer.
+                 if (setClusterDrawerId) setClusterDrawerId(cl.id);
+               }}
                onMouseEnter={()=>setSelectedCluster(cl.id)}
                onMouseLeave={()=>setSelectedCluster(null)}
-               style={{ cursor:"pointer" }}>
+               style={{ cursor:"pointer", opacity: dim ? 0.4 : 1, transition:"opacity 0.3s" }}>
+              {/* Invisible hit rectangle — covers the whole cluster row so
+                  clicking anywhere on the label / chevron / id triggers the
+                  drawer. SVG text by default has pointer-events on the glyphs
+                  only (not the bounding box), which is too small a hit zone. */}
+              <rect x={hitX} y={y - 12} width={hitW} height={24}
+                    fill="transparent"/>
               {/* Cluster ring — circular (matches evidence-node shape language) */}
               <circle cx={LEFT_X} cy={y} r={10}
                       fill={colors.paperDeep} stroke={colorToken}
-                      strokeWidth={isSelected ? 1.6 : 1}
-                      strokeDasharray="2,2" opacity={isSelected ? 1 : 0.85}/>
+                      strokeWidth={isFocus ? 1.8 : 1}
+                      strokeDasharray="2,2" opacity={isFocus ? 1 : 0.85}
+                      style={{ pointerEvents:"none" }}/>
               <text x={LEFT_X} y={y + 3.5} textAnchor="middle"
                     fontFamily="'JetBrains Mono', monospace"
                     fontSize="10" fill={colorToken} fontWeight="600"
@@ -5389,13 +5515,24 @@ function FullscreenGraph({
                     style={{ pointerEvents:"none" }}>
                 {shortId}
               </text>
-              {/* Label (right side) — count already shown in the ring, no duplicate */}
+              {/* Label (right side) */}
               <text x={LEFT_X + 18} y={y + 4}
                     fontFamily="'Instrument Sans', sans-serif"
-                    fontSize="11.5" fill={colors.ink}
+                    fontSize="11.5"
+                    fill={isFocus ? colors.ink : colors.inkSoft}
+                    fontWeight={isFocus ? 500 : 400}
                     fontStyle="italic"
                     style={{ pointerEvents:"none" }}>
                 {cl.label}
+              </text>
+              {/* Click affordance — small chevron indicating this opens a drawer. */}
+              <text x={LEFT_X + 18 + labelW + 8} y={y + 4}
+                    fontFamily="'JetBrains Mono', monospace"
+                    fontSize="9" fill={colorToken}
+                    opacity={isSelected ? 1 : 0.55}
+                    letterSpacing="0.3"
+                    style={{ pointerEvents:"none" }}>
+                ▸
               </text>
             </g>
           );
@@ -5507,6 +5644,23 @@ function FullscreenGraph({
                   fontWeight={isFocus ? 500 : 400}>
               {labelText}
             </text>
+            {/* Meta line — date + credibility, mirrors v0.3's two-line
+                evidence row pattern. Only shown when the evidence has a
+                published date (silence-evidence and synthetic rows skip
+                this; the drawer still shows full meta on click).
+                Compact: 9pt at y+15 keeps the row within ~22px content
+                so 22 rows fit in the BOT-TOP band without crowding. */}
+            {ev.published && (
+              <text x={LEFT_X + 18} y={y + 15}
+                    fontFamily="'JetBrains Mono', monospace"
+                    fontSize="9"
+                    fill={colors.inkMute}
+                    letterSpacing="0.3"
+                    opacity={isFocus ? 1 : 0.7}>
+                {ev.published}
+                {typeof ev.credibility === "number" && ` · cred ${ev.credibility.toFixed(2)}`}
+              </text>
+            )}
             {/* Cluster affordance — only when this evidence is an inlined member of a currently-expanded cluster */}
             {isV04 && evToSecCluster[ev.id] && expandedClustersSet.has(evToSecCluster[ev.id].id) && (() => {
               const cl = evToSecCluster[ev.id];
@@ -5556,8 +5710,8 @@ function FullscreenGraph({
         // much vertical space and push the bottom row into the timeline panel.
         // Storyline rows: 7-15px; candidate sub-rows: 4-9px.
         const sizeScale = isV04 ? 0.025 : 0.05;
-        const baseRad = row.isBucket ? 7 : 4;
-        const maxRad = row.isBucket ? 15 : 9;
+        const baseRad = row.isVariant ? 4 : (row.isBucket ? 7 : 4);
+        const maxRad = row.isVariant ? 10 : (row.isBucket ? 15 : 9);
         const radius = Math.min(maxRad, baseRad + v * Math.min(width, height) * sizeScale);
         const dim = (focusEv && !isSupported && !isOpposed)
                  || (hoverCand && hoverCand !== row.id);
@@ -5571,13 +5725,58 @@ function FullscreenGraph({
              onMouseLeave={()=>setHoverCand(null)}
              style={{ cursor: "default",
                opacity: dim ? 0.35 : 1, transition:"opacity 0.3s" }}>
-            {row.parentBucket && (
-              // L-connector to parent bucket (legacy — no sub-rows render
-              // in v0.4.2 but kept for parentBucket-aware edge rendering)
-              <line x1={RIGHT_X - 12 + indentOffset} y1={y}
-                    x2={RIGHT_X - 4 + indentOffset} y2={y}
-                    stroke={colors.ruleSoft} strokeWidth="1"/>
-            )}
+            {/* Invisible hit-rect spanning the row's full horizontal
+                extent. Without this, the row's hit area is just the
+                union of the ring + flag + text glyphs — leaving small
+                gaps between elements where the cursor briefly leaves
+                the row's hover state. The rect makes the entire
+                row-band a unified hover target so the tooltip stays
+                stable as the user moves toward the info badge. */}
+            {row.isBucket && (() => {
+              const labelW = measureText(
+                row.label,
+                row.isBucket ? 12.5 : 11,
+                "Instrument Sans, sans-serif",
+                row.isBucket ? (v > 0.15 ? 600 : 500) : 400
+              );
+              const hasBadge = !!row.overlap;
+              const xStart = RIGHT_X + indentOffset - radius - 4;
+              const xEnd = RIGHT_X + indentOffset + radius + 14 + labelW + (hasBadge ? 22 : 4);
+              return (
+                <rect x={xStart} y={y - 20}
+                      width={xEnd - xStart} height={56}
+                      fill="transparent"
+                      style={{ cursor: "default" }}/>
+              );
+            })()}
+
+            {row.parentBucket && (() => {
+              // L-connector showing the family→variant relationship.
+              // Parent is at (RIGHT_X, parentY) with no indent; we are
+              // at (RIGHT_X + indentOffset, y) one indent in. Draw a
+              // vertical line down from just below the parent ring,
+              // then a horizontal stub into our own ring's left edge.
+              const parentY = candY[row.parentBucket];
+              if (parentY == null) return null;
+              const parentRowColor = (() => {
+                const pr = candRows.find(r => r.id === row.parentBucket);
+                return pr ? pr.color : colors.ruleSoft;
+              })();
+              const stubX = RIGHT_X + indentOffset - radius - 6;
+              const elbowY = y;
+              return (
+                <g style={{ pointerEvents:"none" }}>
+                  <line x1={RIGHT_X} y1={parentY + 12}
+                        x2={RIGHT_X} y2={elbowY}
+                        stroke={parentRowColor} strokeOpacity="0.35"
+                        strokeWidth="1"/>
+                  <line x1={RIGHT_X} y1={elbowY}
+                        x2={stubX} y2={elbowY}
+                        stroke={parentRowColor} strokeOpacity="0.35"
+                        strokeWidth="1"/>
+                </g>
+              );
+            })()}
 
             <circle cx={RIGHT_X + indentOffset} cy={y} r={radius}
                     fill={fill} stroke={cc}
@@ -5607,64 +5806,248 @@ function FullscreenGraph({
                 {row.glyph}
               </text>
             )}
-            {/* Flag icon to the right of bucket — same affordance V0.3 uses
-                for candidate rows. Helps the eye scan the storyline list
-                without reading every label. Uses the bucket's `flag` field
-                to pick the right CandIcon. */}
+            {/* Flag icon at TOP of the row's text column — exact v0.3
+                spacing: y - 14 puts the flag at the visual top, with enough
+                gap below before the label baseline at y + 12. */}
             {row.isBucket && row.flag && (
-              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 5.5})`}
+              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 14})`}
                  opacity={row.ruledOut || row.routedTo ? 0.5 : 1}>
                 <CandIcon cand={row.flag} w={14} h={10} />
               </g>
             )}
             {!row.isBucket && (
-              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 5})`}>
+              <g transform={`translate(${RIGHT_X + indentOffset + radius + 14}, ${y - 14})`}>
                 <CandIcon cand={row.id} w={12} h={8} />
               </g>
             )}
 
-            {/* Compact single-line layout: glyph in ring, flag icon, label, then
-                % right-aligned to a fixed column. Tag (audit/process) sits
-                inline as a small italic note after the label. */}
-            <text x={RIGHT_X + indentOffset + radius + 14 + (row.isBucket ? 20 : 18)}
-                  y={y + 4}
+            {/* Label — y + 12 baseline (v0.3). 26px gap from flag top to
+                label baseline gives the rows visual separation v0.3 has.
+                Variants are slightly smaller (11pt vs 12.5pt) to read as
+                children of the family above. */}
+            <text x={RIGHT_X + indentOffset + radius + 14}
+                  y={y + 12}
                   fontFamily="'Instrument Sans', sans-serif"
-                  fontSize={row.isBucket ? 12.5 : 11}
+                  fontSize={row.isVariant ? 11 : (row.isBucket ? 12.5 : 11)}
                   fill={colors.ink}
-                  fontWeight={row.isBucket ? (v > 0.15 ? 600 : 500) : 400}
-                  fontStyle={row.ruledOut || row.routedTo ? "italic" : "normal"}
-                  opacity={row.ruledOut || row.routedTo ? 0.7 : 1}>
+                  fontWeight={row.isVariant ? 400 : (row.isBucket ? (v > 0.15 ? 600 : 500) : 400)}
+                  fontStyle={row.ruledOut ? "italic" : "normal"}
+                  opacity={row.ruledOut ? 0.7 : 1}>
               {row.label}
             </text>
 
-            <text x={RIGHT_X + indentOffset + 380}
-                  y={y + 4}
-                  textAnchor="end"
-                  fontFamily="'Fraunces', serif"
-                  fontSize={row.isBucket ? 15 : 12.5}
-                  fontStyle="italic"
-                  fill={cc}
-                  fontVariantNumeric="tabular-nums"
-                  opacity={row.ruledOut ? 0.6 : (row.routedTo ? 0.75 : 1)}>
-              {row.routedTo === "mu" ? "13.6% → μ"
-                : row.ruledOut ? "0%"
-                : `${(v*100).toFixed(1)}%`}
-            </text>
-
-            {row.isBucket && row.overlap && isHover && (
-              <g>
-                <rect x={RIGHT_X + indentOffset - 10} y={y + 40}
-                      width={340} height={28} rx="2"
-                      fill={colors.paperDeep} stroke={colors.warn}
-                      strokeWidth="0.8" opacity={0.96}/>
-                <text x={RIGHT_X + indentOffset - 4} y={y + 57}
-                      fontFamily="'JetBrains Mono', monospace"
-                      fontSize="9" fill={colors.warnDeep}
-                      letterSpacing="0.3">
-                  ⚠ overlap: see below
+            {/* Percentage — variants show conditional probability with
+                an explicit "of α" hint so the reader knows it's
+                P(variant | family), not P(variant). L2-gated rows show
+                a structural-exclusion note instead of just "0%". */}
+            {row.isVariant ? (
+              <text x={RIGHT_X + indentOffset + radius + 14}
+                    y={y + 28}
+                    fontFamily="'Fraunces', serif"
+                    fontSize={12}
+                    fontStyle="italic"
+                    fill={cc}
+                    fontVariantNumeric="tabular-nums"
+                    opacity={0.9}>
+                {(row.conditional * 100).toFixed(0)}%
+                <tspan fontFamily="'JetBrains Mono', monospace"
+                       fontSize="8" fill={colors.inkMute}
+                       fontStyle="normal" letterSpacing="0.4"
+                       dx="6">
+                  of α (conditional)
+                </tspan>
+              </text>
+            ) : row.l2Gated ? (
+              <>
+                <text x={RIGHT_X + indentOffset + radius + 14}
+                      y={y + 30}
+                      fontFamily="'Fraunces', serif"
+                      fontSize={13}
+                      fontStyle="italic"
+                      fill={cc}
+                      fontVariantNumeric="tabular-nums"
+                      opacity={0.55}>
+                  0%
                 </text>
-              </g>
+                <text x={RIGHT_X + indentOffset + radius + 14}
+                      y={y + 44}
+                      fontFamily="'JetBrains Mono', monospace"
+                      fontSize={8}
+                      fill={colors.inkMute}
+                      letterSpacing="0.6"
+                      textTransform="uppercase"
+                      opacity={0.9}>
+                  Structurally excluded
+                </text>
+              </>
+            ) : (
+              <text x={RIGHT_X + indentOffset + radius + 14}
+                    y={y + 30}
+                    fontFamily="'Fraunces', serif"
+                    fontSize={row.isBucket ? 15 : 12.5}
+                    fontStyle="italic"
+                    fill={cc}
+                    fontVariantNumeric="tabular-nums"
+                    opacity={row.ruledOut ? 0.6 : 1}>
+                {row.ruledOut ? "0%" : `${(v*100).toFixed(1)}%`}
+              </text>
             )}
+
+            {/* Persistent info badge — small gold "i" placed to the
+                RIGHT of the label text (where the user's eye finishes
+                reading "Russian self-sabotage" / "Institutional
+                avoidance"), signalling additional reasoning is
+                available on hover. Width is measured per-row so the
+                badge sits a consistent 8px after the label tail. */}
+            {row.isBucket && row.overlap && (() => {
+              const labelW = measureText(
+                row.label,
+                row.isBucket ? 12.5 : 11,
+                "Instrument Sans, sans-serif",
+                row.isBucket ? (v > 0.15 ? 600 : 500) : 400
+              );
+              const badgeX = RIGHT_X + indentOffset + radius + 14 + labelW + 10;
+              const badgeY = y + 8;
+              return (
+                <g transform={`translate(${badgeX}, ${badgeY})`}>
+                  <circle cx={0} cy={0} r={6}
+                          fill={colors.paper}
+                          stroke={colors.warn}
+                          strokeWidth="1"
+                          opacity={isHover ? 1 : 0.7}/>
+                  <text x={0} y={2.8} textAnchor="middle"
+                        fontFamily="'Fraunces', serif"
+                        fontStyle="italic"
+                        fontSize="8"
+                        fontWeight="600"
+                        fill={colors.warnDeep}
+                        opacity={isHover ? 1 : 0.7}
+                        style={{ pointerEvents: "none" }}>i</text>
+                </g>
+              );
+            })()}
+
+            {/* Custom tooltip — same chrome as the timeline tick tooltip
+                (frosted glass, soft border, drop shadow, Instrument
+                Sans 12pt). Rendered via SVG <foreignObject> so the HTML
+                inside wraps the long reasoning text into multiple
+                lines. Pointer aligns with the info badge to the right
+                of the label, not the ring. */}
+            {row.isBucket && row.overlap && isHover && (() => {
+              const TOOLTIP_W = 260;
+              const TOOLTIP_H = 110;
+              const labelW = measureText(
+                row.label,
+                row.isBucket ? 12.5 : 11,
+                "Instrument Sans, sans-serif",
+                row.isBucket ? (v > 0.15 ? 600 : 500) : 400
+              );
+              const badgeX = RIGHT_X + indentOffset + radius + 14 + labelW + 10;
+              // Anchor: tooltip centered on badge, clamped to SVG bounds.
+              let tipX = badgeX - TOOLTIP_W / 2;
+              if (tipX < 8) tipX = 8;
+              if (tipX + TOOLTIP_W > width - 8) tipX = width - 8 - TOOLTIP_W;
+              // Adaptive vertical placement: above the row by default,
+              // but flip to below when the row is too high in the SVG
+              // (e.g. α at the top of the column would otherwise place
+              // the tooltip at negative y and get clipped).
+              const wantTipY = y - TOOLTIP_H - 12;
+              const placeBelow = wantTipY < 8;
+              const tipY = placeBelow ? (y + 28) : wantTipY;
+              const pointerX = badgeX - tipX;
+              // Header label by bucket type — α as family is "about
+              // this storyline" not generic "note".
+              const headerLabel = row.l2Gated      ? "Why structurally excluded"
+                                : row.routedTo === "mu" ? "Why parallel axis"
+                                : row.hasVariants  ? "About this storyline family"
+                                : "About this storyline";
+              return (
+                <foreignObject x={tipX} y={tipY}
+                  width={TOOLTIP_W} height={TOOLTIP_H + 8}
+                  style={{ pointerEvents: "none", overflow: "visible" }}>
+                  <div xmlns="http://www.w3.org/1999/xhtml"
+                    style={{
+                      position:"relative",
+                      maxWidth: TOOLTIP_W,
+                      padding: "8px 12px",
+                      background: "rgba(250, 248, 243, 0.88)",
+                      backdropFilter:"blur(18px) saturate(160%)",
+                      WebkitBackdropFilter:"blur(18px) saturate(160%)",
+                      border: `1px solid rgba(217, 212, 199, 0.9)`,
+                      borderRadius: 3,
+                      boxShadow: "0 8px 20px rgba(26, 26, 26, 0.08), 0 2px 6px rgba(26, 26, 26, 0.04)",
+                      animation: "fadeIn 0.15s ease-out",
+                    }}>
+                    <div style={{
+                      fontFamily:"'JetBrains Mono', monospace",
+                      fontSize: 8.5,
+                      letterSpacing: 0.7,
+                      color: colors.warnDeep,
+                      textTransform:"uppercase",
+                      marginBottom: 5,
+                      fontWeight: 500,
+                    }}>
+                      {headerLabel}
+                    </div>
+                    <div style={{
+                      fontFamily:"'Instrument Sans', sans-serif",
+                      fontSize: 12,
+                      color: colors.ink,
+                      lineHeight: 1.4,
+                      fontWeight: 400,
+                    }}>
+                      {row.overlap}
+                    </div>
+                    {/* Pointer triangle — flips to top when the tooltip
+                        is rendered BELOW the row (i.e. for top-of-column
+                        rows that would otherwise clip the SVG bounds). */}
+                    {placeBelow ? (
+                      <>
+                        <div style={{
+                          position:"absolute", bottom:"100%",
+                          left: Math.max(10, Math.min(TOOLTIP_W - 10, pointerX)),
+                          transform:"translateX(-50%)",
+                          width: 0, height: 0,
+                          borderLeft:"5px solid transparent",
+                          borderRight:"5px solid transparent",
+                          borderBottom:"5px solid rgba(217, 212, 199, 0.9)",
+                        }}/>
+                        <div style={{
+                          position:"absolute", bottom:"100%",
+                          left: Math.max(10, Math.min(TOOLTIP_W - 10, pointerX)),
+                          transform:"translateX(-50%) translateY(1px)",
+                          width: 0, height: 0,
+                          borderLeft:"4px solid transparent",
+                          borderRight:"4px solid transparent",
+                          borderBottom:"4px solid rgba(250, 248, 243, 0.88)",
+                        }}/>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{
+                          position:"absolute", top:"100%",
+                          left: Math.max(10, Math.min(TOOLTIP_W - 10, pointerX)),
+                          transform:"translateX(-50%)",
+                          width: 0, height: 0,
+                          borderLeft:"5px solid transparent",
+                          borderRight:"5px solid transparent",
+                          borderTop:"5px solid rgba(217, 212, 199, 0.9)",
+                        }}/>
+                        <div style={{
+                          position:"absolute", top:"100%",
+                          left: Math.max(10, Math.min(TOOLTIP_W - 10, pointerX)),
+                          transform:"translateX(-50%) translateY(-1px)",
+                          width: 0, height: 0,
+                          borderLeft:"4px solid transparent",
+                          borderRight:"4px solid transparent",
+                          borderTop:"4px solid rgba(250, 248, 243, 0.88)",
+                        }}/>
+                      </>
+                    )}
+                  </div>
+                </foreignObject>
+              );
+            })()}
           </g>
         );
       })}
@@ -6023,7 +6406,7 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
   // Default position: bottom-left of the graph, floating above the timeline.
   // Left-aligned with the timeline track + ample spacing above. User can
   // drag-relocate; drag overrides the default placement.
-  const [pos, setPos] = useState({ top: null, left: 20, bottom: 80, right: null });
+  const [pos, setPos] = useState({ top: null, left: 20, bottom: 82, right: null });
   const [dragging, setDragging] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, startTop: 0, startLeft: 0 });
@@ -6099,15 +6482,16 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
              : (TURNING_POINTS[tp.tag] || null))
     : null;
 
-  // Storyline toggle pills (v0.4 only) — v0.4.2 attribution distribution.
-  // μ moved to process subclaim (parallel axis, not in this list).
-  // ζ added as under-examined UK-layer coordination space.
+  // v0.5 §2.6 storyline pills: families with their family-level coverage.
+  // δ marked as l2Gated (causally excluded — categorically different from
+  // a low-probability candidate).
   const storyPills = [
-    { id: "alpha",   glyph: "α", coverage: 0.70, color: colors.primary },
-    { id: "epsilon", glyph: "ε", coverage: 0.19, color: colors.inkSoft },
-    { id: "zeta",    glyph: "ζ", coverage: 0.06, color: colors.inkSoft },
-    { id: "beta",    glyph: "β", coverage: 0.05, color: colors.inkSoft },
-    { id: "delta",   glyph: "δ", coverage: 0.00, color: colors.muted, excluded: true },
+    { id: "alpha",   glyph: "α", coverage: 0.7052, color: colors.primary },
+    { id: "mu",      glyph: "μ", coverage: 0.147,  color: colors.inkSoft },
+    { id: "epsilon", glyph: "ε", coverage: 0.063,  color: colors.inkSoft },
+    { id: "beta",    glyph: "β", coverage: 0.0577, color: colors.inkSoft },
+    { id: "zeta",    glyph: "ζ", coverage: 0.0272, color: colors.inkSoft },
+    { id: "delta",   glyph: "δ", coverage: 0.00,   color: colors.muted, l2Gated: true },
   ];
 
   // Positioning: absolute inside graph container.
@@ -6139,26 +6523,6 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
             color: colors.inkMute, letterSpacing: 1, textTransform:"uppercase", lineHeight: 1 }}>
             Current Understanding
           </div>
-          {onPlayToggle && (
-            <button onMouseDown={(e)=>{ e.stopPropagation(); }}
-              onClick={(e)=>{ e.stopPropagation(); onPlayToggle(); }}
-              style={{ width: 20, height: 20, borderRadius: 3,
-                border: playing ? `1px solid ${colors.ink}` : `1px solid ${colors.rule}`,
-                background: playing ? colors.ink : "transparent", cursor:"pointer",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                transition:"all 0.15s", padding: 0, flexShrink: 0 }}>
-              {playing ? (
-                <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
-                  <rect x="1" y="1" width="2" height="7" fill={colors.paper}/>
-                  <rect x="5" y="1" width="2" height="7" fill={colors.paper}/>
-                </svg>
-              ) : (
-                <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
-                  <path d="M1.5 1 L7 4.5 L1.5 8 Z" fill={colors.inkSoft}/>
-                </svg>
-              )}
-            </button>
-          )}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
           {tp && (
@@ -6246,23 +6610,46 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
         );
       })()}
 
-      {/* v0.4: Other possibilities — compact storylines with bar-row mutual
-          hover. Hovering a bar segment highlights its row; hovering a row
-          highlights its segment. */}
+      {/* v0.4: storyline distribution — single-region, attribution only.
+          μ stays out of the panel (its "different axis" framing was confusing
+          when squeezed into 340px). It still appears on the graph with its
+          own caption. Greek letter glyphs are dropped here — flag icon +
+          label is enough, the letters were redundant chrome. */}
       {isV04 && !collapsed && (() => {
-        const rows = STORYLINES
-          .filter(s => s.kind !== "subclaim")  // exclude μ — parallel axis
-          .filter(s => (s.coverage || 0) > 0)  // exclude δ and others ruled out to 0%
-          .map(s => ({
-            id: s.id,
-            glyph: s.id === "alpha" ? "α" : s.id === "beta" ? "β"
-                 : s.id === "epsilon" ? "ε" : s.id === "zeta" ? "ζ"
-                 : s.id === "delta" ? "δ" : s.id.slice(0,1),
-            coverage: s.coverage || 0,
-            summary: s.shortLabel || s.label,
-            color: candColorForStory(s.id),
+        // Storyline → flag mapping (matches BUCKETS_V04 on the graph).
+        const storyFlag = {
+          alpha:   "C2b",          // 🇺🇦
+          epsilon: "C_unknown",    // ?
+          zeta:    "C5",           // 🇬🇧
+          beta:    "C7",           // 🇺🇸+🇺🇦
+          delta:   "C4",           // 🇷🇺
+        };
+        // Build rows directly from BUCKETS_V04 (v0.5 source of truth).
+        // Live rows: families with weight > 0 — sorted desc.
+        // L2-gated rows: stay separate, rendered after a divider.
+        const liveBuckets = BUCKETS_V04.filter(b => !b.l2Gated);
+        const gatedBuckets = BUCKETS_V04.filter(b => b.l2Gated);
+        const liveRows = liveBuckets
+          .map(b => ({
+            id: b.id,
+            flag: storyFlag[b.id] || b.flag,
+            coverage: b.coverageOverride || 0,
+            summary: (STORYLINES.find(s => s.id === b.id)?.shortLabel)
+                  || (STORYLINES.find(s => s.id === b.id)?.label)
+                  || b.label,
+            color: candColorForStory(b.id),
+            variants: b.variants || null,
           }))
           .sort((a, b) => b.coverage - a.coverage);
+        const gatedRows = gatedBuckets.map(b => ({
+          id: b.id,
+          flag: storyFlag[b.id] || b.flag,
+          coverage: 0,
+          summary: b.label,
+          color: candColorForStory(b.id),
+          l2Gated: true,
+        }));
+        const rows = liveRows;
         const leadingId = rows[0]?.id;
         const hoverStory = hoverCand && hoverCand.startsWith("_story:") ? hoverCand.slice(7) : null;
         return (
@@ -6274,7 +6661,7 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
                 <div key={r.id}
                      onMouseEnter={()=>setHoverCand("_story:" + r.id)}
                      onMouseLeave={()=>setHoverCand(null)}
-                     title={`${r.glyph} · ${r.summary} — ${(r.coverage*100).toFixed(1)}%`}
+                     title={`${r.summary} — ${(r.coverage*100).toFixed(1)}%`}
                      style={{
                        width: `${r.coverage * 100}%`,
                        background: r.color,
@@ -6285,46 +6672,128 @@ function DistributionOverlay({ distribution, hoverCand, setHoverCand, tp, playin
                      }}/>
               ))}
             </div>
-            {/* Row list — all 5 storylines, leading row highlighted with
-                primary color + 500 weight (mirrors v0.3's row layout). */}
+            {/* Row list — color square + flag icon + label + %.
+                Variants render as compact indented sub-rows beneath
+                their family. */}
             <div style={{ display:"flex", flexDirection:"column", gap: 6 }}>
               {rows.map(r => {
                 const isLead = r.id === leadingId;
                 const isHovered = hoverStory === r.id;
                 const dim = hoverStory && !isHovered;
                 return (
-                  <div key={r.id}
-                       onMouseEnter={()=>setHoverCand("_story:" + r.id)}
-                       onMouseLeave={()=>setHoverCand(null)}
-                       style={{ display:"grid",
-                         gridTemplateColumns: "9px 16px 1fr auto", gap: 10,
-                         alignItems:"center", cursor:"default",
-                         opacity: dim ? 0.4 : 1,
-                         transition:"opacity 0.2s" }}>
-                    <div style={{ width: 7, height: 7, background: r.color,
-                      outline: isHovered ? `1.5px solid ${colors.ink}` : "none",
-                      outlineOffset: 1 }}/>
-                    <span style={{ fontFamily:"'Fraunces', serif", fontStyle:"italic",
-                      fontSize: 14, color: r.color,
-                      fontWeight: 500, letterSpacing: -0.1,
-                      lineHeight: 1, textAlign:"center" }}>
-                      {r.glyph}
-                    </span>
-                    <div style={{ fontFamily:"'Instrument Sans', sans-serif",
-                      fontSize: 12.5, color: colors.ink,
-                      fontWeight: isLead ? 500 : 400,
-                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {r.summary}
+                  <React.Fragment key={r.id}>
+                    <div onMouseEnter={()=>setHoverCand("_story:" + r.id)}
+                         onMouseLeave={()=>setHoverCand(null)}
+                         style={{ display:"grid",
+                           gridTemplateColumns: "9px 18px 1fr auto", gap: 10,
+                           alignItems:"center", cursor:"default",
+                           opacity: dim ? 0.4 : 1,
+                           transition:"opacity 0.2s" }}>
+                      <div style={{ width: 7, height: 7, background: r.color,
+                        outline: isHovered ? `1.5px solid ${colors.ink}` : "none",
+                        outlineOffset: 1 }}/>
+                      <CandIcon cand={r.flag} w={16} h={11} />
+                      <div style={{ fontFamily:"'Instrument Sans', sans-serif",
+                        fontSize: 12.5, color: colors.ink,
+                        fontWeight: isLead ? 500 : 400,
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                        {r.summary}
+                      </div>
+                      <div style={{ fontFamily:"'Fraunces', serif", fontSize: 14.5,
+                        fontStyle:"italic",
+                        color: isLead ? colors.primary : colors.ink,
+                        fontVariantNumeric:"tabular-nums" }}>
+                        {(r.coverage * 100).toFixed(1)}<span style={{ fontSize: 10, opacity: 0.55, marginLeft: 1 }}>%</span>
+                      </div>
                     </div>
-                    <div style={{ fontFamily:"'Fraunces', serif", fontSize: 14.5,
-                      fontStyle:"italic",
-                      color: isLead ? colors.primary : colors.ink,
-                      fontVariantNumeric:"tabular-nums" }}>
-                      {(r.coverage * 100).toFixed(1)}<span style={{ fontSize: 10, opacity: 0.55, marginLeft: 1 }}>%</span>
-                    </div>
-                  </div>
+                    {/* Variant sub-rows — indented, conditional %, smaller text */}
+                    {r.variants && r.variants.map((v, i) => {
+                      const isLast = i === r.variants.length - 1;
+                      return (
+                        <div key={v.id}
+                             style={{ display:"grid",
+                               gridTemplateColumns: "9px 18px 1fr auto", gap: 10,
+                               alignItems:"center", cursor:"default",
+                               opacity: dim ? 0.4 : 0.9,
+                               paddingLeft: 22,
+                               transition:"opacity 0.2s",
+                               position:"relative" }}>
+                          {/* Mini L-connector to parent — reinforces the
+                              tree relationship. */}
+                          <div style={{
+                            position:"absolute",
+                            left: 14, top: -8, width: 1, height: 17,
+                            background: r.color, opacity: 0.35,
+                          }}/>
+                          <div style={{
+                            position:"absolute",
+                            left: 14, top: 9, width: 8, height: 1,
+                            background: r.color, opacity: 0.35,
+                          }}/>
+                          <div/>
+                          <CandIcon cand={v.flag} w={14} h={9.5} />
+                          <div style={{ fontFamily:"'Instrument Sans', sans-serif",
+                            fontSize: 11, color: colors.inkSoft,
+                            fontWeight: 400,
+                            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                            {v.label}
+                          </div>
+                          <div style={{ fontFamily:"'Fraunces', serif", fontSize: 12,
+                            fontStyle:"italic",
+                            color: colors.inkSoft,
+                            fontVariantNumeric:"tabular-nums" }}>
+                            {(v.conditional * 100).toFixed(0)}
+                            <span style={{ fontSize: 8.5, opacity: 0.6,
+                              marginLeft: 1, fontFamily:"'JetBrains Mono', monospace",
+                              fontStyle:"normal" }}> %·of α</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
                 );
               })}
+              {/* L2-gated tail — visually separated, no coverage in
+                  distribution bar, marked as structurally excluded. */}
+              {gatedRows.length > 0 && (
+                <>
+                  <div style={{
+                    margin: "8px 0 4px",
+                    fontFamily:"'JetBrains Mono', monospace",
+                    fontSize: 8.5, letterSpacing: 0.7,
+                    color: colors.inkMute, textTransform:"uppercase",
+                    display:"flex", alignItems:"center", gap: 8,
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: colors.ruleSoft }}/>
+                    Structurally excluded
+                    <div style={{ flex: 1, height: 1, background: colors.ruleSoft }}/>
+                  </div>
+                  {gatedRows.map(r => (
+                    <div key={r.id}
+                         style={{ display:"grid",
+                           gridTemplateColumns: "9px 18px 1fr auto", gap: 10,
+                           alignItems:"center", cursor:"default",
+                           opacity: 0.55 }}>
+                      <div style={{ width: 7, height: 7,
+                        border: `1px dashed ${colors.muted}`,
+                        background: "transparent" }}/>
+                      <CandIcon cand={r.flag} w={16} h={11} />
+                      <div style={{ fontFamily:"'Instrument Sans', sans-serif",
+                        fontSize: 12, color: colors.inkSoft,
+                        fontStyle:"italic",
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                        {r.summary}
+                      </div>
+                      <div style={{ fontFamily:"'Fraunces', serif", fontSize: 12.5,
+                        fontStyle:"italic",
+                        color: colors.muted,
+                        fontVariantNumeric:"tabular-nums" }}>
+                        0<span style={{ fontSize: 9, opacity: 0.55, marginLeft: 1 }}>%</span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         );
@@ -6889,6 +7358,204 @@ function EvidenceDrawer({ ev, onClose, onJumpTo, mode }) {
 }
 
 
+// ============================================================================
+// CLUSTER DRAWER — opens when a cluster row is clicked. Shows the cluster's
+// rationale (why these are grouped) + lists each member as a row that can be
+// drilled into a regular EvidenceDrawer. Also offers an inline-expansion
+// toggle so the reader can choose to see the members spread across the
+// graph's time list. Same chrome as EvidenceDrawer (right-side panel,
+// click-outside-to-close, Esc-to-close).
+// ============================================================================
+
+function ClusterDrawer({ cluster, onClose, onOpenMember, isInlineExpanded, onToggleInline, mode }) {
+  if (!cluster) return null;
+
+  // Esc-to-close
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const evidenceList = mode === "v04" ? EVIDENCE_V04 : EVIDENCE_V03;
+  const colorToken = cluster.color === "warn" ? colors.warn
+                   : cluster.color === "meta" ? colors.meta
+                   : cluster.color === "primary" ? colors.primary
+                   : colors.inkMute;
+  const shortId = "E*" + (cluster.id.replace(/^SC_/, ""));
+
+  return (
+    <>
+      {/* Click-outside backdrop */}
+      <div onClick={onClose}
+        style={{ position:"absolute", inset: 0, zIndex: 19,
+          background: "transparent", cursor:"default" }}/>
+
+      <div onClick={(e)=>e.stopPropagation()}
+        style={{ position:"absolute", top: 0, right: 0, bottom: 0,
+        width: 500, maxWidth: "50vw", background: colors.paper,
+        borderLeft: `1px solid ${colors.rule}`,
+        boxShadow: "-20px 0 48px rgba(26,26,26,0.05)",
+        padding: "48px 38px 56px", overflowY:"auto", zIndex: 20,
+        animation: "slideInRight 0.35s cubic-bezier(.2,.7,.2,1)" }}>
+
+        {/* ─── Header: cluster id + count ─────────────────────────── */}
+        <div style={{ display:"flex", alignItems:"baseline", gap: 10, marginBottom: 14 }}>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 14,
+            color: colorToken, fontWeight: 600 }}>{shortId}</div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+            color: colors.inkMute, letterSpacing: 0.5 }}>
+            cluster · {cluster.members.length} items
+          </div>
+        </div>
+
+        {/* Cluster type badge */}
+        <div style={{ display:"inline-block",
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+          color: colorToken, letterSpacing: 0.7, textTransform:"uppercase",
+          background: `${colorToken}14`,
+          border: `1px solid ${colorToken}40`,
+          padding: "3px 8px", borderRadius: 2,
+          marginBottom: 16, fontWeight: 600 }}>
+          Correlated cluster
+        </div>
+
+        {/* Cluster label as title */}
+        <div style={{ fontFamily:"'Fraunces', serif", fontSize: 28,
+          fontWeight: 400, lineHeight: 1.2, letterSpacing: -0.4,
+          color: colors.ink, marginBottom: 18 }}>
+          {cluster.label}
+        </div>
+
+        {/* Cluster summary / rationale */}
+        <div style={{
+          padding: "14px 16px",
+          background: colors.paperDeep,
+          borderLeft: `3px solid ${colorToken}`,
+          borderRadius: 2,
+          fontFamily:"'Fraunces', serif", fontStyle:"italic",
+          fontSize: 14, lineHeight: 1.55, color: colors.inkSoft,
+          marginBottom: 28 }}>
+          {cluster.summary}
+        </div>
+
+        {/* ─── Inline-expand toggle ─────────────────────────── */}
+        <div style={{
+          display:"flex", justifyContent:"space-between", alignItems:"center",
+          padding: "12px 14px",
+          background: colors.paper,
+          border: `1px solid ${colors.ruleSoft}`,
+          borderRadius: 2,
+          marginBottom: 24,
+        }}>
+          <div style={{
+            fontFamily:"'Instrument Sans', sans-serif", fontSize: 12.5,
+            color: colors.inkSoft, lineHeight: 1.4 }}>
+            <strong style={{ color: colors.ink, fontWeight: 600 }}>
+              {isInlineExpanded ? "Members are inlined in graph" : "Members are aggregated in graph"}
+            </strong><br/>
+            <span style={{ fontSize: 11.5, color: colors.inkMute }}>
+              {isInlineExpanded
+                ? "Each member appears as its own row in the time list."
+                : "Click below to spread the members across the graph's time list."}
+            </span>
+          </div>
+          <button onClick={onToggleInline}
+            style={{
+              fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+              color: isInlineExpanded ? colors.paper : colorToken,
+              background: isInlineExpanded ? colorToken : "transparent",
+              border: `1px solid ${colorToken}`,
+              padding: "6px 11px", borderRadius: 2,
+              letterSpacing: 0.7, textTransform:"uppercase",
+              cursor:"pointer", whiteSpace:"nowrap",
+              fontWeight: 600,
+              transition:"all 0.15s",
+              flexShrink: 0,
+              marginLeft: 14 }}>
+            {isInlineExpanded ? "Collapse" : "Expand inline"}
+          </button>
+        </div>
+
+        {/* ─── Member list — each clickable to drill into EvidenceDrawer ─── */}
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
+          color: colors.inkMute, letterSpacing: 0.9, textTransform:"uppercase",
+          marginBottom: 12, fontWeight: 600 }}>
+          {cluster.members.length} members
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap: 1,
+          border: `1px solid ${colors.ruleSoft}`, borderRadius: 2,
+          background: colors.paperDeep, padding: 1 }}>
+          {cluster.members.map(memberId => {
+            const ev = evidenceList.find(e => e.id === memberId);
+            if (!ev) return (
+              <div key={memberId} style={{
+                padding:"12px 14px", background: colors.paper,
+                fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+                color: colors.inkMute }}>
+                {memberId} · not found in current corpus
+              </div>
+            );
+            const credColor = ev.credibility >= 0.85 ? colors.ink
+                            : ev.credibility >= 0.6 ? colors.inkSoft
+                            : colors.inkMute;
+            return (
+              <div key={memberId}
+                onClick={() => onOpenMember(memberId)}
+                style={{
+                  padding: "12px 14px",
+                  background: colors.paper,
+                  cursor: "pointer",
+                  display: "grid",
+                  gridTemplateColumns: "44px 1fr auto",
+                  gap: 12,
+                  alignItems: "baseline",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(242, 238, 228, 0.55)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = colors.paper}>
+                <div style={{
+                  fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+                  color: colors.inkSoft, fontWeight: 600,
+                  letterSpacing: 0.3 }}>
+                  {ev.id}
+                </div>
+                <div style={{
+                  fontFamily:"'Instrument Sans', sans-serif", fontSize: 13,
+                  color: colors.ink, lineHeight: 1.4 }}>
+                  {ev.label}
+                  <div style={{
+                    fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+                    color: colors.inkMute, letterSpacing: 0.4, marginTop: 4 }}>
+                    {ev.published} · cred {ev.credibility.toFixed(2)}
+                  </div>
+                </div>
+                <div style={{
+                  fontFamily:"'JetBrains Mono', monospace", fontSize: 11,
+                  color: credColor, opacity: 0.6, lineHeight: 1 }}>
+                  ▸
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Reading hint */}
+        <div style={{ marginTop: 22,
+          fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+          color: colors.inkMute, letterSpacing: 0.4, lineHeight: 1.6 }}>
+          Click any member to view its full citation, source position, and reasoning contribution.
+          <br/>
+          Press <kbd style={{ fontFamily:"'JetBrains Mono', monospace",
+            background: colors.paperDeep, padding: "1px 5px",
+            borderRadius: 2, fontSize: 9.5, color: colors.inkSoft,
+            border: `1px solid ${colors.ruleSoft}` }}>Esc</kbd> or click outside to close.
+        </div>
+      </div>
+    </>
+  );
+}
+
 
 // ============================================================================
 // MASTHEAD — carries mode toggle
@@ -6898,19 +7565,36 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
   const isV04 = mode === "v04";
   return (
     <div style={{ borderBottom: `1px solid ${colors.rule}`,
-      background: colors.paper, padding: "18px 32px 22px" }}>
+      background: colors.paper, padding: "16px 32px 18px" }}>
+      {/* Top row: brand + case metadata on the left, mode toggle + fullscreen
+          on the right. Metadata reads as one breadcrumb-style line:
+            CASE FILE 001 · v0.4 · 13 EVIDENCE · 5 STORYLINES
+          The version + counts are the orientation a reader needs at a glance;
+          the per-column "EVIDENCE · X ITEMS" / "5 STORYLINES + μ" headers
+          inside the SVG were redundant with this and were removed. */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         gap: 24, flexWrap:"wrap" }}>
-        <div style={{ display:"flex", alignItems:"center", gap: 18, flexWrap:"wrap" }}>
-          <div style={{ fontFamily:"'Fraunces', serif", fontWeight: 600, fontSize: 22,
+        <div style={{ display:"flex", alignItems:"baseline", gap: 12, flexWrap:"wrap" }}>
+          <div style={{ fontFamily:"'Fraunces', serif", fontWeight: 600, fontSize: 20,
             letterSpacing: -0.3, color: colors.ink, lineHeight: 1 }}>Trace</div>
+          <div style={{ width: 1, height: 11, background: colors.rule, alignSelf:"center" }}/>
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
             color: colors.inkMute, letterSpacing: 1, textTransform:"uppercase", lineHeight: 1 }}>
-            Case file 001 · {isV04 ? "v0.4" : "v0.3"}
+            Case file 001
+            <span style={{ color: colors.ruleSoft, margin: "0 7px" }}>·</span>
+            <span style={{ color: colors.inkSoft }}>{isV04 ? "v0.4" : "v0.3"}</span>
+            <span style={{ color: colors.ruleSoft, margin: "0 7px" }}>·</span>
+            {activeEvidenceCount} evidence
+            {isV04 && (
+              <>
+                <span style={{ color: colors.ruleSoft, margin: "0 7px" }}>·</span>
+                5 storylines
+              </>
+            )}
           </div>
         </div>
 
-        <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
+        <div style={{ display:"flex", alignItems:"center", gap: 10, flexShrink: 0 }}>
           {/* v0.3 / v0.4 mode toggle */}
           <div style={{ display:"inline-flex", flexShrink: 0,
             border: `1px solid ${colors.rule}`, borderRadius: 2,
@@ -6931,41 +7615,92 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
             ))}
           </div>
 
-          <button onClick={onToggleFullscreen}
-            style={{ background: isFullscreen ? colors.ink : "transparent",
-              color: isFullscreen ? colors.paper : colors.inkSoft,
-              border: `1px solid ${isFullscreen ? colors.ink : colors.rule}`,
-              padding: "6px 11px", borderRadius: 2,
-              fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
-              letterSpacing: 1, textTransform: "uppercase", cursor: "pointer",
-              display:"flex", alignItems:"center", gap: 7,
-              transition: "all 0.2s", flexShrink: 0, whiteSpace:"nowrap" }}>
-            <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
-              <path d={isFullscreen
-                ? "M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
-                : "M4 1 L1 1 L1 4 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"}
-                stroke="currentColor" strokeWidth="1.2"/>
-            </svg>
-            {isFullscreen ? "exit" : "fullscreen"}
-          </button>
+          {/* Fullscreen toggle — to the right of mode toggle. Triggers true
+              browser fullscreen (whole page, not just graph), so the user can
+              still scroll to read content beneath the graph. */}
+          {onToggleFullscreen && (
+            <button onClick={onToggleFullscreen}
+              title={isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen page"}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen page"}
+              style={{
+                display:"flex", alignItems:"center", justifyContent:"center",
+                width: 28, height: 28,
+                background: isFullscreen ? colors.ink : "transparent",
+                color: isFullscreen ? colors.paper : colors.inkMute,
+                border: `1px solid ${isFullscreen ? colors.ink : colors.rule}`,
+                borderRadius: 2,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                padding: 0,
+              }}
+              onMouseEnter={(e)=>{
+                if (!isFullscreen) {
+                  e.currentTarget.style.color = colors.ink;
+                  e.currentTarget.style.borderColor = colors.ink;
+                }
+              }}
+              onMouseLeave={(e)=>{
+                if (!isFullscreen) {
+                  e.currentTarget.style.color = colors.inkMute;
+                  e.currentTarget.style.borderColor = colors.rule;
+                }
+              }}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d={isFullscreen
+                  ? "M1 4 L1 1 L4 1 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"
+                  : "M4 1 L1 1 L1 4 M7 1 L10 1 L10 4 M10 7 L10 10 L7 10 M4 10 L1 10 L1 7"}
+                  stroke="currentColor" strokeWidth="1.3"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      <div style={{ marginTop: 18, display:"flex", alignItems:"stretch", gap: 14 }}>
+      {/* Question block — red 3px accent bar + eyebrow + h1.
+          The h1 is wrapped in a hover surface to signal that the claim itself
+          is interactive (placeholder for a future claim-search / jump-to-claim
+          flow). For now the click is a no-op; only the hover affordance is
+          present. The accent bar is editorial — it gives the case-file question
+          a "this is the question of record" weight. */}
+      <div style={{ marginTop: 14, display:"flex", alignItems:"stretch", gap: 14 }}>
         <div style={{ width: 3, background: colors.primary, flexShrink: 0 }}/>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
             color: colors.primary, letterSpacing: 1.4,
-            textTransform:"uppercase", fontWeight: 500, marginBottom: 6 }}>
+            textTransform:"uppercase", fontWeight: 500, marginBottom: 5 }}>
             Converged · institutionally open
           </div>
-          <h1 style={{ fontFamily:"'Fraunces', serif",
-            fontSize: "clamp(22px, 2.4vw, 30px)",
-            fontWeight: 400, fontStyle:"italic", color: colors.ink,
-            letterSpacing: -0.5, lineHeight: 1.2, margin: 0,
-            maxWidth: "calc(100vw - 130px)", textWrap: "balance" }}>
-            Who attacked the Nord Stream pipelines on 26 September 2022?
-          </h1>
+          <button
+            type="button"
+            title="Search or jump to another claim (coming soon)"
+            style={{
+              display:"flex", alignItems:"center", gap: 12,
+              border: "none", background: "transparent",
+              padding: "4px 10px 4px 6px",
+              margin: "-4px -10px -4px -6px",
+              borderRadius: 3,
+              textAlign:"left", cursor: "pointer",
+              transition:"background 0.15s",
+              fontFamily:"inherit", color:"inherit",
+              maxWidth: "calc(100vw - 130px)",
+            }}
+            onMouseEnter={(e)=>{ e.currentTarget.style.background = "rgba(160, 58, 44, 0.05)"; }}
+            onMouseLeave={(e)=>{ e.currentTarget.style.background = "transparent"; }}>
+            <h1 style={{ fontFamily:"'Fraunces', serif",
+              fontSize: 20,
+              fontWeight: 400, fontStyle:"italic", color: colors.ink,
+              letterSpacing: -0.4, lineHeight: 1.2, margin: 0,
+              textWrap: "balance", flex: 1, minWidth: 0 }}>
+              Who attacked the Nord Stream pipelines on 26 September 2022?
+            </h1>
+            {/* Tiny chevron / search hint — visible only on hover */}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+              style={{ flexShrink: 0, opacity: 0.35, color: colors.primary }}
+              aria-hidden="true">
+              <circle cx="5" cy="5" r="3.4" stroke="currentColor" strokeWidth="1.2"/>
+              <line x1="7.5" y1="7.5" x2="10.5" y2="10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -6978,20 +7713,136 @@ function Masthead({ mode, setMode, activeEvidenceCount, currentLabel, currentDat
 // TIMELINE_V04) via props.
 // ============================================================================
 
-function TimelineOverlay({ idx, setIdx, timeline, turningPoints }) {
+function TimelineOverlay({ idx, setIdx, timeline, turningPoints,
+                          playing, onPlayToggle, onStop }) {
+  // Layout — controls section + 1px rule + flex timeline section. The
+  // controls live INSIDE the timeline panel rather than floating in the
+  // distribution overlay, because temporal control belongs with the
+  // temporal axis. Reducing the inner left padding (54 → 20) and adding
+  // the controls there compresses the tick spacing slightly while
+  // anchoring play / pause / stop in a logical, discoverable spot.
+  const idle = !playing;
   return (
     <div style={{ position:"absolute", left: 20, right: 20, bottom: 8, zIndex: 9,
       pointerEvents:"none" }}>
-      <div style={{ pointerEvents:"auto", width: "100%", padding: "8px 54px 10px",
+      <div style={{ pointerEvents:"auto", width: "100%",
+        padding: "10px 28px 10px 16px",
         background: "rgba(250, 248, 243, 0.55)",
         backdropFilter: "blur(18px) saturate(140%)",
         WebkitBackdropFilter: "blur(18px) saturate(140%)",
         border: `1px solid rgba(217, 212, 199, 0.8)`, borderRadius: 3,
-        boxShadow: "0 12px 32px rgba(26, 26, 26, 0.06), 0 2px 6px rgba(26, 26, 26, 0.03)" }}>
-        <TimelineBar idx={idx} setIdx={setIdx} timeline={timeline}
-                     turningPoints={turningPoints} />
+        boxShadow: "0 12px 32px rgba(26, 26, 26, 0.06), 0 2px 6px rgba(26, 26, 26, 0.03)",
+        display:"flex", alignItems:"stretch", gap: 16 }}>
+        {/* TRANSPORT CONTROLS — left zone.
+            Section sizes to its buttons (no minWidth lock) so the
+            spacing is symmetric: button-to-panel-left equals
+            button-to-divider (both 16px). The trade-off is a small
+            reflow (~30px) when toggling play ↔ pause+stop, since the
+            controls section grows when STOP appears. We accept this
+            reflow because user explicitly asked for symmetric padding
+            around the button. */}
+        <div style={{
+          display:"flex", alignItems:"center", gap: 6,
+          flexShrink: 0,
+        }}>
+          {idle && onPlayToggle && (
+            <TransportButton
+              icon="play"
+              label="PLAY"
+              onClick={onPlayToggle}
+              tooltip="Play timeline — watch the distribution evolve"
+            />
+          )}
+          {!idle && onPlayToggle && (
+            <TransportButton
+              icon="pause"
+              label="PAUSE"
+              onClick={onPlayToggle}
+              tooltip="Pause (resume from current point)"
+            />
+          )}
+          {!idle && onStop && (
+            <TransportButton
+              icon="stop"
+              onClick={onStop}
+              tooltip="Stop — return to start"
+              compact
+            />
+          )}
+        </div>
+
+        {/* Vertical rule separating controls from the date axis */}
+        <div style={{
+          width: 1,
+          background: "rgba(217, 212, 199, 0.7)",
+          flexShrink: 0,
+          alignSelf: "stretch",
+        }}/>
+
+        {/* TIMELINE BAR — fills remaining horizontal space.
+            Inner horizontal padding (32px each side) gives the first
+            tick ("Rupture") and the last ("Today" + date) breathing
+            room from the panel's inner edges. Without this, the tick
+            labels (which are translateX(-50%) on the track edges) half-
+            overflow the track and visually crowd the panel border. */}
+        <div style={{ flex: 1, minWidth: 0,
+          display:"flex", flexDirection:"column", justifyContent:"center",
+          padding: "0 32px" }}>
+          <TimelineBar idx={idx} setIdx={setIdx} timeline={timeline}
+                       turningPoints={turningPoints} />
+        </div>
       </div>
     </div>
+  );
+}
+
+// Reusable transport-control button — same chrome as the v0.3/v0.4 toggle
+// (black background, paper foreground), so play/pause/stop all read as
+// the same family of authoritative interactive controls.
+function TransportButton({ icon, label, onClick, tooltip, compact }) {
+  return (
+    <button onMouseDown={(e)=>e.stopPropagation()}
+      onClick={(e)=>{ e.stopPropagation(); onClick(); }}
+      title={tooltip}
+      aria-label={tooltip}
+      style={{
+        display:"inline-flex", alignItems:"center", gap: compact ? 0 : 6,
+        height: 24,
+        padding: compact ? "0" : "0 9px 0 7px",
+        width: compact ? 24 : "auto",
+        justifyContent: compact ? "center" : "flex-start",
+        borderRadius: 2,
+        border: `1px solid ${colors.ink}`,
+        background: colors.ink, color: colors.paper,
+        cursor:"pointer", flexShrink: 0,
+        transition:"opacity 0.15s",
+      }}
+      onMouseEnter={(e)=>{ e.currentTarget.style.opacity = "0.85"; }}
+      onMouseLeave={(e)=>{ e.currentTarget.style.opacity = "1"; }}>
+      {icon === "play" && (
+        <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+          <path d="M1.5 1 L8 5 L1.5 9 Z" fill={colors.paper}/>
+        </svg>
+      )}
+      {icon === "pause" && (
+        <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+          <rect x="1.5" y="1" width="2" height="8" fill={colors.paper}/>
+          <rect x="5.5" y="1" width="2" height="8" fill={colors.paper}/>
+        </svg>
+      )}
+      {icon === "stop" && (
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+          <rect x="1" y="1" width="7" height="7" fill={colors.paper}/>
+        </svg>
+      )}
+      {label && (
+        <span style={{
+          fontFamily:"'JetBrains Mono', monospace",
+          fontSize: 9, letterSpacing: 0.7,
+          textTransform:"uppercase", fontWeight: 500,
+        }}>{label}</span>
+      )}
+    </button>
   );
 }
 
@@ -10500,6 +11351,33 @@ function TraceV04Experience({ mode, setMode }) {
   const [hoverCand, setHoverCand] = useState(null);
   const [hoverEv, setHoverEv] = useState(null);
 
+  // Page-level fullscreen via the browser Fullscreen API. When on, the entire
+  // page enters browser fullscreen (browser chrome hidden) — the graph stays
+  // its normal size and the user can scroll to read content beneath it. This
+  // is different from the previous behavior where "fullscreen" meant the
+  // graph took 100vh by CSS, which hid the rest of the page.
+  const togglePageFullscreen = () => {
+    if (typeof document === "undefined") return;
+    if (!document.fullscreenElement) {
+      const el = document.documentElement;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+      if (req) req.call(el).catch(() => {});
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+      if (exit) exit.call(document).catch(() => {});
+    }
+  };
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange);
+    };
+  }, []);
+
   // Zoom + pan (fullscreen only) — ported from v0.3
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -10578,6 +11456,10 @@ function TraceV04Experience({ mode, setMode }) {
   const [expandedClusters, setExpandedClusters] = useState(() => new Set());
   const [expandedBuckets, setExpandedBuckets] = useState(() => new Set()); // bucket ids that are expanded
   const [selectedCluster, setSelectedCluster] = useState(null);
+  // Cluster drawer — when a cluster row is clicked, open this drawer to show
+  // the cluster's rationale + member list (each member is clickable to drill
+  // into a regular EvidenceDrawer). Mirrors how single evidence drills in.
+  const [clusterDrawerId, setClusterDrawerId] = useState(null);
 
   // Timeline playback — advances idx while `playing` is true. Works for both
   // v0.3 and v0.4: which timeline advances is determined by `activeTimeline`.
@@ -10716,56 +11598,32 @@ function TraceV04Experience({ mode, setMode }) {
     }}>
       <Masthead
         mode={mode} setMode={setMode}
-        activeEvidenceCount={activeEvV03.length}
+        activeEvidenceCount={graphEvidence.length}
         currentLabel={tp.label}
         currentDate={tp.date}
         isFullscreen={isFullscreen}
-        onToggleFullscreen={()=>setIsFullscreen(v=>!v)}
+        onToggleFullscreen={togglePageFullscreen}
       />
 
       {/* Graph region.
-          Non-fullscreen: cap at 1400px and center. On 16" laptops and wider,
-          the SVG previously stretched edge-to-edge (~1900+px), making the
-          evidence-to-storyline lines reach across awkwardly. The cap keeps
-          the graph readable at any viewport width while still using the
-          full screen in fullscreen mode. */}
+          Always normal size (1400px max, centered). The page-fullscreen
+          button in the masthead toggles BROWSER fullscreen; the graph itself
+          doesn't change size — the user scrolls the page as usual. */}
       <div ref={viewportRef}
         style={{
-          position: isFullscreen ? "fixed" : "relative",
-          top: isFullscreen ? 0 : "auto",
-          left: isFullscreen ? 0 : "auto",
-          right: isFullscreen ? 0 : "auto",
-          bottom: isFullscreen ? 0 : "auto",
-          width: isFullscreen ? "100vw" : "100%",
-          maxWidth: isFullscreen ? "none" : 1400,
-          margin: isFullscreen ? 0 : "0 auto",
-          height: isFullscreen ? "100vh" : "min(78vh, 860px)",
-          minHeight: isFullscreen ? "100vh" : 580,
+          position: "relative",
+          width: "100%",
+          maxWidth: 1400,
+          margin: "0 auto",
+          height: "min(78vh, 860px)",
+          minHeight: 580,
           background: colors.paper,
-          zIndex: isFullscreen ? 100 : "auto",
           overflow: "hidden",
-          borderBottom: isFullscreen ? "none" : `1px solid ${colors.rule}`,
+          borderBottom: `1px solid ${colors.rule}`,
         }}>
-        {isFullscreen && (
-          <button onClick={()=>setIsFullscreen(false)}
-            style={{ position:"absolute", top: 20, right: 20,
-              zIndex: 30,
-              background: colors.ink, color: colors.paper,
-              border: "none", padding: "8px 14px", borderRadius: 2,
-              fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-              letterSpacing: 1, textTransform:"uppercase", cursor:"pointer" }}>
-            exit fullscreen ×
-          </button>
-        )}
-
-        {/* Pan+zoom wrapper — only transforms in fullscreen + zoom>1 */}
-        <div onMouseDown={onPanMouseDown}
+        <div
           style={{
             position:"absolute", inset: 0,
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: "center center",
-            transition: panning ? "none" : "transform 0.2s cubic-bezier(.2,.7,.2,1)",
-            cursor: panning ? "grabbing" : (panReady ? "grab" : "default"),
           }}>
           <FullscreenGraph
             activeEvidence={graphEvidence}
@@ -10784,12 +11642,13 @@ function TraceV04Experience({ mode, setMode }) {
             setExpandedBuckets={setExpandedBuckets}
             selectedCluster={selectedCluster}
             setSelectedCluster={setSelectedCluster}
+            setClusterDrawerId={setClusterDrawerId}
           />
         </div>
 
-        {/* Legend — top-left. In fullscreen, shifted down to clear zoom controls. */}
+        {/* Legend — top-left of graph region */}
         <div style={{
-          position:"absolute", top: isFullscreen ? 62 : 22, left: 24, zIndex: 6,
+          position:"absolute", top: 22, left: 24, zIndex: 6,
           display:"flex", flexDirection:"column", gap: 8,
           fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5, color: colors.inkMute,
           letterSpacing: 0.5, pointerEvents:"none",
@@ -10826,72 +11685,10 @@ function TraceV04Experience({ mode, setMode }) {
           </span>
         </div>
 
-        {/* Zoom controls — fullscreen only, top-left */}
-        {isFullscreen && (
-          <div style={{
-            position:"absolute", top: 20, left: 20, zIndex: 15,
-            display:"flex", alignItems:"stretch",
-            background: "rgba(250, 248, 243, 0.72)",
-            backdropFilter:"blur(14px) saturate(140%)",
-            WebkitBackdropFilter:"blur(14px) saturate(140%)",
-            border: `1px solid rgba(217, 212, 199, 0.9)`,
-            borderRadius: 2, overflow:"hidden",
-          }}>
-            <button
-              onClick={()=>setZoom(z => Math.max(0.7, +(z - 0.1).toFixed(2)))}
-              disabled={zoom <= 0.7}
-              title="Zoom out"
-              style={{
-                width: 32, height: 30, background: "transparent",
-                border: "none", borderRight: `1px solid ${colors.rule}`,
-                cursor: zoom <= 0.7 ? "default" : "pointer",
-                color: zoom <= 0.7 ? colors.muted : colors.inkSoft,
-                fontFamily:"'JetBrains Mono', monospace", fontSize: 13,
-              }}>−</button>
-            <button
-              onClick={()=>setZoom(1)}
-              title="Reset zoom"
-              style={{
-                padding: "0 12px", height: 30,
-                background:"transparent", border:"none",
-                borderRight: `1px solid ${colors.rule}`,
-                fontFamily:"'JetBrains Mono', monospace", fontSize: 10,
-                color: colors.inkSoft, letterSpacing: 0.6,
-                cursor: "pointer", fontVariantNumeric:"tabular-nums",
-              }}>
-              {Math.round(zoom * 100)}%
-            </button>
-            <button
-              onClick={()=>setZoom(z => Math.min(1.8, +(z + 0.1).toFixed(2)))}
-              disabled={zoom >= 1.8}
-              title="Zoom in"
-              style={{
-                width: 32, height: 30, background: "transparent",
-                border: "none",
-                cursor: zoom >= 1.8 ? "default" : "pointer",
-                color: zoom >= 1.8 ? colors.muted : colors.inkSoft,
-                fontFamily:"'JetBrains Mono', monospace", fontSize: 13,
-              }}>+</button>
-          </div>
-        )}
-
-        {/* Pan affordance hint — appears in fullscreen when zoomed in */}
-        {canPan && (
-          <div style={{
-            position:"absolute", bottom: 20, left: 20, zIndex: 15,
-            fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
-            color: colors.inkMute, letterSpacing: 0.7,
-            background: "rgba(250, 248, 243, 0.72)",
-            backdropFilter:"blur(14px)",
-            WebkitBackdropFilter:"blur(14px)",
-            padding: "6px 10px", borderRadius: 2,
-            border: `1px solid ${colors.rule}`,
-            opacity: panReady ? 1 : 0.7,
-            transition: "opacity 0.2s",
-          }}>
-            {panReady ? "drag to pan" : "hold space / ⌘ to pan"}
-          </div>
-        )}
+        {/* Zoom + pan controls removed: they were specific to the old
+            graph-only fullscreen (where the graph itself filled the viewport).
+            Page-level fullscreen renders the graph at normal size, so the
+            built-in browser zoom (⌘+ / ⌘−) handles magnification needs. */}
 
         <DistributionOverlay
           distribution={graphDistribution}
@@ -10906,7 +11703,10 @@ function TraceV04Experience({ mode, setMode }) {
 
         <TimelineOverlay idx={idx} setIdx={setIdx}
           timeline={activeTimeline}
-          turningPoints={mode === "v04" ? TURNING_POINTS_V04 : TURNING_POINTS}/>
+          turningPoints={mode === "v04" ? TURNING_POINTS_V04 : TURNING_POINTS}
+          playing={playing}
+          onPlayToggle={()=>setPlaying(p => !p)}
+          onStop={()=>{ setPlaying(false); setIdx(0); }}/>
 
         {selectedEvObj && (
           <EvidenceDrawer ev={selectedEvObj}
@@ -10914,6 +11714,32 @@ function TraceV04Experience({ mode, setMode }) {
             onJumpTo={(id)=>setSelectedEv(id)}
             mode={mode}/>
         )}
+
+        {/* Cluster drawer — shows when a cluster row is clicked.
+            Drilling into a member from inside it closes the cluster drawer
+            and opens the regular EvidenceDrawer for that member. */}
+        {clusterDrawerId && (() => {
+          const cl = SECONDARY_CLUSTERS.find(c => c.id === clusterDrawerId);
+          if (!cl) return null;
+          return (
+            <ClusterDrawer
+              cluster={cl}
+              mode={mode}
+              isInlineExpanded={expandedClusters.has(cl.id)}
+              onToggleInline={() => {
+                const next = new Set(expandedClusters);
+                if (next.has(cl.id)) next.delete(cl.id);
+                else next.add(cl.id);
+                setExpandedClusters(next);
+              }}
+              onOpenMember={(memberId) => {
+                setClusterDrawerId(null);
+                setSelectedEv(memberId);
+              }}
+              onClose={() => setClusterDrawerId(null)}
+            />
+          );
+        })()}
       </div>
 
       {/* v0.3 mode: stop here — everything else is in the main graph + overlay + timeline */}
