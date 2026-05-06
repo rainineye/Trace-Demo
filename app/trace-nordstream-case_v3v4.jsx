@@ -290,7 +290,8 @@ function V03_Tag({ children, tone = "default" }) {
   };
   const t = tones[tone] || tones.default;
   return (
-    <span style={{
+    <span data-tooltip-anchor="true"
+      style={{
       fontFamily: "'JetBrains Mono', monospace",
       fontSize: 10, letterSpacing: 0.8, textTransform: "uppercase",
       padding: "2px 7px", borderRadius: 2,
@@ -397,8 +398,11 @@ function V03_FullscreenGraph({
   const LEFT_X = width * 0.22;
   // When playing, pull candidates leftward so the right-side panel doesn't sit on top of them
   const RIGHT_X = playing ? width * 0.62 : width * 0.75;
-  const TOP = height * 0.09;
-  const BOT = height * 0.86;
+  // TOP/BOT match v0.4's ratios — pushes the diagram up against the
+  // top of the stage and uses more of the vertical band so evidence
+  // rows aren't crowded.
+  const TOP = Math.round(height * 0.04);
+  const BOT = Math.round(height * 0.90);
 
   // Accurate text measurement — Instrument Sans is proportional, so character-count
   // estimates produce inconsistent spacing. Use an offscreen canvas to measure real px.
@@ -496,7 +500,7 @@ function V03_FullscreenGraph({
           (proportional font) so the spacing reads uniform regardless of label content. */}
       {evs.map((ev) => {
         const labelText = ev.label.length > 44 ? ev.label.slice(0,42)+"…" : ev.label;
-        const mainLabelWidth = measureText(labelText, 13, "Instrument Sans, sans-serif", 400);
+        const mainLabelWidth = measureText(labelText, 11.5, "Instrument Sans, sans-serif", 400);
         const edgeStartX = LEFT_X + 18 + mainLabelWidth + 12;
         return ev.edges.map((edge, i) => {
           if (!(edge.to in candY)) return null;
@@ -557,16 +561,17 @@ function V03_FullscreenGraph({
         const dim = anyFocus && !isFocus;
         const labelText = ev.label.length > 44 ? ev.label.slice(0,42)+"…" : ev.label;
         const metaText = `${ev.published} · cred ${ev.credibility.toFixed(2)}${ev.silence ? " · silence" : ""}`;
-        // Accurate measured widths for halo backgrounds (focus font size = 14)
+        // Accurate measured widths for halo backgrounds. Focus font sizes:
+        // label 12.5pt, id 12pt, meta 9pt — match the post-alignment layout.
         const evIdWidth = measureText(ev.id, 12, "JetBrains Mono, monospace", 600) + 6;
-        const mainLabelWidth = measureText(labelText, 14, "Instrument Sans, sans-serif", 500) + 8;
-        const metaLabelWidth = measureText(metaText, 10, "JetBrains Mono, monospace", 400) + 6;
+        const mainLabelWidth = measureText(labelText, 12.5, "Instrument Sans, sans-serif", 500) + 8;
+        const metaLabelWidth = measureText(metaText, 9, "JetBrains Mono, monospace", 400) + 6;
         // Expand truncated label to full text on direct hover (not on
         // reverse-trace via candidate hover, which would expand many at once).
         const expandLabel = isFocusByEv && ev.label.length > 44;
         const displayLabel = expandLabel ? ev.label : labelText;
         const displayLabelWidth = expandLabel
-          ? measureText(ev.label, 14, "Instrument Sans, sans-serif", 500) + 8
+          ? measureText(ev.label, 12.5, "Instrument Sans, sans-serif", 500) + 8
           : mainLabelWidth;
         return (
           <g key={`ev-label-${ev.id}`}
@@ -596,7 +601,7 @@ function V03_FullscreenGraph({
             )}
             <text x={LEFT_X + 18} y={y + 4}
                   fontFamily="'Instrument Sans', sans-serif"
-                  fontSize={isFocus ? 14 : 13}
+                  fontSize={isFocus ? 12.5 : 11.5}
                   fill={isFocus ? V03_colors.ink : (ev.silence ? V03_colors.inkMute : V03_colors.inkSoft)}
                   fontWeight={isFocus ? 500 : 400}
                   fontStyle={ev.silence ? "italic" : "normal"}
@@ -609,12 +614,12 @@ function V03_FullscreenGraph({
                     width={metaLabelWidth} height={13}
                     fill={V03_colors.paper} opacity={0.9}/>
             )}
-            <text x={LEFT_X + 18} y={y + 19}
+            <text x={LEFT_X + 18} y={y + 15}
                   fontFamily="'JetBrains Mono', monospace"
-                  fontSize="10"
+                  fontSize="9"
                   fill={V03_colors.inkMute}
                   letterSpacing="0.3"
-                  opacity={isFocus ? 1 : 0.75}>
+                  opacity={isFocus ? 1 : 0.7}>
               {metaText}
             </text>
           </g>
@@ -1513,13 +1518,16 @@ function V03_QuestionBlock() {
     }}>
       <div style={{ width: 3, background: V03_colors.primary, flexShrink: 0 }}/>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
+        <div data-tooltip-anchor="true"
+          style={{
           fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
           color: V03_colors.primary, letterSpacing: 1.4,
           textTransform:"uppercase", fontWeight: 500,
           marginBottom: 5,
+          display:"inline-flex", alignItems:"center",
         }}>
           Under investigation
+          <InfoTooltip {...CASE_STATE_TOOLTIPS.v03} width={340} size={11} tone="primary"/>
         </div>
         <h1 style={{
           fontFamily:"'Fraunces', serif",
@@ -4165,6 +4173,49 @@ const FIELD_TOOLTIPS = {
   },
 };
 
+// Case-state tooltips — explain what each state label on the question
+// block actually means. Reused across v0.3 ("Under investigation") and
+// v0.4 ("Converged · institutionally open").
+const CASE_STATE_TOOLTIPS = {
+  v03: {
+    heading: "Under investigation",
+    body: (
+      <>
+        <div style={{
+          fontFamily:"'Fraunces', serif", fontStyle:"italic",
+          fontSize: 13, color: "#1A1A1A", lineHeight: 1.4,
+          marginBottom: 8,
+        }}>
+          The default LLM-style read: many candidates remain in play, no actor is excluded, and aggregate confidence stays low.
+        </div>
+        <div>
+          v0.3 mirrors how an unstructured reasoner would summarize the public record — high-recall, low-resolution. It treats every report as an independent vote and lets the picture stay diffuse. v0.4 shows what changes when the same evidence is read through Trace's protocol.
+        </div>
+      </>
+    ),
+  },
+  v04: {
+    heading: "Converged · institutionally open",
+    body: (
+      <>
+        <div style={{
+          fontFamily:"'Fraunces', serif", fontStyle:"italic",
+          fontSize: 13, color: "#1A1A1A", lineHeight: 1.4,
+          marginBottom: 8,
+        }}>
+          Two facts must hold at once: the structural answer has converged, but no institution has formally closed it.
+        </div>
+        <div>
+          <b style={{ fontWeight: 600, color: "#1A1A1A" }}>Converged</b> — under Trace's protocol the evidence concentrates on one structural answer (a state-grade Ukrainian-linked operation, ~70%); other candidates lose mass.
+          <div style={{ marginTop: 6 }}>
+            <b style={{ fontWeight: 600, color: "#1A1A1A" }}>Institutionally open</b> — Sweden and Denmark closed without attribution; UN abstained; Poland refused extradition. Convergence in the evidence is not the same as a verdict from a court.
+          </div>
+        </div>
+      </>
+    ),
+  },
+};
+
 // ============================================================================
 // TIMELINE (v0.4) — key events on the case timeline, with per-point
 // distribution over the 11-candidate space.
@@ -4876,7 +4927,8 @@ function Tag({ children, tone = "default" }) {
   };
   const t = tones[tone] || tones.default;
   return (
-    <span style={{
+    <span data-tooltip-anchor="true"
+      style={{
       fontFamily: "'JetBrains Mono', monospace",
       fontSize: 10, letterSpacing: 0.8, textTransform: "uppercase",
       padding: "2px 7px", borderRadius: 2,
@@ -6320,14 +6372,16 @@ function TimelineBar({ idx, setIdx, timeline, turningPoints }) {
         const current = i === idx;
         const turningPoint = turningPoints ? turningPoints[t.tag] : null;
         const isTurning = !!turningPoint;
+        const dotSize = current ? 10
+                       : isTurning ? (hoverTick === i ? 8 : active ? 7 : 5)
+                       : (hoverTick === i ? 7 : active ? 6 : 4);
         return (
           <div key={t.tag}
                onMouseEnter={()=>setHoverTick(i)}
                onMouseLeave={()=>setHoverTick(null)}
                onMouseDown={(e)=>{ e.stopPropagation(); setIdx(i); }}
                style={{ position:"absolute", left: `${x}%`, top: 0, height: 42,
-                 transform:"translateX(-50%)", cursor:"pointer",
-                 display:"flex", flexDirection:"column", alignItems:"center" }}>
+                 width: 1, transform:"translateX(-50%)", cursor:"pointer" }}>
             {/* Turning-point vertical spike — extends up above the label */}
             {isTurning && (
               <div style={{
@@ -6338,40 +6392,56 @@ function TimelineBar({ idx, setIdx, timeline, turningPoints }) {
                 transition: "all 0.2s",
               }}/>
             )}
-            <div style={{ fontFamily:"'Instrument Sans', sans-serif",
+            {/* Label — absolute-positioned with a fixed BOTTOM edge so
+                the visual baseline is identical for every label
+                regardless of font weight. (Flex column + lineHeight:1
+                made bold turning-point labels sit a pixel or two off
+                because of font metric differences, producing the
+                "skew" between active and turning-point labels.) */}
+            <div style={{ position:"absolute",
+              bottom: 21 + dotSize/2 + 6,
+              left: "50%", transform:"translateX(-50%)",
+              fontFamily:"'Instrument Sans', sans-serif",
               fontSize: current ? 11.5 : 10.5,
               color: current ? colors.primary
                     : hoverTick === i ? colors.ink
                     : isTurning && active ? colors.warn
                     : (active ? colors.inkSoft : colors.muted),
-              marginBottom: 8,
+              letterSpacing: 0.1,
               fontWeight: (current || hoverTick === i || isTurning) ? 600 : 400,
-              whiteSpace: "nowrap", transition:"all 0.15s", lineHeight: 1 }}>{t.label}</div>
-            {/* Turning-point ticks are diamond-shaped; regular ticks are circles */}
+              whiteSpace: "nowrap", transition:"all 0.15s",
+              lineHeight: 1 }}>{t.label}</div>
+            {/* Tick dot — centered on the track line at top:21 */}
             {isTurning ? (
-              <div style={{
-                width: current ? 10 : (hoverTick === i ? 8 : active ? 7 : 5),
-                height: current ? 10 : (hoverTick === i ? 8 : active ? 7 : 5),
+              <div style={{ position:"absolute",
+                top: 21 - dotSize/2 + (current ? -1 : 0),
+                left: "50%", transform:"translate(-50%, 0) rotate(45deg)",
+                transformOrigin:"center",
+                width: dotSize, height: dotSize,
                 background: current ? colors.primary : (active ? colors.warn : colors.muted),
-                transform: "rotate(45deg)",
                 border: current ? `1.5px solid ${colors.paper}` : "none",
                 boxShadow: current ? `0 0 0 1px ${colors.primary}` : "none",
-                marginTop: current ? -1 : 0,
                 transition:"all 0.15s",
               }} />
             ) : (
-              <div style={{ width: current ? 10 : (hoverTick === i ? 7 : active ? 6 : 4),
-                height: current ? 10 : (hoverTick === i ? 7 : active ? 6 : 4),
+              <div style={{ position:"absolute",
+                top: 21 - dotSize/2 + (current ? -2 : 0),
+                left: "50%", transform:"translateX(-50%)",
+                width: dotSize, height: dotSize,
                 borderRadius: "50%",
                 background: current ? colors.primary : (active ? colors.ink : colors.muted),
                 border: current ? `2px solid ${colors.paper}` : "none",
                 boxShadow: current ? `0 0 0 1px ${colors.primary}` : "none",
-                marginTop: current ? -2 : 0, transition:"all 0.15s" }} />
+                transition:"all 0.15s" }} />
             )}
+            {/* Date label — only for current; sits below the dot */}
             {current && (
-              <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
+              <div style={{ position:"absolute",
+                top: 21 + dotSize/2 + 6,
+                left: "50%", transform:"translateX(-50%)",
+                fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
                 color: colors.primary, letterSpacing: 0.4,
-                marginTop: 4, whiteSpace:"nowrap", fontWeight: 500, lineHeight: 1 }}>
+                whiteSpace:"nowrap", fontWeight: 500, lineHeight: 1 }}>
                 {t.date}
               </div>
             )}
@@ -6386,9 +6456,29 @@ function TimelineBar({ idx, setIdx, timeline, turningPoints }) {
           backdropFilter:"blur(18px) saturate(160%)",
           WebkitBackdropFilter:"blur(18px) saturate(160%)",
           border: `1px solid rgba(217, 212, 199, 0.9)`, borderRadius: 3,
-          boxShadow: "0 8px 20px rgba(26,26,26,0.08)" }}>
+          boxShadow: "0 8px 20px rgba(26,26,26,0.08), 0 2px 6px rgba(26,26,26,0.04)",
+          animation:"fadeIn 0.15s ease-out" }}>
           <div style={{ fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
-            color: colors.ink, lineHeight: 1.4 }}>{hoverTP.desc}</div>
+            color: colors.ink, lineHeight: 1.4, fontWeight: 400 }}>{hoverTP.desc}</div>
+          {/* tooltip pointer — points down to the hovered tick (matches v0.3) */}
+          <div style={{
+            position:"absolute", top:"100%",
+            left: hoverPct > 88 ? "88%" : hoverPct < 12 ? "12%" : "50%",
+            transform:"translateX(-50%)",
+            width: 0, height: 0,
+            borderLeft:"5px solid transparent",
+            borderRight:"5px solid transparent",
+            borderTop:"5px solid rgba(217, 212, 199, 0.9)",
+          }}/>
+          <div style={{
+            position:"absolute", top:"100%",
+            left: hoverPct > 88 ? "88%" : hoverPct < 12 ? "12%" : "50%",
+            transform:"translateX(-50%) translateY(-1px)",
+            width: 0, height: 0,
+            borderLeft:"4px solid transparent",
+            borderRight:"4px solid transparent",
+            borderTop:"4px solid rgba(250, 248, 243, 0.97)",
+          }}/>
         </div>
       )}
     </div>
@@ -6405,51 +6495,100 @@ function TimelineBar({ idx, setIdx, timeline, turningPoints }) {
 // fields (source_confidence, original_text, caveats) are self-documenting.
 function InfoTooltip({ heading, body, align = "left", width = 280, tone = "neutral", size = 12 }) {
   const [show, setShow] = useState(false);
+  const [pos, setPos] = useState(null);  // computed screen-space coords for fixed-position tooltip
+  const iconRef = useRef(null);
+  const tooltipRef = useRef(null);
   const toneColor = tone === "warn" ? colors.warn
                   : tone === "primary" ? colors.primary
                   : colors.inkMute;
-  // Scale icon internals proportionally to requested size so small inline uses
-  // (inside 10px-font pills) don't push the pill taller than sibling tags.
   const s = size / 12;
+
+  // When showing, measure (a) the icon's screen rect, (b) the closest ancestor
+  // marked with data-tooltip-anchor (typically the parent Tag), and (c) the
+  // tooltip's own height. Position the tooltip ABOVE the trigger:
+  //   - tooltip.left aligns to anchor.left (so the tooltip extends rightward
+  //     from the leftmost edge of the visual context, not from the ⓘ itself
+  //     — this prevents overflow past the right edge of the drawer)
+  //   - tooltip.bottom = icon.top - 8 (so the tooltip sits 8px above the icon)
+  //   - a small ▼ arrow at the tooltip's bottom points DOWN to the ⓘ's center
+  // Recompute on resize / scroll so the tooltip stays attached.
+  useEffect(() => {
+    if (!show) { setPos(null); return; }
+    const compute = () => {
+      const icon = iconRef.current;
+      if (!icon) return;
+      const iconRect = icon.getBoundingClientRect();
+      const anchor = icon.closest("[data-tooltip-anchor]");
+      const anchorRect = anchor ? anchor.getBoundingClientRect() : iconRect;
+      const tipEl = tooltipRef.current;
+      const tipH = tipEl ? tipEl.getBoundingClientRect().height : 80;
+      // Clamp the tooltip's left edge so it can't push past the right viewport
+      // edge if `width` is wider than the available space from anchor.left.
+      const maxLeft = window.innerWidth - width - 8;
+      const left = Math.max(8, Math.min(anchorRect.left, maxLeft));
+      // Compute arrow horizontal position relative to tooltip's left,
+      // pointing at the icon's center.
+      const iconCenterX = iconRect.left + iconRect.width / 2;
+      const arrowLeft = Math.max(8, Math.min(width - 16, iconCenterX - left));
+      // If there's not enough room above, flip below.
+      const flipBelow = anchorRect.top - tipH - 14 < 8;
+      setPos({
+        left,
+        top: flipBelow ? iconRect.bottom + 10 : anchorRect.top - tipH - 10,
+        arrowLeft,
+        flipBelow,
+      });
+    };
+    compute();
+    // After first render the tooltip's height is known; recompute once.
+    requestAnimationFrame(compute);
+    window.addEventListener("scroll", compute, true);
+    window.addEventListener("resize", compute);
+    return () => {
+      window.removeEventListener("scroll", compute, true);
+      window.removeEventListener("resize", compute);
+    };
+  }, [show, width]);
+
   return (
-    <span
-      onMouseEnter={()=>setShow(true)}
-      onMouseLeave={()=>setShow(false)}
-      onMouseDown={(e)=>{ e.stopPropagation(); }}
-      style={{ position:"relative",
-        display:"inline-flex", alignItems:"center",
-        cursor:"help", marginLeft: 4, verticalAlign:"middle",
-        lineHeight: 1 }}>
-      <svg width={size} height={size} viewBox="0 0 12 12" fill="none"
-        style={{ opacity: show ? 1 : 0.5, transition:"opacity 0.15s", display:"block" }}>
-        <circle cx="6" cy="6" r="5.2" fill="none" stroke={toneColor} strokeWidth={0.9/s}/>
-        <circle cx="6" cy="3.2" r="0.7" fill={toneColor}/>
-        <line x1="6" y1="5" x2="6" y2="9" stroke={toneColor} strokeWidth={1/s} strokeLinecap="round"/>
-      </svg>
+    <>
+      <span
+        ref={iconRef}
+        onMouseEnter={()=>setShow(true)}
+        onMouseLeave={()=>setShow(false)}
+        onMouseDown={(e)=>{ e.stopPropagation(); }}
+        style={{ position:"relative",
+          display:"inline-flex", alignItems:"center",
+          cursor:"help", marginLeft: 4, verticalAlign:"middle",
+          lineHeight: 1 }}>
+        <svg width={size} height={size} viewBox="0 0 12 12" fill="none"
+          style={{ opacity: show ? 1 : 0.5, transition:"opacity 0.15s", display:"block" }}>
+          <circle cx="6" cy="6" r="5.2" fill="none" stroke={toneColor} strokeWidth={0.9/s}/>
+          <circle cx="6" cy="3.2" r="0.7" fill={toneColor}/>
+          <line x1="6" y1="5" x2="6" y2="9" stroke={toneColor} strokeWidth={1/s} strokeLinecap="round"/>
+        </svg>
+      </span>
       {show && (
-        <div style={{
-          position:"absolute", top: "calc(100% + 8px)",
-          left: align === "left" ? 0 : "auto",
-          right: align === "right" ? 0 : "auto",
-          zIndex: 60, pointerEvents:"none",
-          width: width, padding: "11px 14px",
-          background: "rgba(250, 248, 243, 0.98)",
-          backdropFilter:"blur(14px) saturate(160%)",
-          WebkitBackdropFilter:"blur(14px) saturate(160%)",
-          border: `1px solid ${toneColor}`, borderRadius: 2,
-          boxShadow: "0 10px 24px rgba(26,26,26,0.14)",
-          fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
-          color: colors.ink, lineHeight: 1.5,
-          // Reset typographic inheritance — when InfoTooltip is
-          // nested inside a Tag (textTransform:uppercase, letterSpacing:0.8)
-          // the body text would otherwise render in caps.
-          textTransform: "none",
-          letterSpacing: "normal",
-          fontWeight: 400,
-          fontStyle: "normal",
-          animation: "fadeIn 0.12s ease-out",
-          whiteSpace:"normal",
-        }}>
+        <div ref={tooltipRef}
+          style={{
+            position:"fixed",
+            left: pos ? pos.left : -9999,
+            top: pos ? pos.top : -9999,
+            zIndex: 9999, pointerEvents:"none",
+            width: width, padding: "11px 14px",
+            background: colors.paper,
+            border: `1px solid ${toneColor}`, borderRadius: 2,
+            boxShadow: "0 10px 24px rgba(26,26,26,0.14)",
+            fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
+            color: colors.ink, lineHeight: 1.5,
+            textTransform: "none",
+            letterSpacing: "normal",
+            fontWeight: 400,
+            fontStyle: "normal",
+            animation: "fadeIn 0.12s ease-out",
+            whiteSpace:"normal",
+            opacity: pos ? 1 : 0,
+          }}>
           {heading && (
             <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
               color: toneColor, letterSpacing: 0.8, textTransform:"uppercase",
@@ -6458,9 +6597,52 @@ function InfoTooltip({ heading, body, align = "left", width = 280, tone = "neutr
             </div>
           )}
           <div style={{ color: colors.inkSoft }}>{body}</div>
+          {/* Arrow — points DOWN to the ⓘ icon (when tooltip sits above) or
+              UP from the ⓘ (when flipped below). Two stacked triangles
+              create the bordered look that matches the panel's 1px border. */}
+          {pos && !pos.flipBelow && (
+            <>
+              <div style={{
+                position:"absolute", top: "100%", left: pos.arrowLeft,
+                transform:"translateX(-50%)",
+                width: 0, height: 0,
+                borderLeft:"6px solid transparent",
+                borderRight:"6px solid transparent",
+                borderTop:`6px solid ${toneColor}`,
+              }}/>
+              <div style={{
+                position:"absolute", top: "100%", left: pos.arrowLeft,
+                transform:"translateX(-50%) translateY(-1.4px)",
+                width: 0, height: 0,
+                borderLeft:"5px solid transparent",
+                borderRight:"5px solid transparent",
+                borderTop:`5px solid ${colors.paper}`,
+              }}/>
+            </>
+          )}
+          {pos && pos.flipBelow && (
+            <>
+              <div style={{
+                position:"absolute", bottom: "100%", left: pos.arrowLeft,
+                transform:"translateX(-50%)",
+                width: 0, height: 0,
+                borderLeft:"6px solid transparent",
+                borderRight:"6px solid transparent",
+                borderBottom:`6px solid ${toneColor}`,
+              }}/>
+              <div style={{
+                position:"absolute", bottom: "100%", left: pos.arrowLeft,
+                transform:"translateX(-50%) translateY(1.4px)",
+                width: 0, height: 0,
+                borderLeft:"5px solid transparent",
+                borderRight:"5px solid transparent",
+                borderBottom:`5px solid ${colors.paper}`,
+              }}/>
+            </>
+          )}
         </div>
       )}
-    </span>
+    </>
   );
 }
 
@@ -8378,10 +8560,13 @@ function QuestionBlock() {
     }}>
       <div style={{ width: 3, background: colors.primary, flexShrink: 0 }}/>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+        <div data-tooltip-anchor="true"
+          style={{ fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
           color: colors.primary, letterSpacing: 1.4,
-          textTransform:"uppercase", fontWeight: 500, marginBottom: 5 }}>
+          textTransform:"uppercase", fontWeight: 500, marginBottom: 5,
+          display:"inline-flex", alignItems:"center" }}>
           Converged · institutionally open
+          <InfoTooltip {...CASE_STATE_TOOLTIPS.v04} width={340} size={11} tone="primary"/>
         </div>
         <h1 style={{ fontFamily:"'Fraunces', serif",
           fontSize: 20, fontWeight: 400, fontStyle:"italic", color: colors.ink,
