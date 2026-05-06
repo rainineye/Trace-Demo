@@ -2703,6 +2703,17 @@ function TraceV03Experience({ mode, setMode }) {
           33%, 65%  { background-image: ${PAPER_GRAIN_B}, ${PAPER_MOTTLE_URL}; }
           66%, 100% { background-image: ${PAPER_GRAIN_C}, ${PAPER_MOTTLE_URL}; }
         }
+        .trace-search-input::placeholder {
+          color: #ABA594;
+          font-weight: 300;
+          font-style: italic;
+          opacity: 1;
+        }
+        .trace-search-input::-webkit-input-placeholder {
+          color: #ABA594;
+          font-weight: 300;
+          font-style: italic;
+        }
       `}</style>
 
       {/* MASTHEAD — full-width row (hidden in fullscreen) */}
@@ -4005,6 +4016,32 @@ const FACT_LAYER_TITLES = {
   F13: "Sweden and Denmark close their investigations without attribution (February 2024)",
 };
 
+// Evidence source URLs — primary news / court / UN article URLs for evidence
+// items that have one. Extracted from build_v05_full.py + v05-demo.json.
+// E-IDs not in this map render the source line as plain text (no redirect).
+const EVIDENCE_SOURCE_URLS = {
+  E14: "https://wiadomosci.wp.pl/nie-przyznaje-sie-do-wysadzenia-nord-stream-sad-uwalnia-nurka-to-byla-wojna-sprawiedliwa-7211784822815712a",
+  E17: "https://www.bundesgerichtshof.de/SharedDocs/Entscheidungen/DE/Strafsenate/3_StS/2025/StB__60-25.pdf",
+  E21: "https://www.rp.pl/przestepczosc/art43194881-wolodymyr-zurawlow-nie-zostanie-wydany-niemcom-sad-uchylil-areszt",
+  E22: "https://tvn24.pl/polska/reaguja-na-decyzje-sadu-w-sprawie-podejrzanego-o-wysadzenie-nord-stream-st8705218",
+  E23: "https://thehill.com/opinion/energy-environment/4726844-trumps-nord-stream-2-disaster/mlite/",
+  E24: "https://www.tagesspiegel.de/internationales/nach-staatsterrorismus-vorwurf-regierung-in-polen-weist-jede-verwicklung-an-nord-stream-sabotage-zuruck-12209846.html",
+  E25: "https://press.un.org/en/2023/sc15206.doc.htm",
+  E26: "https://www.svt.se/nyheter/inrikes/sverige-vantas-ta-enklaste-vagen-ut-fran-nord-stream-harvan",
+  E27: "https://www.svt.se/nyheter/inrikes/svenska-utredningen-av-nord-stream-sabotaget-laggs-ner",
+  E28: "https://www.dr.dk/nyheder/indland/ekspert-undrer-sig-over-svensk-argument-stoppe-efterforskning-af-nord-stream",
+  E29: "https://www.pravda.com.ua/eng/news/2026/02/19/8021774/",
+  E30: "https://www.t-online.de/nachrichten/ausland/internationale-politik/id_100140202/nord-stream-explosion-sechs-verdaechtige-eine-yacht-und-verraeterische-spuren-.html",
+  E31: "https://www.ilfattoquotidiano.it/2025/11/10/sabotaggio-nord-stream-il-wall-street-journal-rilancia-linchiesta-tedesca-coinvolto-lex-generale-ucraino-zaluzhny/8190836/",
+  E32: "https://www.t-online.de/nachrichten/deutschland/innenpolitik/id_100140234/nord-stream-was-die-bundesregierung-wirklich-weiss-und-warum-sie-schweigt.html",
+  E33: "https://www.securitycouncilreport.org/whatsinblue/2024/10/the-nord-stream-incident-open-briefing.php",
+  E34: "https://www.t-online.de/nachrichten/deutschland/innenpolitik/id_100140234/nord-stream-was-die-bundesregierung-wirklich-weiss-und-warum-sie-schweigt.html",
+  E35: "https://www.rp.pl/przestepczosc/art43194881-wolodymyr-zurawlow-nie-zostanie-wydany-niemcom-sad-uchylil-areszt",
+  E36: "https://www.dr.dk/nyheder/indland/ekspert-undrer-sig-over-svensk-argument-stoppe-efterforskning-af-nord-stream",
+  E37: "https://www.nrk.no/norge/skyggekrigen_-radiomeldinger-avslorer-russisk-skip-over-sprengte-nord-stream-gassror-1.16390302",
+  E38: "https://uk.news-pravda.com/ukraine/2026/04/17/138374.html",
+};
+
 // Evidence clusters — combined inferences that exceed the sum of parts
 const EVIDENCE_CLUSTERS_V04 = [
   { id: "western_intel_leaks",
@@ -4091,7 +4128,20 @@ const FIELD_TOOLTIPS = {
   },
   source_confidence: {
     heading: "Source confidence ≠ truth probability",
-    body: "How reliable the source is for this type of claim — not whether the claim is true. State media can score high on the fact that a press conference happened, even when its framing deserves adversarial caveats.",
+    body: (
+      <>
+        <div style={{
+          fontFamily:"'Fraunces', serif", fontStyle:"italic",
+          fontSize: 13, color: "#1A1A1A", lineHeight: 1.4,
+          marginBottom: 8,
+        }}>
+          Reliability of the source for this type of claim — not whether the claim is true.
+        </div>
+        <div>
+          State media can score high on the fact that a press conference happened, even when its framing deserves adversarial caveats.
+        </div>
+      </>
+    ),
   },
   reasoning_contribution: {
     heading: "Reasoning contribution",
@@ -5863,8 +5913,32 @@ function FullscreenGraph({
 
         return (
           <g key={`cand-${row.id}`}
-             onMouseEnter={()=>setHoverCand(row.id)}
-             onMouseLeave={()=>setHoverCand(null)}
+             onMouseEnter={()=>{
+               setHoverCand(row.id);
+               // Push storyline tooltip data on hover — only for
+               // bucket rows that have overlap explanatory content.
+               if (row.isBucket && row.overlap) {
+                 const labelW = measureText(
+                   row.label, 12.5,
+                   "Instrument Sans, sans-serif",
+                   v > 0.15 ? 600 : 500
+                 );
+                 const badgeX = RIGHT_X + indentOffset + radius + 14 + labelW + 10;
+                 const headerLabel = row.l2Gated      ? "Why structurally excluded"
+                                   : row.routedTo === "mu" ? "Why parallel axis"
+                                   : row.hasVariants  ? "About this storyline family"
+                                   : "About this storyline";
+                 setTipData({
+                   rowId: row.id,
+                   badgeX, badgeY: y,
+                   headerLabel, body: row.overlap,
+                 });
+               }
+             }}
+             onMouseLeave={()=>{
+               setHoverCand(null);
+               setTipData(null);
+             }}
              style={{ cursor: "default",
                opacity: dim ? 0.35 : 1, transition:"opacity 0.3s" }}>
             {/* Invisible hit-rect spanning the row's full horizontal
@@ -6075,40 +6149,9 @@ function FullscreenGraph({
                 inside wraps the long reasoning text into multiple
                 lines. Pointer aligns with the info badge to the right
                 of the label, not the ring. */}
-            {/* Storyline tooltip — when this bucket row has overlap
-                content and is currently hovered, push its data into
-                the parent component's tipData state. The actual
-                tooltip is rendered via React Portal outside the SVG
-                (see StorylineTooltip below), so it can extend ABOVE
-                α (the top row) into the masthead area without being
-                clipped by the wrapper's overflow:hidden. */}
-            {row.isBucket && row.overlap && isHover && (() => {
-              const labelW = measureText(
-                row.label,
-                row.isBucket ? 12.5 : 11,
-                "Instrument Sans, sans-serif",
-                row.isBucket ? (v > 0.15 ? 600 : 500) : 400
-              );
-              const badgeX = RIGHT_X + indentOffset + radius + 14 + labelW + 10;
-              const headerLabel = row.l2Gated      ? "Why structurally excluded"
-                                : row.routedTo === "mu" ? "Why parallel axis"
-                                : row.hasVariants  ? "About this storyline family"
-                                : "About this storyline";
-              // Schedule the state update via microtask so we don't
-              // setState during render. Cheap and idempotent because
-              // the data shape is small + StorylineTooltip diffs.
-              if (!tipData
-                  || tipData.rowId !== row.id
-                  || tipData.badgeX !== badgeX
-                  || tipData.badgeY !== y) {
-                queueMicrotask(() => setTipData({
-                  rowId: row.id,
-                  badgeX, badgeY: y,
-                  headerLabel, body: row.overlap,
-                }));
-              }
-              return null;
-            })()}
+            {/* Storyline tooltip — handled via setTipData on the row's
+                mouseEnter handler (not in render). The actual tooltip
+                renders via StorylineTooltip outside the SVG. */}
           </g>
         );
       })}
@@ -6397,6 +6440,13 @@ function InfoTooltip({ heading, body, align = "left", width = 280, tone = "neutr
           boxShadow: "0 10px 24px rgba(26,26,26,0.14)",
           fontFamily:"'Instrument Sans', sans-serif", fontSize: 12,
           color: colors.ink, lineHeight: 1.5,
+          // Reset typographic inheritance — when InfoTooltip is
+          // nested inside a Tag (textTransform:uppercase, letterSpacing:0.8)
+          // the body text would otherwise render in caps.
+          textTransform: "none",
+          letterSpacing: "normal",
+          fontWeight: 400,
+          fontStyle: "normal",
           animation: "fadeIn 0.12s ease-out",
           whiteSpace:"normal",
         }}>
@@ -7113,6 +7163,82 @@ function getSourceMark(source) {
   return m ? m[0] : "?";
 }
 
+// Source block — circular media-mark + source description + positions.
+// When a source_url exists in EVIDENCE_SOURCE_URLS, the entire block is
+// wrapped in an anchor that opens the original news article / court
+// document / official statement in a new tab. Hover shows an underline
+// on the source text + reveals a ↗ external-link icon, matching the
+// affordance pattern of other clickable rows in the drawer.
+function SourceBlock({ source, sourceUrl, positions }) {
+  const [hover, setHover] = React.useState(false);
+  const isLink = !!sourceUrl;
+  const showHover = isLink && hover;
+
+  const innerStructure = (
+    <>
+      <div style={{ marginTop: 1, flexShrink: 0 }}>
+        <SourceIcon source={source} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{
+          fontFamily:"'Instrument Sans', sans-serif",
+          fontSize: 12.5,
+          color: showHover ? colors.ink : colors.inkSoft,
+          lineHeight: 1.5, fontWeight: 400,
+          textDecoration: showHover ? "underline" : "none",
+          textUnderlineOffset: 3,
+          textDecorationColor: colors.inkMute,
+          textDecorationThickness: 1,
+          transition: "color 0.15s",
+        }}>
+          {source}
+          {isLink && (
+            <svg width="9" height="9" viewBox="0 0 10 10" fill="none"
+              style={{
+                display:"inline-block", marginLeft: 6,
+                verticalAlign: "baseline",
+                opacity: hover ? 1 : 0.5,
+                transform: hover ? "translate(1px,-1px)" : "translate(0,0)",
+                transition: "opacity 0.15s, transform 0.15s",
+              }}>
+              <path d="M3.2 2.8 L7 2.8 L7 6.6 M7 2.8 L3.2 6.6"
+                stroke={hover ? colors.primary : colors.inkMute}
+                strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </span>
+        {positions && positions.length > 0 && (
+          <div style={{ marginTop: 5,
+            fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5,
+            color: colors.inkMute, letterSpacing: 0.4,
+            lineHeight: 1.5 }}>
+            {positions.map(p=>p.replace(/_/g," ")).join(" · ")}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  const containerStyle = {
+    marginTop: 14,
+    display:"flex", alignItems:"flex-start", gap: 12,
+    textDecoration:"none", color:"inherit",
+    cursor: isLink ? "pointer" : "default",
+  };
+
+  if (isLink) {
+    return (
+      <a href={sourceUrl} target="_blank" rel="noopener noreferrer"
+         onMouseEnter={()=>setHover(true)}
+         onMouseLeave={()=>setHover(false)}
+         style={containerStyle}>
+        {innerStructure}
+      </a>
+    );
+  }
+  return <div style={containerStyle}>{innerStructure}</div>;
+}
+
 function SourceIcon({ source, theme = "v04" }) {
   const mark = getSourceMark(source);
   const ink = theme === "v03" ? V03_colors.ink : colors.ink;
@@ -7134,6 +7260,19 @@ function SourceIcon({ source, theme = "v04" }) {
       {mark}
     </div>
   );
+}
+
+// For cross-reference chips, pull the referenced record's title when
+// available. Priority: enriched E-layer → graph-layer label →
+// F-layer spec title → id. Hoisted to module scope so CrossRefRow
+// (defined as a top-level component) can access it.
+function crossRefTitle(id) {
+  const enr = EVIDENCE_V04_ENRICHED[id];
+  if (enr) return enr.title;
+  const raw = EVIDENCE_V04.find(e => e.id === id);
+  if (raw) return raw.label;
+  if (FACT_LAYER_TITLES[id]) return FACT_LAYER_TITLES[id];
+  return id;
 }
 
 // Cross-reference row inside EvidenceDrawer — clickable for E-layer
@@ -7284,16 +7423,7 @@ function EvidenceDrawer({ ev, onClose, onJumpTo, mode }) {
     ? EVIDENCE_CLUSTERS_V04.filter(c => c.members.includes(ev.id))
     : [];
 
-  // For cross-reference chips, pull the referenced record's title when available.
-  // Priority: enriched E-layer → graph-layer label → F-layer spec title → id.
-  const crossRefTitle = (id) => {
-    const enr = EVIDENCE_V04_ENRICHED[id];
-    if (enr) return enr.title;
-    const raw = EVIDENCE_V04.find(e => e.id === id);
-    if (raw) return raw.label;
-    if (FACT_LAYER_TITLES[id]) return FACT_LAYER_TITLES[id];
-    return id;
-  };
+  // crossRefTitle moved to module scope so CrossRefRow can use it directly.
 
   // Click-outside handling — wrap the drawer in a transparent backdrop that
   // captures clicks anywhere outside the drawer body and closes it. Also
@@ -7340,19 +7470,20 @@ function EvidenceDrawer({ ev, onClose, onJumpTo, mode }) {
         )}
       </div>
 
-      {/* ─── Source-confidence + source-type — combined row above title.
-          Both rendered as standard Tag chrome (uniform v0.3 style) so
-          they read as paired metadata, not as visually-divergent pills.
-          The source_confidence tooltip is preserved (inline ⓘ) because
-          it's the single most-misread concept in v0.4. */}
+      {/* ─── Source-type + source-confidence — categorical label first,
+          numeric score last. The descriptive label (TESTIMONY,
+          OFFICIAL_STATEMENT, etc.) takes the primary visual position
+          via Tag.default; the numeric reliability score takes the
+          secondary slot via Tag.mute (transparent bg) — matches v0.3's
+          "categorical primary, quantitative secondary" hierarchy. */}
       {useV04 && (
         <div style={{ marginTop: 14, display:"flex", gap: 6,
           alignItems:"center", flexWrap:"wrap" }}>
-          <Tag tone="default">
+          {ev.source_type && <Tag tone="default">{ev.source_type}</Tag>}
+          <Tag tone="mute">
             source conf {enriched.source_confidence.toFixed(2)}
             <InfoTooltip {...FIELD_TOOLTIPS.source_confidence} width={310} size={10}/>
           </Tag>
-          {ev.source_type && <Tag tone="default">{ev.source_type}</Tag>}
         </div>
       )}
 
@@ -7363,28 +7494,16 @@ function EvidenceDrawer({ ev, onClose, onJumpTo, mode }) {
         {useV04 ? enriched.title : ev.label}
       </div>
 
-      {/* ─── Source line — circular media-mark + source description ──── */}
+      {/* ─── Source line — circular media-mark + source description.
+          When the evidence has a primary source URL in
+          EVIDENCE_SOURCE_URLS, SourceBlock wraps everything in an
+          anchor that opens the original article in a new tab. */}
       {useV04 && (
-        <>
-          <div style={{ marginTop: 14,
-            display:"flex", alignItems:"center", gap: 10 }}>
-            <SourceIcon source={enriched.source} />
-            <div style={{ fontFamily:"'Instrument Sans', sans-serif",
-              fontSize: 12, color: colors.inkMute, lineHeight: 1.5,
-              flex: 1, minWidth: 0 }}>
-              {enriched.source}
-            </div>
-          </div>
-          {/* Positions — own row below source, mono micro-text */}
-          {isV04 && ev.positions && ev.positions.length > 0 && (
-            <div style={{ marginTop: 8, marginLeft: 32,
-              fontFamily:"'JetBrains Mono', monospace", fontSize: 9,
-              color: colors.inkMute, letterSpacing: 0.4 }}>
-              {ev.positions.slice(0,2).map(p=>p.replace(/_/g," ")).join(" · ")}
-              {ev.positions.length > 2 ? ` · +${ev.positions.length-2}` : ""}
-            </div>
-          )}
-        </>
+        <SourceBlock
+          source={enriched.source}
+          sourceUrl={EVIDENCE_SOURCE_URLS[ev.id]}
+          positions={isV04 ? ev.positions : null}
+        />
       )}
 
       {/* ─── v0.3 legacy path: credibility + source_type tags ──────────── */}
@@ -8131,11 +8250,12 @@ function SearchOverlay({ theme = "v04", onClose }) {
             value={query}
             onChange={(e)=>setQuery(e.target.value)}
             placeholder="What contested claim do you want to investigate?"
+            className="trace-search-input"
             style={{
               flex: 1, minWidth: 0,
               fontFamily:"'Fraunces', serif",
-              fontSize: 18, fontWeight: 400, fontStyle:"italic",
-              color: c.ink, letterSpacing: -0.2, lineHeight: 1.3,
+              fontSize: 15, fontWeight: 300, fontStyle:"italic",
+              color: c.ink, letterSpacing: 0, lineHeight: 1.4,
               border:"none", outline:"none",
               background:"transparent",
               padding: 0, margin: 0,
@@ -12179,6 +12299,17 @@ function TraceV04Experience({ mode, setMode }) {
         33%, 65%  { background-image: ${PAPER_GRAIN_B}, ${PAPER_MOTTLE_URL}; }
         66%, 100% { background-image: ${PAPER_GRAIN_C}, ${PAPER_MOTTLE_URL}; }
       }
+      .trace-search-input::placeholder {
+        color: #ABA594;
+        font-weight: 300;
+        font-style: italic;
+        opacity: 1;
+      }
+      .trace-search-input::-webkit-input-placeholder {
+        color: #ABA594;
+        font-weight: 300;
+        font-style: italic;
+      }
       body { margin: 0; }
       @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
     `;
@@ -12203,34 +12334,35 @@ function TraceV04Experience({ mode, setMode }) {
       WebkitFontSmoothing: "antialiased",
       MozOsxFontSmoothing: "grayscale",
     }}>
-      <div ref={mastheadRef}>
-        <Masthead
-          mode={mode} setMode={setMode}
-          activeEvidenceCount={graphEvidence.length}
-          currentLabel={tp.label}
-          currentDate={tp.date}
-          isFullscreen={isFullscreen}
-          onToggleFullscreen={togglePageFullscreen}
-        />
-      </div>
+      {/* MASTHEAD — full-width row, hidden in fullscreen so the graph
+          gets the entire viewport (matches v0.3's approach which works
+          reliably for scroll behavior). */}
+      {!isFullscreen && (
+        <div ref={mastheadRef}>
+          <Masthead
+            mode={mode} setMode={setMode}
+            activeEvidenceCount={graphEvidence.length}
+            currentLabel={tp.label}
+            currentDate={tp.date}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={togglePageFullscreen}
+          />
+        </div>
+      )}
 
-      {/* Graph region.
-          In fullscreen, the wrapper expands to (100vh - mastheadH) so
-          the timeline panel + division line sit at the viewport bottom.
-          The graph SVG uses width/height proportionally, so the
-          additional vertical room spreads evidence rows further apart
-          (less crowded). Below the wrapper, the rest of the page
-          (storylines, delta panel) is reachable by scrolling. */}
+      {/* Graph region — full screen width, no maxWidth/margin
+          constraint (matches v0.3). Height stays calc(100vh - 132px)
+          in normal mode and uses 100vh in fullscreen since the
+          masthead is hidden. Below the wrapper sits the rest of
+          the case-file content, reachable by normal page scroll. */}
       <div ref={viewportRef}
         style={{
           position: "relative",
           width: "100%",
-          maxWidth: 1400,
-          margin: "0 auto",
           height: isFullscreen
-            ? `calc(100vh - ${mastheadH}px)`
-            : "min(78vh, 860px)",
-          minHeight: isFullscreen ? undefined : 580,
+            ? "100vh"
+            : "calc(100vh - 132px)",
+          minHeight: isFullscreen ? undefined : 560,
           ...PAPER_TEXTURE_BG,
           overflow: "hidden",
           borderBottom: `1px solid ${colors.rule}`,
