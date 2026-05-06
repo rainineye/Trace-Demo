@@ -423,8 +423,13 @@ function V03_FullscreenGraph({
 
   const candsSorted = [...CAND_ORDER].sort((a,b)=> (distribution[b]||0) - (distribution[a]||0));
   const candY = {};
+  // Reserve 50px below BOT for the last candidate's percentage label
+  // (which sits at y + 30 below its center). Without this offset the
+  // bottom candidate's percentage gets clipped by SVG overflow:hidden.
+  // Mirrors v0.4's candBOT = BOT - 50 pattern.
+  const candBOT = BOT - 50;
   candsSorted.forEach((c,i)=>{
-    candY[c] = TOP + (BOT - TOP) * (i / (candsSorted.length - 1));
+    candY[c] = TOP + (candBOT - TOP) * (i / (candsSorted.length - 1));
   });
 
   const evs = activeEvidence;
@@ -449,16 +454,6 @@ function V03_FullscreenGraph({
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" style={{ width:"100%", height:"100%", display:"block" }}>
-      {/* Column headers */}
-      <text x={LEFT_X} y={height * 0.055}
-            fontFamily="'JetBrains Mono', monospace"
-            fontSize="11"
-            letterSpacing="1.4"
-            fill={V03_colors.inkMute}
-            textAnchor="start">
-        V03_EVIDENCE · {evs.length} ADMITTED
-      </text>
-
       {/* Evidence dots (before edges so lines visually emerge from them) */}
       {evs.map((ev) => {
         const y = evY[ev.id];
@@ -2542,8 +2537,29 @@ function TraceV03Experience({ mode, setMode }) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
-  const [panKeyHeld, setPanKeyHeld] = useState(false);
+  const [panMode, setPanMode] = useState(false);   // pan toolbar toggle
   const panStart = useRef({ x: 0, y: 0, originX: 0, originY: 0 });
+  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+
+  // Keyboard shortcuts for viewport navigation:
+  //   Esc — exit pan mode (zoom/pan preserved, just disengages drag)
+  //   F   — fit view (reset zoom to 100% + pan to origin)
+  // Skipped when typing in an input/textarea or interacting with a
+  // contentEditable region so search/edit fields aren't disrupted.
+  useEffect(() => {
+    const onKey = (e) => {
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (t && t.isContentEditable)) return;
+      if (e.key === "Escape" && panMode) {
+        setPanMode(false);
+      } else if ((e.key === "f" || e.key === "F") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        resetView();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panMode]);
 
   // Page-level fullscreen via browser API.
   const togglePageFullscreen = () => {
@@ -2568,36 +2584,11 @@ function TraceV03Experience({ mode, setMode }) {
     };
   }, []);
 
-  const canPan = fullscreen && zoom > 1;
-  const panReady = canPan && panKeyHeld;
-
-  // Track Space / Cmd / Ctrl for pan affordance
-  useEffect(() => {
-    if (!canPan) { setPanKeyHeld(false); return; }
-    const isPanKey = (e) => e.code === "Space" || e.metaKey || e.ctrlKey;
-    const onDown = (e) => {
-      if (isPanKey(e)) {
-        // Prevent Space from scrolling the page while pan-ready
-        if (e.code === "Space") e.preventDefault();
-        setPanKeyHeld(true);
-      }
-    };
-    const onUp = (e) => {
-      // Release when key lifts or modifier dropped
-      if (e.code === "Space" || e.key === "Meta" || e.key === "Control") {
-        setPanKeyHeld(false);
-      }
-    };
-    const onBlur = () => setPanKeyHeld(false);
-    window.addEventListener("keydown", onDown);
-    window.addEventListener("keyup", onUp);
-    window.addEventListener("blur", onBlur);
-    return () => {
-      window.removeEventListener("keydown", onDown);
-      window.removeEventListener("keyup", onUp);
-      window.removeEventListener("blur", onBlur);
-    };
-  }, [canPan]);
+  // Pan is available whenever the user has toggled pan mode on via the
+  // viewport toolbar. No keyboard hold required. Pan works at any zoom
+  // level (including 1x — useful as "scrub the camera" on a normal
+  // graph that's been pushed off-center by zoom > 1 earlier).
+  const panReady = panMode;
 
   const onPanMouseDown = (e) => {
     if (!panReady) return;
@@ -2624,11 +2615,6 @@ function TraceV03Experience({ mode, setMode }) {
       window.removeEventListener("mouseup", onUp);
     };
   }, [panning]);
-
-  // Reset pan when zoom returns to 1 or fullscreen exits
-  useEffect(() => {
-    if (zoom === 1 || !fullscreen) setPan({ x: 0, y: 0 });
-  }, [zoom, fullscreen]);
 
   const tp = V03_TIMELINE[idx];
   const cutoffDate = tp.date;
@@ -2685,7 +2671,27 @@ function TraceV03Experience({ mode, setMode }) {
 
   const selectedEvObj = V03_EVIDENCE.find(e => e.id === selectedEv);
 
-  const stageW = 1400, stageH = 880;
+  // Viewport-measured stage size — mirrors v0.4. Previously stageW/stageH
+  // were fixed at 1400/880 and the SVG's viewBox got scaled by the
+  // browser to fit the container width, which meant fontSize values
+  // rendered at different effective pixel sizes than v0.4 (where the
+  // viewBox tracks actual pixels). Measuring the wrapper via
+  // ResizeObserver keeps fontSize numbers literal: 11.5pt is 11.5pt
+  // regardless of viewport width.
+  const v03StageRef = useRef(null);
+  const [v03Stage, setV03Stage] = useState({ w: 1400, h: 800 });
+  useEffect(() => {
+    const update = () => {
+      if (v03StageRef.current) {
+        const r = v03StageRef.current.getBoundingClientRect();
+        setV03Stage({ w: Math.max(800, r.width), h: Math.max(500, r.height) });
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [fullscreen, mode]);
+  const stageW = v03Stage.w, stageH = v03Stage.h;
 
   return (
     <div style={{
@@ -2741,19 +2747,35 @@ function TraceV03Experience({ mode, setMode }) {
       )}
 
       {/* GRAPH STAGE — always normal size; page-fullscreen is handled by
-          the browser Fullscreen API on document root, not by CSS here. */}
-      <div style={{
-        position: "relative",
-        width: "100%",
-        height: "calc(100vh - 132px)",
-        minHeight: 560,
-        ...PAPER_TEXTURE_BG,
-        overflow:"hidden",
-        zIndex: 1,
-      }}>
+          the browser Fullscreen API on document root, not by CSS here.
+          minHeight 760 ensures all 8 candidates render with their flag
+          (y - 14) and percentage label (y + 30) inside viewBox — at the
+          previous 560 minimum the bottom candidate's percentage label
+          was clipped by SVG overflow:hidden.
+          Pan/zoom applies to the inner wrapper only — UI chrome
+          (ViewportControls, legend, distribution overlay, timeline)
+          stays anchored to the stage edges. */}
+      <div ref={v03StageRef}
+        onMouseDown={onPanMouseDown}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "calc(100vh - 132px)",
+          minHeight: 760,
+          ...PAPER_TEXTURE_BG,
+          overflow: "hidden",
+          zIndex: 1,
+          cursor: panMode ? (panning ? "grabbing" : "grab") : "default",
+          userSelect: panMode ? "none" : "auto",
+        }}>
         <div
           style={{
             position:"absolute", inset: 0,
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
+            transition: panning ? "none" : "transform 0.18s cubic-bezier(.2,.7,.2,1)",
+            pointerEvents: panMode ? "none" : "auto",
+            willChange: panning ? "transform" : "auto",
           }}>
           <V03_FullscreenGraph
             activeEvidence={activeEvidence}
@@ -2780,9 +2802,17 @@ function TraceV03Experience({ mode, setMode }) {
           onPlayToggle={onPlayToggle}
         />
 
-        {/* Legend — top-left, below the small fullscreen-toggle icon. */}
+        {/* Viewport controls — zoom +/− and pan toggle, top-left. */}
+        <ViewportControls
+          zoom={zoom} setZoom={setZoom}
+          panMode={panMode} setPanMode={setPanMode}
+          resetView={resetView}
+          theme={V03_colors}
+        />
+
+        {/* Legend — top-left, below ViewportControls. */}
         <div style={{
-          position:"absolute", top: fullscreen ? 56 : 50, left: 24, zIndex: 6,
+          position:"absolute", top: 64, left: 24, zIndex: 6,
           display:"flex", flexDirection:"column", gap: 8,
           fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5, color: V03_colors.inkMute,
           letterSpacing: 0.5, pointerEvents:"none",
@@ -4186,10 +4216,10 @@ const CASE_STATE_TOOLTIPS = {
           fontSize: 13, color: "#1A1A1A", lineHeight: 1.4,
           marginBottom: 8,
         }}>
-          The default LLM-style read: many candidates remain in play, no actor is excluded, and aggregate confidence stays low.
+          The unstructured read: many candidates remain plausible, no actor is excluded, aggregate confidence stays low.
         </div>
         <div>
-          v0.3 mirrors how an unstructured reasoner would summarize the public record — high-recall, low-resolution. It treats every report as an independent vote and lets the picture stay diffuse. v0.4 shows what changes when the same evidence is read through Trace's protocol.
+          v0.4 shows what changes when the same evidence is read through Trace's protocol.
         </div>
       </>
     ),
@@ -4203,12 +4233,12 @@ const CASE_STATE_TOOLTIPS = {
           fontSize: 13, color: "#1A1A1A", lineHeight: 1.4,
           marginBottom: 8,
         }}>
-          Two facts must hold at once: the structural answer has converged, but no institution has formally closed it.
+          The evidence has converged on a structural answer; institutions have not.
         </div>
         <div>
-          <b style={{ fontWeight: 600, color: "#1A1A1A" }}>Converged</b> — under Trace's protocol the evidence concentrates on one structural answer (a state-grade Ukrainian-linked operation, ~70%); other candidates lose mass.
-          <div style={{ marginTop: 6 }}>
-            <b style={{ fontWeight: 600, color: "#1A1A1A" }}>Institutionally open</b> — Sweden and Denmark closed without attribution; UN abstained; Poland refused extradition. Convergence in the evidence is not the same as a verdict from a court.
+          <b style={{ fontWeight: 600, color: "#1A1A1A" }}>Converged</b> — α (state-grade Ukrainian-linked) holds ~70% of the mass; rivals lose support.
+          <div style={{ marginTop: 4 }}>
+            <b style={{ fontWeight: 600, color: "#1A1A1A" }}>Institutionally open</b> — Sweden and Denmark closed without attribution; Poland refused extradition.
           </div>
         </div>
       </>
@@ -6481,6 +6511,130 @@ function TimelineBar({ idx, setIdx, timeline, turningPoints }) {
           }}/>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// VIEWPORT CONTROLS — zoom + pan toggle for the graph stage
+// ============================================================================
+// Renders a small vertical toolbar (intended to sit at top-left of the graph
+// stage, above the legend). Three groups:
+//   1. Zoom in / zoom out / reset (vertical stack, the way Figma + Maps do it)
+//   2. Pan mode toggle (when active, cursor becomes "grab" and drag pans)
+// Two state controllers are passed in (zoom + setZoom, panMode + setPanMode);
+// the parent owns state because zoom/pan transforms are applied at the stage
+// wrapper level. Accepts a `theme` so v0.3 and v0.4 use their own palette
+// without forking the component.
+function ViewportControls({
+  zoom, setZoom,
+  panMode, setPanMode,
+  resetView,
+  theme,           // either V03_colors or colors (v04)
+}) {
+  const c = theme;
+  const ZOOM_MIN = 0.5, ZOOM_MAX = 2.5, ZOOM_STEP = 0.25;
+  const [hovered, setHovered] = useState(null);
+
+  // Theme-aware semi-transparent fills — the controls breathe with
+  // the paper texture behind them rather than sitting on a solid card.
+  const FILL_REST     = "rgba(250, 248, 243, 0.55)";
+  const FILL_HOVER    = "rgba(250, 248, 243, 0.85)";
+  // Active pan = soft primary tint (not solid primary) so the toolbar
+  // stays in the background visual layer instead of becoming a focal
+  // point. The primary-tinted fill + primary text/icon together still
+  // signal "armed" without shouting.
+  const FILL_ACTIVE   = c.primary === "#A03A2C"
+    ? "rgba(160, 58, 44, 0.16)"     // matches both V03_colors.primary and colors.primary
+    : "rgba(160, 58, 44, 0.16)";
+  const BORDER_COLOR  = "rgba(217, 212, 199, 0.7)";   // c.rule @ ~0.7
+
+  // Per-button style — `id` lets the component track which button
+  // is hovered without inline mouse handlers having to write to the
+  // DOM directly. `active` overrides hover (active state wins).
+  const btnStyle = (id, { active = false, isText = false } = {}) => {
+    const isHover = hovered === id && !active;
+    return {
+      width: 26, height: 26,
+      display:"flex", alignItems:"center", justifyContent:"center",
+      background: active ? FILL_ACTIVE : isHover ? FILL_HOVER : FILL_REST,
+      border: "none",
+      color: active ? c.primary
+            : isHover ? c.ink
+            : c.inkMute,
+      cursor: "pointer", padding: 0,
+      transition: "background 0.18s ease, color 0.18s ease",
+      // Reset text-button typographic defaults
+      fontFamily: isText ? "'JetBrains Mono', monospace" : undefined,
+      fontSize: isText ? 9 : undefined,
+      letterSpacing: isText ? 0.4 : undefined,
+      fontWeight: isText ? 500 : undefined,
+    };
+  };
+
+  return (
+    <div style={{
+      position:"absolute", top: 22, left: 24, zIndex: 7,
+      display:"flex", alignItems:"center", gap: 1,
+      // Single horizontal pill — the 1px gap between buttons reads as a
+      // hairline divider against the semi-transparent paper fill.
+      background: BORDER_COLOR,
+      padding: 1,
+      borderRadius: 3,
+      boxShadow: "0 1px 2px rgba(26,26,26,0.04)",
+      pointerEvents:"auto",
+    }}>
+      <button
+        aria-label="Zoom out"
+        onClick={() => setZoom(z => Math.max(ZOOM_MIN, +(z - ZOOM_STEP).toFixed(2)))}
+        onMouseEnter={()=>setHovered("out")}
+        onMouseLeave={()=>setHovered(null)}
+        style={btnStyle("out")}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <line x1="2.5" y1="6" x2="9.5" y2="6" stroke="currentColor"
+                strokeWidth="1.4" strokeLinecap="round"/>
+        </svg>
+      </button>
+      <button
+        aria-label="Reset zoom"
+        title="Fit view (F)"
+        onClick={resetView}
+        onMouseEnter={()=>setHovered("reset")}
+        onMouseLeave={()=>setHovered(null)}
+        style={{ ...btnStyle("reset", { isText: true }), width: 34 }}
+      >
+        {Math.round(zoom * 100)}
+      </button>
+      <button
+        aria-label="Zoom in"
+        onClick={() => setZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))}
+        onMouseEnter={()=>setHovered("in")}
+        onMouseLeave={()=>setHovered(null)}
+        style={btnStyle("in")}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <line x1="6" y1="2.5" x2="6" y2="9.5" stroke="currentColor"
+                strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1="2.5" y1="6" x2="9.5" y2="6" stroke="currentColor"
+                strokeWidth="1.4" strokeLinecap="round"/>
+        </svg>
+      </button>
+      <button
+        aria-label={panMode ? "Exit pan mode" : "Pan"}
+        title={panMode ? "Pan mode active — drag to move, Esc to exit" : "Pan — drag the graph to move it"}
+        onClick={() => setPanMode(p => !p)}
+        onMouseEnter={()=>setHovered("pan")}
+        onMouseLeave={()=>setHovered(null)}
+        style={btnStyle("pan", { active: panMode })}
+      >
+        {/* Four-way arrow — the universal pan / move glyph */}
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5 L7 12.5 M1.5 7 L12.5 7 M7 1.5 L4.8 3.7 M7 1.5 L9.2 3.7 M7 12.5 L4.8 10.3 M7 12.5 L9.2 10.3 M1.5 7 L3.7 4.8 M1.5 7 L3.7 9.2 M12.5 7 L10.3 4.8 M12.5 7 L10.3 9.2"
+                stroke="currentColor" strokeWidth="1.2"
+                strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
     </div>
   );
 }
@@ -12275,40 +12429,36 @@ function TraceV04Experience({ mode, setMode }) {
     };
   }, []);
 
-  // Zoom + pan (fullscreen only) — ported from v0.3
+  // Zoom + pan via on-canvas toolbar (ViewportControls). Pan available
+  // any time the user toggles pan mode on; not gated on fullscreen.
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
-  const [panKeyHeld, setPanKeyHeld] = useState(false);
+  const [panMode, setPanMode] = useState(false);
   const panStart = useRef({ x: 0, y: 0, originX: 0, originY: 0 });
+  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
-  const canPan = isFullscreen && zoom > 1;
-  const panReady = canPan && panKeyHeld;
-
+  // Keyboard shortcuts for viewport navigation:
+  //   Esc — exit pan mode (zoom/pan preserved, just disengages drag)
+  //   F   — fit view (reset zoom to 100% + pan to origin)
+  // Skipped when typing in an input/textarea/contentEditable so the
+  // search overlay and any future edit fields aren't disrupted.
   useEffect(() => {
-    if (!canPan) { setPanKeyHeld(false); return; }
-    const isPanKey = (e) => e.code === "Space" || e.metaKey || e.ctrlKey;
-    const onDown = (e) => {
-      if (isPanKey(e)) {
-        if (e.code === "Space") e.preventDefault();
-        setPanKeyHeld(true);
+    const onKey = (e) => {
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (t && t.isContentEditable)) return;
+      if (e.key === "Escape" && panMode) {
+        setPanMode(false);
+      } else if ((e.key === "f" || e.key === "F") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        resetView();
       }
     };
-    const onUp = (e) => {
-      if (e.code === "Space" || e.key === "Meta" || e.key === "Control") {
-        setPanKeyHeld(false);
-      }
-    };
-    const onBlur = () => setPanKeyHeld(false);
-    window.addEventListener("keydown", onDown);
-    window.addEventListener("keyup", onUp);
-    window.addEventListener("blur", onBlur);
-    return () => {
-      window.removeEventListener("keydown", onDown);
-      window.removeEventListener("keyup", onUp);
-      window.removeEventListener("blur", onBlur);
-    };
-  }, [canPan]);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panMode]);
+
+  const panReady = panMode;
 
   const onPanMouseDown = (e) => {
     if (!panReady) return;
@@ -12335,16 +12485,6 @@ function TraceV04Experience({ mode, setMode }) {
       window.removeEventListener("mouseup", onUp);
     };
   }, [panning]);
-
-  // Reset pan when zoom returns to 1 or fullscreen exits
-  useEffect(() => {
-    if (zoom === 1 || !isFullscreen) setPan({ x: 0, y: 0 });
-  }, [zoom, isFullscreen]);
-
-  // Reset zoom when leaving fullscreen
-  useEffect(() => {
-    if (!isFullscreen) setZoom(1);
-  }, [isFullscreen]);
 
   // v0.4 state
   // focusStoryline: user-initiated focus on a storyline card. null = no focus, no dimming.
@@ -12541,20 +12681,28 @@ function TraceV04Experience({ mode, setMode }) {
           masthead is hidden. Below the wrapper sits the rest of
           the case-file content, reachable by normal page scroll. */}
       <div ref={viewportRef}
+        onMouseDown={onPanMouseDown}
         style={{
           position: "relative",
           width: "100%",
           height: isFullscreen
             ? "100vh"
             : "calc(100vh - 132px)",
-          minHeight: isFullscreen ? undefined : 560,
+          minHeight: isFullscreen ? undefined : 760,
           ...PAPER_TEXTURE_BG,
           overflow: "hidden",
           borderBottom: `1px solid ${colors.rule}`,
+          cursor: panMode ? (panning ? "grabbing" : "grab") : "default",
+          userSelect: panMode ? "none" : "auto",
         }}>
         <div
           style={{
             position:"absolute", inset: 0,
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
+            transition: panning ? "none" : "transform 0.18s cubic-bezier(.2,.7,.2,1)",
+            pointerEvents: panMode ? "none" : "auto",
+            willChange: panning ? "transform" : "auto",
           }}>
           <FullscreenGraph
             activeEvidence={graphEvidence}
@@ -12577,9 +12725,17 @@ function TraceV04Experience({ mode, setMode }) {
           />
         </div>
 
-        {/* Legend — top-left of graph region */}
+        {/* Viewport controls — zoom +/− and pan toggle, top-left. */}
+        <ViewportControls
+          zoom={zoom} setZoom={setZoom}
+          panMode={panMode} setPanMode={setPanMode}
+          resetView={resetView}
+          theme={colors}
+        />
+
+        {/* Legend — top-left, below ViewportControls */}
         <div style={{
-          position:"absolute", top: 22, left: 24, zIndex: 6,
+          position:"absolute", top: 64, left: 24, zIndex: 6,
           display:"flex", flexDirection:"column", gap: 8,
           fontFamily:"'JetBrains Mono', monospace", fontSize: 9.5, color: colors.inkMute,
           letterSpacing: 0.5, pointerEvents:"none",
@@ -12688,8 +12844,10 @@ function TraceV04Experience({ mode, setMode }) {
         })()}
       </div>
 
-      {/* v0.3 mode: stop here — everything else is in the main graph + overlay + timeline */}
-      {mode === "v03" && !isFullscreen && (
+      {/* v0.3 mode: stop here — everything else is in the main graph + overlay + timeline.
+          Rendered in fullscreen too — page-fullscreen is scrollable, so the
+          reader can scroll past the graph to find this descriptive blurb. */}
+      {mode === "v03" && (
         <div style={{ padding: "48px 56px 72px", background: colors.paper,
           fontFamily:"'Fraunces', serif", fontStyle:"italic", fontSize: 17,
           color: colors.inkSoft, lineHeight: 1.6, maxWidth: 920 }}>
@@ -12702,7 +12860,12 @@ function TraceV04Experience({ mode, setMode }) {
         </div>
       )}
 
-      {/* v0.4 mode: full long-form exhibit.
+      {/* v0.4 mode: full long-form exhibit. Rendered in fullscreen too —
+          matches v0.3, where below-graph sections are always rendered
+          and the user scrolls down past the 100vh graph stage to read
+          them. Previously this block was guarded by !isFullscreen which
+          made it impossible to scroll to the analysis content while in
+          page-fullscreen.
           Order rationale (post-reorg, now reader-flow first):
           · StorylineReconstructions LEADS — sits directly below the evidence
             graph. α is the highest-coverage card, but defaults COLLAPSED so
@@ -12715,7 +12878,7 @@ function TraceV04Experience({ mode, setMode }) {
           · PositionFromRegister: 14-language tone analysis.
           · AnchorsRail: 13 facts, common trunk.
           · AggregationReadout, SuppressionAndJudicial, LimitsSectionV04. */}
-      {mode === "v04" && !isFullscreen && (
+      {mode === "v04" && (
         <>
           <StorylineReconstructions
             focusStoryline={focusStoryline}
