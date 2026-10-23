@@ -2092,7 +2092,7 @@ function V03_ConsistencyBadge({ level }) {
 }
 
 function V03_ExternalComparison() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [lang, setLang] = useState("en");
   return (
     <div style={{ padding: "32px 56px 56px", background: V03_colors.paper }}>
