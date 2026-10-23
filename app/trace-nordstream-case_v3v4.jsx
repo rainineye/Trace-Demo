@@ -1391,7 +1391,7 @@ function V03_Masthead({ mode, setMode, activeEventCount, activeSilenceCount, tot
               </>
             )}
             <span style={{ color: V03_colors.ruleSoft, margin: "0 7px" }}>·</span>
-            Study date 2026-04-18
+            2026-04-18
           </div>
         </div>
 
