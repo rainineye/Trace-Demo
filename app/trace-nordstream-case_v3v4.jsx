@@ -18517,7 +18517,7 @@ function factionKindLabel(kind) {
 // ============================================================================
 
 export default function TraceCaseFile() {
-  const [mode, setMode] = useState("v04");
+  const [mode, setMode] = useState("v03");
   return (
     <div>
       {/* Global :fullscreen overrides — when the user toggles browser
