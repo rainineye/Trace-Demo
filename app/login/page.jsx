@@ -17,7 +17,9 @@ const colors = {
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') || '/';
+  // 只接受站内路径（挡掉 ?from=//evil.com），hash 由浏览器带着过来，跳回去时补上
+  const rawFrom = searchParams.get('from') || '/';
+  const from = rawFrom.startsWith('/') && !rawFrom.startsWith('//') ? rawFrom : '/';
 
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,11 +33,11 @@ function LoginPageInner() {
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password, from }),
     });
 
     if (res.ok) {
-      window.location.href = from;
+      window.location.href = from + window.location.hash;
     } else {
       setError('Incorrect password');
       setLoading(false);
